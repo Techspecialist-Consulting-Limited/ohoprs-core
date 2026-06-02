@@ -1,11 +1,5 @@
-import { PlaceholderModulePage } from "@/components/shared/placeholder-module-page";
+import { NotificationsDashboardModule } from "@/features/notifications/components/notifications-modules";
 
 export default function NotificationsPage() {
-  return (
-    <PlaceholderModulePage
-      title="Notifications"
-      description="Notification templates, inboxing, and delivery orchestration will be configured in Phase 10."
-      badge="Phase 10"
-    />
-  );
+  return <NotificationsDashboardModule />;
 }

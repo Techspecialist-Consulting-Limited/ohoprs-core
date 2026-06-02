@@ -88,5 +88,13 @@ export function getRoutePermissionForPath(pathname: string) {
     return "view_audit_logs";
   }
 
+  if (pathname.startsWith("/notifications/templates/")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/notifications/history")) {
+    return null;
+  }
+
   return getRoutePermission(pathname);
 }
