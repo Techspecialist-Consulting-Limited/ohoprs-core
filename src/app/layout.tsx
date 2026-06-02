@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 
 import { AppProviders } from "@/providers/app-providers";
+import { AppToaster } from "@/providers/app-toaster";
 
 import "./globals.css";
 
@@ -43,7 +44,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={jost.variable}>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <AppToaster />
+        </AppProviders>
       </body>
     </html>
   );

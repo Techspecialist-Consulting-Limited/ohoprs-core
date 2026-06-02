@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Lock } from "lucide-react";
 
 import { navigationItems } from "@/constants/navigation";
+import { getRoutePermission, hasPermission } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -22,6 +24,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const currentTenant = useAuthStore((state) => state.currentTenant);
+  const role = useAuthStore((state) => state.role);
 
   return (
     <div className="flex h-full flex-col">
@@ -82,22 +85,38 @@ export function Sidebar({
         <ul className="space-y-1.5">
           {navigationItems.map((item) => {
             const isActive = pathname === item.href;
+            const permission = getRoutePermission(item.href);
+            const isAllowed = !permission || (role ? hasPermission(role, permission) : true);
             return (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={onCloseMobileMenu}
-                  className={cn(
-                    "group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition",
-                    collapsed && "md:justify-center",
-                    isActive
-                      ? "bg-white text-[#111111]"
-                      : "text-sidebar-muted hover:bg-white/7 hover:text-sidebar-foreground",
-                  )}
-                >
-                  <item.icon size={18} />
-                  <span className={cn("truncate font-medium", collapsed && "md:hidden")}>{item.label}</span>
-                </Link>
+                {isAllowed ? (
+                  <Link
+                    href={item.href}
+                    onClick={onCloseMobileMenu}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition",
+                      collapsed && "md:justify-center",
+                      isActive
+                        ? "bg-white text-[#111111]"
+                        : "text-sidebar-muted hover:bg-white/7 hover:text-sidebar-foreground",
+                    )}
+                  >
+                    <item.icon size={18} />
+                    <span className={cn("truncate font-medium", collapsed && "md:hidden")}>{item.label}</span>
+                  </Link>
+                ) : (
+                  <div
+                    title="You do not have permission to access this module."
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm text-sidebar-muted/60",
+                      collapsed && "md:justify-center",
+                    )}
+                  >
+                    <item.icon size={18} />
+                    <span className={cn("truncate font-medium", collapsed && "md:hidden")}>{item.label}</span>
+                    <Lock size={14} className={cn("ml-auto", collapsed && "md:hidden")} />
+                  </div>
+                )}
               </li>
             );
           })}

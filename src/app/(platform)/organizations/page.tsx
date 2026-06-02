@@ -1,11 +1,5 @@
-import { PlaceholderModulePage } from "@/components/shared/placeholder-module-page";
+import { OrganizationsModule } from "@/features/organizations/components/organizations-module";
 
 export default function OrganizationsPage() {
-  return (
-    <PlaceholderModulePage
-      title="Organizations"
-      description="Configure participating ministries, agencies, and delivery partners in Phase 4."
-      badge="Phase 4"
-    />
-  );
+  return <OrganizationsModule />;
 }
