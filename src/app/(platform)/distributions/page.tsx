@@ -1,11 +1,5 @@
-import { PlaceholderModulePage } from "@/components/shared/placeholder-module-page";
+import { DistributionsModule } from "@/features/distributions/components/distributions-module";
 
 export default function DistributionsPage() {
-  return (
-    <PlaceholderModulePage
-      title="Distributions"
-      description="Cash transfer and in-kind distribution operations will be introduced in Phase 8."
-      badge="Phase 8"
-    />
-  );
+  return <DistributionsModule />;
 }
