@@ -4,7 +4,7 @@ import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import type { ApiResponse } from "@/types/api";
 import type {
   Beneficiary,
-  BeneficiaryDetails,
+  Beneficiary360Details,
   BeneficiaryListParams,
   BeneficiaryListResponse,
   BeneficiaryPayload,
@@ -103,7 +103,7 @@ export const beneficiaryService = {
     });
   },
 
-  async getBeneficiaryById(id: string): Promise<ApiResponse<BeneficiaryDetails | null>> {
+  async getBeneficiaryById(id: string): Promise<ApiResponse<Beneficiary360Details | null>> {
     const beneficiary = beneficiaryStore.find((item) => item.id === id) ?? null;
 
     return Promise.resolve({
@@ -113,7 +113,17 @@ export const beneficiaryService = {
     });
   },
 
-  async createBeneficiary(payload: BeneficiaryPayload): Promise<ApiResponse<BeneficiaryDetails | null>> {
+  async getBeneficiary360ById(id: string): Promise<ApiResponse<Beneficiary360Details | null>> {
+    const beneficiary = beneficiaryStore.find((item) => item.id === id) ?? null;
+
+    return Promise.resolve({
+      success: Boolean(beneficiary),
+      message: beneficiary ? "Beneficiary 360 profile fetched successfully" : "Beneficiary not found",
+      data: beneficiary,
+    });
+  },
+
+  async createBeneficiary(payload: BeneficiaryPayload): Promise<ApiResponse<Beneficiary360Details | null>> {
     const organization = organizationById(payload.organizationId);
 
     if (!organization) {
@@ -128,7 +138,7 @@ export const beneficiaryService = {
     const programs = getPrograms(payload.programIds);
     const fullName = [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" ");
 
-    const next: BeneficiaryDetails = {
+    const next: Beneficiary360Details = {
       id: `beneficiary_${String(beneficiaryStore.length + 1).padStart(3, "0")}`,
       organizationId: payload.organizationId,
       organizationName: organization.name,
@@ -155,6 +165,9 @@ export const beneficiaryService = {
         status: payload.verificationStatus,
         ninVerified: payload.verificationStatus !== "FAILED",
         bvnVerified: payload.verificationStatus === "VERIFIED" && Boolean(payload.bvn),
+        identityVerified: payload.verificationStatus === "VERIFIED",
+        bankVerified: payload.verificationStatus === "VERIFIED",
+        duplicateCheck: payload.verificationStatus === "VERIFIED" ? "PASSED" : "PENDING",
         lastCheckedAt: timestamp,
       },
       benefitSummary: {
@@ -164,6 +177,35 @@ export const beneficiaryService = {
         lastDistributionStatus: "No distributions yet",
         verificationState: payload.verificationStatus,
       },
+      benefit360Summary: {
+        totalCashReceived: 0,
+        totalNonCashBenefits: 0,
+        programsEnrolled: payload.programIds.length,
+        lastBenefitDate: "No benefits yet",
+        riskFlags: 0,
+      },
+      programBreakdown: programs.map((program) => ({
+        programId: program.id,
+        programName: program.name,
+        organizationId: payload.organizationId,
+        organizationName: organization.name,
+        benefitType: program.benefitType,
+        benefitCount: 0,
+        lastBenefitDate: timestamp,
+        status: payload.benefitStatus,
+      })),
+      benefitTimeline: [],
+      riskSummary: {
+        riskLevel: "LOW",
+        flags: [],
+      },
+      documentSummary: {
+        idDocument: "Pending",
+        bankVerification: "Pending",
+        enrollmentForm: "Pending",
+        supportingDocuments: "Not Uploaded",
+      },
+      auditPreview: [],
     };
 
     beneficiaryStore = [next, ...beneficiaryStore];
@@ -175,7 +217,7 @@ export const beneficiaryService = {
     });
   },
 
-  async updateBeneficiary(id: string, payload: BeneficiaryPayload): Promise<ApiResponse<BeneficiaryDetails | null>> {
+  async updateBeneficiary(id: string, payload: BeneficiaryPayload): Promise<ApiResponse<Beneficiary360Details | null>> {
     const organization = organizationById(payload.organizationId);
 
     if (!organization) {
@@ -186,9 +228,9 @@ export const beneficiaryService = {
       });
     }
 
-    let updated: BeneficiaryDetails | null = null;
+    let updated: Beneficiary360Details | null = null;
 
-    beneficiaryStore = beneficiaryStore.map((item): BeneficiaryDetails => {
+    beneficiaryStore = beneficiaryStore.map((item): Beneficiary360Details => {
       if (item.id !== id) {
         return item;
       }
@@ -226,12 +268,34 @@ export const beneficiaryService = {
           activeEnrollments: payload.programIds.length,
           verificationState: payload.verificationStatus,
         },
+        benefit360Summary: {
+          ...item.benefit360Summary,
+          programsEnrolled: payload.programIds.length,
+        },
+        programBreakdown: programs.map((program) => {
+          const existing = item.programBreakdown.find((entry) => entry.programId === program.id);
+          return (
+            existing ?? {
+              programId: program.id,
+              programName: program.name,
+              organizationId: payload.organizationId,
+              organizationName: organization.name,
+              benefitType: program.benefitType,
+              benefitCount: 0,
+              lastBenefitDate: new Date().toISOString(),
+              status: payload.benefitStatus,
+            }
+          );
+        }),
       };
 
       updated.verificationSummary = {
         status: payload.verificationStatus,
         ninVerified: payload.verificationStatus !== "FAILED",
         bvnVerified: payload.verificationStatus === "VERIFIED" && Boolean(payload.bvn),
+        identityVerified: payload.verificationStatus === "VERIFIED",
+        bankVerified: payload.verificationStatus === "VERIFIED",
+        duplicateCheck: payload.verificationStatus === "VERIFIED" ? "PASSED" : item.verificationSummary.duplicateCheck,
         lastCheckedAt: new Date().toISOString(),
       };
 
@@ -248,10 +312,10 @@ export const beneficiaryService = {
   async updateBeneficiaryStatuses(
     id: string,
     statuses: { verificationStatus: VerificationStatus; benefitStatus: BenefitStatus },
-  ): Promise<ApiResponse<BeneficiaryDetails | null>> {
-    let updated: BeneficiaryDetails | null = null;
+  ): Promise<ApiResponse<Beneficiary360Details | null>> {
+    let updated: Beneficiary360Details | null = null;
 
-    beneficiaryStore = beneficiaryStore.map((item): BeneficiaryDetails => {
+    beneficiaryStore = beneficiaryStore.map((item): Beneficiary360Details => {
       if (item.id !== id) {
         return item;
       }
@@ -265,6 +329,9 @@ export const beneficiaryService = {
           status: statuses.verificationStatus,
           ninVerified: statuses.verificationStatus !== "FAILED",
           bvnVerified: statuses.verificationStatus === "VERIFIED" && Boolean(item.bvn),
+          identityVerified: statuses.verificationStatus === "VERIFIED",
+          bankVerified: statuses.verificationStatus === "VERIFIED",
+          duplicateCheck: statuses.verificationStatus === "VERIFIED" ? "PASSED" : item.verificationSummary.duplicateCheck,
           lastCheckedAt: new Date().toISOString(),
         },
         benefitSummary: {

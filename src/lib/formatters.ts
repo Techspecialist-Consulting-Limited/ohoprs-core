@@ -46,6 +46,16 @@ export function formatRelativeTime(input: string | Date) {
   });
 }
 
+export function formatDate(input: string | Date) {
+  const date = typeof input === "string" ? new Date(input) : input;
+
+  return date.toLocaleDateString("en-NG", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export function formatDateTime(input: string | Date) {
   const date = typeof input === "string" ? new Date(input) : input;
 
