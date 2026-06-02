@@ -17,6 +17,20 @@ export type DistributionStatus =
   | "FAILED"
   | "CANCELLED";
 
+export type DistributionApprovalStatus =
+  | "DRAFT"
+  | "SUBMITTED"
+  | "APPROVED"
+  | "REJECTED";
+
+export type DistributionExecutionStatus =
+  | "NOT_STARTED"
+  | "PROCESSING"
+  | "PARTIALLY_PROCESSED"
+  | "COMPLETED"
+  | "FAILED"
+  | "REVERSED";
+
 export type DeliveryStatus = "DELIVERED" | "PENDING" | "FAILED" | "REVERSED";
 
 export interface Distribution {
@@ -33,6 +47,8 @@ export interface Distribution {
   amount?: number;
   quantity?: number;
   status: DistributionStatus;
+  approvalStatus: DistributionApprovalStatus;
+  executionStatus: DistributionExecutionStatus;
   scheduledDate: string;
   createdByUserId: string;
   createdBy: string;
@@ -65,6 +81,24 @@ export interface DistributionActivityItem {
   timestamp: string;
 }
 
+export interface DistributionApprovalHistoryItem {
+  id: string;
+  label: string;
+  actor: string;
+  timestamp: string;
+  note?: string;
+}
+
+export interface DistributionValidationSummary {
+  verifiedBeneficiaries: number;
+  pendingVerification: number;
+  failedVerification: number;
+  duplicateRecords: number;
+  flaggedBeneficiaries: number;
+  eligibleBeneficiaries: number;
+  estimatedTotalAmount: number;
+}
+
 export interface DistributionStatistics {
   beneficiaries: number;
   amountDistributed: number;
@@ -82,6 +116,10 @@ export interface DistributionDetails extends Distribution {
   statistics: DistributionStatistics;
   timeline: DistributionTimelineItem[];
   recentActivities: DistributionActivityItem[];
+  approvalHistory: DistributionApprovalHistoryItem[];
+  validationSummary: DistributionValidationSummary;
+  isHighRisk: boolean;
+  rejectionReason?: string;
 }
 
 export interface DistributionListMeta {

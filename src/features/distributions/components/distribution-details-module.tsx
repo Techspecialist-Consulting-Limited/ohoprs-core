@@ -71,6 +71,8 @@ export function DistributionDetailsModule({ id }: { id: string }) {
   const canEdit = canEditDistribution(role, distribution.organizationId, user?.organizationId, distribution.createdByUserId, user?.id);
   const actions = [
     ...(canEdit ? [{ label: "Edit Distribution", href: `/distributions/${distribution.id}/edit`, icon: Pencil }] : []),
+    { label: "Open Approval Review", href: `/distributions/${distribution.id}/approval`, icon: ArrowRight },
+    { label: "Open Payments", href: `/distributions/${distribution.id}/payments`, icon: ArrowRight },
     { label: "View Program", href: `/programs/${distribution.programId}`, icon: ArrowRight },
     { label: "View Beneficiaries", href: "/beneficiaries", icon: ArrowRight },
     ...(role === "SUPER_ADMIN" || role === "ORG_ADMIN" || role === "AUDITOR" ? [{ label: "View Reports", href: "/reports", icon: FileBarChart2 }] : []),
@@ -83,7 +85,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Phase 9</span>
+              <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Phase 15</span>
               {role === "AUDITOR" ? <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Read-only oversight view</span> : null}
             </div>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">{distribution.name}</h1>
@@ -91,6 +93,12 @@ export function DistributionDetailsModule({ id }: { id: string }) {
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <DistributionStatusBadge status={distribution.status} />
               <DistributionMethodBadge method={distribution.method} />
+              <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">
+                Approval: {distribution.approvalStatus.replaceAll("_", " ")}
+              </span>
+              <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">
+                Execution: {distribution.executionStatus.replaceAll("_", " ")}
+              </span>
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.programName}</span>
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.organizationName}</span>
             </div>
@@ -147,6 +155,23 @@ export function DistributionDetailsModule({ id }: { id: string }) {
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <DistributionBeneficiaryPreview recipients={distribution.recipients} />
         <DistributionActivityFeed items={distribution.recentActivities} />
+      </section>
+
+      <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Approval history</p>
+        <h2 className="mt-2 text-xl font-semibold text-foreground">Governance trail</h2>
+        <div className="mt-5 space-y-4">
+          {distribution.approvalHistory.map((entry) => (
+            <div key={entry.id} className="flex gap-4">
+              <div className="mt-1 h-3 w-3 rounded-full bg-accent" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">{entry.label}</p>
+                <p className="mt-1 text-sm text-muted">{entry.note ?? "Workflow event recorded."}</p>
+                <p className="mt-2 text-xs text-muted-soft">{formatDateTime(entry.timestamp)} • {entry.actor}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <DistributionTimeline items={distribution.timeline} />

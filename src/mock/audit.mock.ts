@@ -226,3 +226,15 @@ function createEvent(index: number): AuditLogDetails {
 }
 
 export const auditLogsData: AuditLogDetails[] = Array.from({ length: 120 }, (_, index) => createEvent(index));
+
+export function appendAuditLog(entry: Omit<AuditLogDetails, "id"> & { id?: string }) {
+  const nextId = entry.id ?? `audit_${String(auditLogsData.length + 1).padStart(3, "0")}`;
+  const nextEntry: AuditLogDetails = {
+    ...entry,
+    id: nextId,
+  };
+
+  auditLogsData.unshift(nextEntry);
+
+  return nextEntry;
+}
