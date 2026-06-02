@@ -1,11 +1,5 @@
-import { PlaceholderModulePage } from "@/components/shared/placeholder-module-page";
+import { SettingsDashboardModule } from "@/features/settings/components/settings-modules";
 
 export default function SettingsPage() {
-  return (
-    <PlaceholderModulePage
-      title="Settings"
-      description="Platform policies, role defaults, and tenant-level configuration will be refined in Phase 13."
-      badge="Phase 13"
-    />
-  );
+  return <SettingsDashboardModule />;
 }
