@@ -84,5 +84,9 @@ export function getRoutePermissionForPath(pathname: string) {
     return "view_reports";
   }
 
+  if (pathname.startsWith("/audit-logs/")) {
+    return "view_audit_logs";
+  }
+
   return getRoutePermission(pathname);
 }
