@@ -1,11 +1,5 @@
-import { PlaceholderModulePage } from "@/components/shared/placeholder-module-page";
+import { BeneficiariesModule } from "@/features/beneficiaries/components/beneficiaries-module";
 
 export default function BeneficiariesPage() {
-  return (
-    <PlaceholderModulePage
-      title="Beneficiaries"
-      description="Beneficiary management will be implemented in Phase 7."
-      badge="Phase 7"
-    />
-  );
+  return <BeneficiariesModule />;
 }

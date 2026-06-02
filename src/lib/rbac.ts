@@ -10,6 +10,8 @@ const routePermissionMap: Record<string, Permission | null> = {
   "/programs": "view_programs",
   "/programs/new": "create_program",
   "/beneficiaries": "view_beneficiaries",
+  "/beneficiaries/new": "view_beneficiaries",
+  "/beneficiaries/upload": "upload_beneficiaries",
   "/distributions": "view_distributions",
   "/reports": "view_reports",
   "/audit-logs": "view_audit_logs",
@@ -54,6 +56,14 @@ export function getRoutePermissionForPath(pathname: string) {
 
   if (pathname.startsWith("/programs/")) {
     return "view_programs";
+  }
+
+  if (pathname.startsWith("/beneficiaries/") && pathname.endsWith("/edit")) {
+    return "view_beneficiaries";
+  }
+
+  if (pathname.startsWith("/beneficiaries/")) {
+    return "view_beneficiaries";
   }
 
   return getRoutePermission(pathname);
