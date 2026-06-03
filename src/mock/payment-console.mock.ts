@@ -152,7 +152,7 @@ function buildDistributionTimeline(distribution: DistributionDetails, payments: 
       actor: distribution.createdBy,
       tone: "neutral",
     },
-    ...distribution.approvalHistory.map((item) => ({
+    ...distribution.approvalHistory.map<PaymentConsoleTimelineItem>((item) => ({
       id: item.id,
       label: item.label,
       description: item.note ?? "Governance checkpoint recorded.",

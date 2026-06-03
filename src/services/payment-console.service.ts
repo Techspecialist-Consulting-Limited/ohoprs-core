@@ -351,7 +351,7 @@ function updateStoreAndDistribution(distribution: DistributionDetails, store: Pa
   };
 }
 
-function nextPaymentStatusForRetry(payment: PaymentConsolePaymentRecord) {
+function nextPaymentStatusForRetry(payment: PaymentConsolePaymentRecord): PaymentStatus {
   return paymentBelongsToFailureRule(payment) ? "FAILED" : "PAID";
 }
 
@@ -504,12 +504,12 @@ export const paymentConsoleService = {
     }
 
     const eligibleStatuses: PaymentStatus[] = ["PENDING", "FAILED", "RETRY_PENDING"];
-    const updatedPayments = result.store.payments.map((payment) => {
+    const updatedPayments = result.store.payments.map<PaymentConsolePaymentRecord>((payment) => {
       if (!paymentIds.includes(payment.id) || !eligibleStatuses.includes(payment.status)) {
         return payment;
       }
 
-      const nextStatus = paymentBelongsToFailureRule(payment) ? "FAILED" : "PAID";
+      const nextStatus: PaymentStatus = paymentBelongsToFailureRule(payment) ? "FAILED" : "PAID";
       return {
         ...payment,
         status: nextStatus,
@@ -586,7 +586,7 @@ export const paymentConsoleService = {
       return { success: false, message: "You cannot retry payments for this distribution.", data: { console: null } };
     }
 
-    const updatedPayments = result.store.payments.map((payment) => {
+    const updatedPayments = result.store.payments.map<PaymentConsolePaymentRecord>((payment) => {
       if (!paymentIds.includes(payment.id) || (payment.status !== "FAILED" && payment.status !== "RETRY_PENDING")) {
         return payment;
       }
@@ -645,7 +645,7 @@ export const paymentConsoleService = {
       return { success: false, message: "You cannot reverse payments for this distribution.", data: { console: null } };
     }
 
-    const updatedPayments = result.store.payments.map((payment) => {
+    const updatedPayments = result.store.payments.map<PaymentConsolePaymentRecord>((payment) => {
       if (payment.id !== paymentId || payment.status !== "PAID") {
         return payment;
       }
