@@ -59,6 +59,9 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
+        if (state?.role) {
+          state.setCurrentTenant(tenantByRole[state.role]);
+        }
         state?.markHydrated();
       },
     },

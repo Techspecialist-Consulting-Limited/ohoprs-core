@@ -49,14 +49,14 @@ export const tenantByRole: Record<UserRole, TenantContext | null> = {
     tenantId: "tenant-org-001",
     name: "Federal Ministry of Humanitarian Affairs",
     shortCode: "FMHA",
-    logoUrl: null,
+    logoUrl: "/images/federal-ministry-affirs.jpeg",
   },
   PROGRAM_OFFICER: {
     id: "tenant-org-001",
     tenantId: "tenant-org-001",
     name: "Federal Ministry of Humanitarian Affairs",
     shortCode: "FMHA",
-    logoUrl: null,
+    logoUrl: "/images/federal-ministry-affirs.jpeg",
   },
   AUDITOR: {
     id: "tenant-audit",

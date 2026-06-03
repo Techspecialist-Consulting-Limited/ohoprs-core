@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Bell, Check, ChevronsUpDown, LogOut, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -8,9 +9,11 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { SearchInput } from "@/components/ui/search-input";
 import { userRoles } from "@/features/auth/schemas/auth.schema";
 import { tenantByRole } from "@/mock/auth.mock";
+import { organizationsData } from "@/mock/organizations.mock";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
 import type { UserRole } from "@/types/auth";
+import type { TenantContext } from "@/types/tenant";
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
@@ -28,28 +31,46 @@ export function Header({
 }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const tenantMenuRef = useRef<HTMLDivElement>(null);
   const currentTenant = useAuthStore((state) => state.currentTenant);
   const logout = useAuthStore((state) => state.logout);
   const role = useAuthStore((state) => state.role);
   const setRole = useAuthStore((state) => state.setRole);
   const setCurrentTenant = useAuthStore((state) => state.setCurrentTenant);
   const user = useAuthStore((state) => state.user);
+  const isSuperAdmin = role === "SUPER_ADMIN";
+
+  const superAdminTenants: TenantContext[] = organizationsData.map((organization) => ({
+    id: organization.id,
+    tenantId: organization.id,
+    name: organization.name,
+    shortCode: organization.shortName,
+    logoUrl:
+      organization.id === "org_001"
+        ? "/images/federal-ministry-affirs.jpeg"
+        : null,
+  }));
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
       if (!menuRef.current?.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
+
+      if (!tenantMenuRef.current?.contains(event.target as Node)) {
+        setIsTenantMenuOpen(false);
+      }
     }
 
-    if (!isMenuOpen) {
+    if (!isMenuOpen && !isTenantMenuOpen) {
       return;
     }
 
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isTenantMenuOpen]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-xl">
@@ -71,19 +92,101 @@ export function Header({
           />
         </div>
 
-        <button
-          type="button"
-          className="focus-ring hidden min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 text-left lg:flex"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/12 text-sm font-semibold text-accent">
-            {currentTenant?.shortCode ?? "NB"}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{currentTenant?.name}</p>
-            <p className="truncate text-xs text-muted">Tenant switcher placeholder</p>
-          </div>
-          <ChevronsUpDown size={16} className="text-muted" />
-        </button>
+        <div ref={tenantMenuRef} className="relative hidden lg:block">
+          <button
+            type="button"
+            onClick={() => {
+              if (!isSuperAdmin) {
+                return;
+              }
+
+              setIsTenantMenuOpen((value) => !value);
+            }}
+            className={cn(
+              "focus-ring hidden min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 text-left lg:flex",
+              isSuperAdmin && "cursor-pointer",
+            )}
+          >
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-accent/12">
+              {currentTenant?.logoUrl ? (
+                <Image
+                  src={currentTenant.logoUrl}
+                  alt={`${currentTenant.name} logo`}
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 object-contain"
+                />
+              ) : currentTenant?.shortCode ? (
+                <span className="text-sm font-semibold text-accent">{currentTenant.shortCode}</span>
+              ) : (
+                <Image
+                  src="/icon"
+                  alt="App icon"
+                  width={24}
+                  height={24}
+                  className="h-6 w-6 object-contain"
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">{currentTenant?.name}</p>
+              <p className="truncate text-xs text-muted">
+                {isSuperAdmin ? "Switch organization context" : "Assigned organization"}
+              </p>
+            </div>
+            {isSuperAdmin ? <ChevronsUpDown size={16} className="text-muted" /> : null}
+          </button>
+
+          {isSuperAdmin && isTenantMenuOpen ? (
+            <div className="absolute left-0 top-14 z-40 w-[360px] rounded-[24px] border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
+              <div className="px-3 pb-2 pt-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-soft">Organizations</p>
+                <p className="mt-1 text-xs text-muted">Select a tenant context for the current session.</p>
+              </div>
+              <div className="app-scrollbar max-h-80 space-y-1 overflow-y-auto px-1 pb-1">
+                {superAdminTenants.map((tenant) => {
+                  const isActiveTenant = currentTenant?.tenantId === tenant.tenantId;
+
+                  return (
+                    <button
+                      key={tenant.tenantId}
+                      type="button"
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition",
+                        isActiveTenant
+                          ? "bg-surface-muted text-foreground"
+                          : "text-muted hover:bg-surface-muted hover:text-foreground",
+                      )}
+                      onClick={() => {
+                        setCurrentTenant(tenant);
+                        setIsTenantMenuOpen(false);
+                      }}
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/12">
+                        {tenant.logoUrl ? (
+                          <Image
+                            src={tenant.logoUrl}
+                            alt={`${tenant.name} logo`}
+                            width={28}
+                            height={28}
+                            className="h-7 w-7 object-contain"
+                          />
+                        ) : (
+                          <span className="text-sm font-semibold text-accent">{tenant.shortCode}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{tenant.name}</p>
+                        <p className="truncate text-xs text-muted-soft">{tenant.shortCode}</p>
+                      </div>
+                      {isActiveTenant ? <Check size={16} className="shrink-0" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         <div className="ml-auto flex items-center gap-2">
           <button

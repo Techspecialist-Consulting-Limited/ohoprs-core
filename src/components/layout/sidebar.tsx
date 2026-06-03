@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
@@ -30,14 +31,21 @@ export function Sidebar({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-white/8 px-4 py-5">
         <div className={cn("flex min-w-0 items-center gap-3", collapsed && "md:justify-center")}>
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-accent-foreground">
-            NB
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
+            <Image
+              src="/images/OHO-Logo.png"
+              alt="OHOPRS logo"
+              width={44}
+              height={44}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <div className={cn("min-w-0", collapsed && "md:hidden")}>
             <p className="truncate text-sm font-semibold text-sidebar-foreground">
-              National Benefits
+              OHOPRS
             </p>
-            <p className="truncate text-xs text-sidebar-muted">Administration Platform</p>
+            <p className="truncate text-xs text-sidebar-muted">One Humanitarian One Poverty Response System</p>
           </div>
         </div>
 
