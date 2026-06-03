@@ -1,4 +1,4 @@
-import { DistributionPaymentsModule } from "@/features/payments/components/distribution-payments-module";
+import { PaymentConsoleModule } from "@/features/payment-console/components/PaymentConsoleModule";
 
 export default async function DistributionPaymentsPage({
   params,
@@ -7,5 +7,5 @@ export default async function DistributionPaymentsPage({
 }) {
   const { id } = await params;
 
-  return <DistributionPaymentsModule id={id} />;
+  return <PaymentConsoleModule id={id} />;
 }

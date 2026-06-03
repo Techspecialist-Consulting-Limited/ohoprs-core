@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { Bell, Check, ChevronsUpDown, LogOut, Search } from "lucide-react";
+import { Bell, Check, ChevronsUpDown, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { SearchInput } from "@/components/ui/search-input";
 import { userRoles } from "@/features/auth/schemas/auth.schema";
 import { tenantByRole } from "@/mock/auth.mock";
 import { organizationsData } from "@/mock/organizations.mock";
@@ -20,6 +19,24 @@ const roleLabels: Record<UserRole, string> = {
   ORG_ADMIN: "Organization Admin",
   PROGRAM_OFFICER: "Program Officer",
   AUDITOR: "Auditor",
+};
+
+const organizationLogoById: Record<string, string> = {
+  org_001: "/images/federal-ministry-affirs.jpeg",
+  org_002: "/images/org-002-logo.svg",
+  org_003: "/images/org-003-logo.svg",
+  org_004: "/images/org-004-logo.svg",
+  org_005: "/images/org-005-logo.svg",
+  org_006: "/images/org-006-logo.svg",
+  org_007: "/images/org-007-logo.svg",
+  org_008: "/images/org-008-logo.svg",
+  org_009: "/images/org-009-logo.svg",
+  org_010: "/images/org-010-logo.svg",
+  org_011: "/images/org-011-logo.svg",
+  org_012: "/images/org-012-logo.svg",
+  org_013: "/images/org-013-logo.svg",
+  org_014: "/images/org-014-logo.svg",
+  org_015: "/images/org-015-logo.svg",
 };
 
 export function Header({
@@ -47,10 +64,7 @@ export function Header({
     tenantId: organization.id,
     name: organization.name,
     shortCode: organization.shortName,
-    logoUrl:
-      organization.id === "org_001"
-        ? "/images/federal-ministry-affirs.jpeg"
-        : null,
+    logoUrl: organizationLogoById[organization.id] ?? null,
   }));
 
   useEffect(() => {
@@ -84,15 +98,10 @@ export function Header({
           {menuIcon}
         </button>
 
-        <div className="hidden min-w-0 flex-1 md:flex">
-          <SearchInput
-            ariaLabel="Search platform"
-            icon={<Search size={16} />}
-            placeholder="Search platform, modules, and records"
-          />
-        </div>
+        <div className="hidden min-w-0 flex-1 md:flex" />
 
-        <div ref={tenantMenuRef} className="relative hidden lg:block">
+
+        <div ref={tenantMenuRef} className="relative hidden lg:block gap-6">
           <button
             type="button"
             onClick={() => {
