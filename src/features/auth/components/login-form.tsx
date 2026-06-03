@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
-import { RoleSelector } from "@/features/auth/components/role-selector";
 import { loginSchema } from "@/features/auth/schemas/auth.schema";
 import { mockUsers } from "@/mock/auth.mock";
 import { authService } from "@/services/auth.service";
@@ -20,6 +20,12 @@ import type { UserRole } from "@/types/auth";
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const defaultRole: UserRole = "SUPER_ADMIN";
+const roleLabels: Record<UserRole, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ORG_ADMIN: "Org Admin",
+  PROGRAM_OFFICER: "Program Admin",
+  AUDITOR: "Auditor",
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -71,109 +77,99 @@ export function LoginForm() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-      <div className="rounded-[32px] border border-border bg-surface p-8 shadow-sm sm:p-10">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-accent-foreground">
-            NB
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">National Benefits</p>
-            <p className="text-xs text-muted">Administration Platform</p>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Sign in to continue</h1>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Demo-ready authentication foundation for the government benefits operations platform.
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-foreground">Demo role</label>
-            <RoleSelector
-              value={selectedRole}
-              onChange={(role) => form.setValue("role", role, { shouldValidate: true })}
-            />
-            {form.formState.errors.role ? (
-              <p className="text-sm text-danger">{form.formState.errors.role.message}</p>
-            ) : null}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="email">
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              {...form.register("email")}
-              className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft"
-              placeholder="Enter your work email"
-            />
-            {form.formState.errors.email ? (
-              <p className="mt-2 text-sm text-danger">{form.formState.errors.email.message}</p>
-            ) : null}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-4">
-              <label className="block text-sm font-medium text-foreground" htmlFor="password">
-                Password
-              </label>
-              <Link href="/forgot-password" className="text-sm font-medium text-accent hover:underline">
-                Forgot password?
-              </Link>
+    <div className="mx-auto w-full max-w-[460px]">
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="absolute inset-[-24px] rounded-[40px] bg-white/18 blur-3xl"
+        />
+        <div className="rounded-[32px] bg-white/92 p-6 shadow-[0_24px_70px_rgba(27,52,39,0.14)] backdrop-blur-xl sm:p-8">
+          <div className="flex flex-col items-center text-center">
+            <div className="rounded-[22px] bg-[#f4f6f2] p-3">
+              <Image
+                src="/images/OHO-Logo.png"
+                alt="OHOPRS logo"
+                width={78}
+                height={78}
+                className="h-16 w-16 object-contain"
+                priority
+              />
             </div>
-            <input
-              id="password"
-              type="password"
-              {...form.register("password")}
-              className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft"
-              placeholder="Any non-empty password works for demo mode"
-            />
-            {form.formState.errors.password ? (
-              <p className="mt-2 text-sm text-danger">{form.formState.errors.password.message}</p>
-            ) : null}
+            <p className="mt-5 text-sm font-semibold uppercase tracking-[0.24em] text-[#2d6e43]">OHOPRS</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[#162117]">Welcome back</h1>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-[#6b746c]">
+              Sign in to continue to the operations dashboard.
+            </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loginMutation.isPending ? "Signing in..." : "Sign in"}
-            <ArrowRight size={16} />
-          </button>
-        </form>
-      </div>
+          <form className="mt-8 space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#162117]" htmlFor="role">
+                Role
+              </label>
+              <select
+                id="role"
+                value={selectedRole}
+                onChange={(event) => form.setValue("role", event.target.value as UserRole, { shouldValidate: true })}
+                className="focus-ring h-13 w-full rounded-2xl bg-[#f7f8f5] px-4 text-sm text-[#162117] outline-none"
+              >
+                {Object.entries(roleLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {form.formState.errors.role ? (
+                <p className="mt-2 text-sm text-danger">{form.formState.errors.role.message}</p>
+              ) : null}
+            </div>
 
-      <div className="space-y-4">
-        <div className="rounded-[32px] border border-border bg-surface p-8 shadow-sm">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="text-accent" size={20} />
-            <p className="text-sm font-semibold text-foreground">Demo credentials</p>
-          </div>
-          <div className="mt-5 space-y-3">
-            {mockUsers.map((user) => (
-              <div key={user.id} className="rounded-2xl border border-border bg-surface-muted p-4">
-                <p className="text-sm font-semibold text-foreground">{user.name}</p>
-                <p className="mt-1 text-sm text-muted">{user.email}</p>
-                <p className="mt-2 text-xs font-medium text-accent">{user.role.replaceAll("_", " ")}</p>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#162117]" htmlFor="email">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                {...form.register("email")}
+                className="focus-ring h-13 w-full rounded-2xl bg-[#f7f8f5] px-4 text-sm text-[#162117] placeholder:text-[#94a097]"
+                placeholder="Enter your email address"
+              />
+              {form.formState.errors.email ? (
+                <p className="mt-2 text-sm text-danger">{form.formState.errors.email.message}</p>
+              ) : null}
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-4">
+                <label className="block text-sm font-medium text-[#162117]" htmlFor="password">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-sm font-medium text-[#2d6e43] hover:underline">
+                  Forgot password?
+                </Link>
               </div>
-            ))}
-          </div>
-        </div>
+              <input
+                id="password"
+                type="password"
+                {...form.register("password")}
+                className="focus-ring h-13 w-full rounded-2xl bg-[#f7f8f5] px-4 text-sm text-[#162117] placeholder:text-[#94a097]"
+                placeholder="Enter your password"
+              />
+              {form.formState.errors.password ? (
+                <p className="mt-2 text-sm text-danger">{form.formState.errors.password.message}</p>
+              ) : null}
+            </div>
 
-        <div className="rounded-[32px] border border-border bg-[#161616] p-8 text-white shadow-sm">
-          <p className="text-sm font-semibold">Prototype notes</p>
-          <ul className="mt-4 space-y-3 text-sm text-white/72">
-            <li>Role selector drives the login persona for fast demos.</li>
-            <li>Session persists in local storage until logout.</li>
-            <li>Permissions update instantly across header and sidebar.</li>
-          </ul>
+            <button
+              type="submit"
+              disabled={loginMutation.isPending}
+              className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-[#2d6e43] px-4 text-sm font-semibold text-white transition hover:bg-[#245636] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loginMutation.isPending ? "Signing in..." : "Sign in"}
+              <ArrowRight size={16} />
+            </button>
+          </form>
         </div>
       </div>
     </div>
