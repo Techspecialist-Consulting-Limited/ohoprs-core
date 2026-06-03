@@ -12,11 +12,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="flex min-h-screen">
+    <div className="h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex h-full min-h-0">
         <aside
           className={cn(
-            "hidden border-r border-border bg-sidebar text-sidebar-foreground md:flex md:flex-col",
+            "hidden h-full border-r border-border bg-sidebar text-sidebar-foreground md:flex md:flex-col",
             isSidebarCollapsed ? "md:w-24" : "md:w-72",
           )}
         >
@@ -27,13 +27,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         </aside>
 
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <Header
             onOpenMobileMenu={() => setIsDrawerOpen(true)}
             menuIcon={<Menu size={20} />}
           />
-          <main className="flex-1 overflow-x-hidden">
-            <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="mx-auto flex min-h-full w-full min-w-0 max-w-[1600px] flex-col px-4 py-6 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>

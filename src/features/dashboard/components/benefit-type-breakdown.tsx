@@ -14,7 +14,7 @@ export function BenefitTypeBreakdown({ data }: { data: ChartPoint[] }) {
   };
 
   return (
-    <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+    <div className="min-w-0 rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">Programs by benefit type</p>
         <p className="mt-1 text-sm text-muted">Portfolio composition across the active benefit mix.</p>

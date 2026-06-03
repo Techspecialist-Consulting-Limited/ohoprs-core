@@ -21,7 +21,7 @@ export function BeneficiaryGrowthChart({ data }: { data: ChartPoint[] }) {
   };
 
   return (
-    <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+    <div className="min-w-0 rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">Beneficiary growth</p>
         <p className="mt-1 text-sm text-muted">Cumulative beneficiary reach over the last 12 months.</p>

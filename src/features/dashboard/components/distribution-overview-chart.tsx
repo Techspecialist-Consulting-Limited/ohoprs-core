@@ -21,7 +21,7 @@ export function DistributionOverviewChart({ data }: { data: ChartPoint[] }) {
   };
 
   return (
-    <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+    <div className="min-w-0 rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">Distribution overview</p>
         <p className="mt-1 text-sm text-muted">12-month distribution trend across the current executive scope.</p>

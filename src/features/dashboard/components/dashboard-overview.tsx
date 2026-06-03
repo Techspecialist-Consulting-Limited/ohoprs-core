@@ -74,15 +74,15 @@ export function DashboardOverview() {
     <PageContainer>
       <DashboardHeader dashboard={dashboard} role={role!} />
       <KpiCardGrid kpis={dashboard.kpis} />
-      <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <DistributionOverviewChart data={dashboard.distributionOverview} />
         <SystemStatusCard items={dashboard.systemStatus} />
       </section>
-      <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <BeneficiaryGrowthChart data={dashboard.beneficiaryGrowth} />
         <QuickActions actions={dashboard.quickActions} role={role!} />
       </section>
-      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <BenefitTypeBreakdown data={dashboard.benefitTypeBreakdown} />
         <RecentActivityFeed data={dashboard.recentActivities} />
       </section>
