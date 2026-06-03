@@ -56,7 +56,7 @@ export function DistributionFilters({
         ) : null}
 
         <label className="block">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Program</span>
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention</span>
           <select
             value={value.programId}
             onChange={(event) => onChange({ ...value, programId: event.target.value })}

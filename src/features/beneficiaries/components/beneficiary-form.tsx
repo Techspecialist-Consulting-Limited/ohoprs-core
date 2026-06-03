@@ -188,7 +188,7 @@ export function BeneficiaryForm({
         </Field>
       </div>
 
-      <Field label="Programs" error={form.formState.errors.programIds?.message as string | undefined}>
+      <Field label="Interventions" error={form.formState.errors.programIds?.message as string | undefined}>
         <select
           {...form.register("programIds")}
           multiple

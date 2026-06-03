@@ -66,7 +66,7 @@ export function BeneficiaryFilters({
           onChange={(event) => onChange({ ...value, programId: event.target.value })}
           className="w-full bg-transparent text-sm text-foreground outline-none"
         >
-          <option value="ALL">All programs</option>
+          <option value="ALL">All interventions</option>
           {programs.map((program) => (
             <option key={program.id} value={program.id}>
               {program.name}

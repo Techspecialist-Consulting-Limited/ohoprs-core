@@ -73,7 +73,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
     ...(canEdit ? [{ label: "Edit Distribution", href: `/distributions/${distribution.id}/edit`, icon: Pencil }] : []),
     { label: "Open Approval Review", href: `/distributions/${distribution.id}/approval`, icon: ArrowRight },
     { label: "Open Payments", href: `/distributions/${distribution.id}/payments`, icon: ArrowRight },
-    { label: "View Program", href: `/programs/${distribution.programId}`, icon: ArrowRight },
+    { label: "View Intervention", href: `/programs/${distribution.programId}`, icon: ArrowRight },
     { label: "View Beneficiaries", href: "/beneficiaries", icon: ArrowRight },
     ...(role === "SUPER_ADMIN" || role === "ORG_ADMIN" || role === "AUDITOR" ? [{ label: "View Reports", href: "/reports", icon: FileBarChart2 }] : []),
     ...(role === "AUDITOR" ? [{ label: "View Audit Logs", href: "/audit-logs", icon: FileBarChart2 }] : []),
@@ -118,10 +118,10 @@ export function DistributionDetailsModule({ id }: { id: string }) {
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Workflow context</p>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">Program and organization summary</h2>
+          <h2 className="mt-2 text-xl font-semibold text-foreground">Intervention and organization summary</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <ContextCard
-              title="Program"
+              title="Intervention"
               subtitle={distribution.programName}
               meta={`${distribution.benefitType.replaceAll("_", " ")} benefit`}
               href={`/programs/${distribution.programId}`}

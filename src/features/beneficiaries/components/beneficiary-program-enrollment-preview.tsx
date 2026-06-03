@@ -12,8 +12,8 @@ export function BeneficiaryProgramEnrollmentPreview({
     <div className="space-y-4">
       <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
         <div>
-          <p className="text-sm font-semibold text-foreground">Program enrollment preview</p>
-          <p className="mt-1 text-sm text-muted">Current program enrollments linked to this beneficiary.</p>
+          <p className="text-sm font-semibold text-foreground">Intervention enrollment preview</p>
+          <p className="mt-1 text-sm text-muted">Current intervention enrollments linked to this beneficiary.</p>
         </div>
         <div className="mt-5 space-y-3">
           {programs.map((program) => (

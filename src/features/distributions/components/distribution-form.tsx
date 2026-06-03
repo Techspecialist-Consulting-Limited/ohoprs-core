@@ -113,7 +113,7 @@ export function DistributionForm({
           </select>
         </Field>
 
-        <Field label="Program" error={form.formState.errors.programId?.message}>
+        <Field label="Intervention" error={form.formState.errors.programId?.message}>
           <select {...form.register("programId")} className={inputClassName}>
             <option value="">Select program</option>
             {availablePrograms.map((program) => (

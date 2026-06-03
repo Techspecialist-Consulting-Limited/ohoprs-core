@@ -13,7 +13,7 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
         <Info label="Address" value={beneficiary.address} />
       </div>
       <div className="mt-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Program enrollments</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention enrollments</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {beneficiary.programs.map((program) => (
             <span key={program.id} className="inline-flex rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-foreground">

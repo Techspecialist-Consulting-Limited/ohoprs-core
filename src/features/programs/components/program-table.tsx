@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, EllipsisVertical, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
 
+import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import type { Program, ProgramListMeta } from "@/types/program";
@@ -33,7 +33,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Program Name", "Organization", "Benefit Type", "Status", "Beneficiaries", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Organization", "Benefit Type", "Status", "Beneficiaries", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -65,7 +65,7 @@ export function ProgramTable({
 
       <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} programs)
+          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} interventions)
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -116,35 +116,10 @@ function RowActionMenu({
   item: Program;
   onStatusAction: (program: Program) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
-      if (!ref.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    if (!open) {
-      return;
-    }
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [open]);
-
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-surface text-muted"
-      >
-        <EllipsisVertical size={16} />
-      </button>
-      {open ? (
-        <div className="absolute right-0 top-12 z-20 w-56 rounded-2xl border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
+    <RowActionPopover>
+      {({ close }) => (
+        <>
           <Link
             href={`/programs/${item.id}`}
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
@@ -158,15 +133,15 @@ function RowActionMenu({
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
             >
               <Pencil size={16} />
-              Edit Program
+              Edit Intervention
             </Link>
           ) : (
             <div className="rounded-xl px-3 py-2 text-sm text-muted">
               <div className="flex items-center gap-2">
                 <Lock size={16} />
-                Edit Program
+                Edit Intervention
               </div>
-              <p className="mt-1 text-xs text-muted-soft">Your role has read-only access to programs.</p>
+              <p className="mt-1 text-xs text-muted-soft">Your role has read-only access to interventions.</p>
             </div>
           )}
           {canManage ? (
@@ -174,7 +149,7 @@ function RowActionMenu({
               type="button"
               onClick={() => {
                 onStatusAction(item);
-                setOpen(false);
+                close();
               }}
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted"
             >
@@ -190,8 +165,8 @@ function RowActionMenu({
               <p className="mt-1 text-xs text-muted-soft">Status changes require management access.</p>
             </div>
           )}
-        </div>
-      ) : null}
-    </div>
+        </>
+      )}
+    </RowActionPopover>
   );
 }

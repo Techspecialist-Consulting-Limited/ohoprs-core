@@ -12,7 +12,7 @@ export function ApprovalSummaryCard({ distribution }: { distribution: Distributi
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Distribution summary</p>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <SummaryCell label="Distribution name" value={distribution.name} />
-        <SummaryCell label="Program" value={distribution.programName} />
+        <SummaryCell label="Intervention" value={distribution.programName} />
         <SummaryCell label="Organization" value={distribution.organizationName} />
         <SummaryCell label="Method" value={distribution.method.replaceAll("_", " ")} />
         <SummaryCell label="Beneficiary count" value={formatNumber(distribution.beneficiaryCount)} />

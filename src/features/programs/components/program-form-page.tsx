@@ -19,8 +19,8 @@ export function ProgramCreateModule() {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program creation denied"
-          description="Program Officers cannot create programs."
+          title="Intervention creation denied"
+          description="Program Officers cannot create interventions."
         />
       </PageContainer>
     );
@@ -30,8 +30,8 @@ export function ProgramCreateModule() {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program creation restricted"
-          description="Your role does not have permission to create programs."
+          title="Intervention creation restricted"
+          description="Your role does not have permission to create interventions."
         />
       </PageContainer>
     );
@@ -41,8 +41,8 @@ export function ProgramCreateModule() {
     <PageContainer>
       <PageHeader
         eyebrow="Phase 6"
-        title="Create program"
-        description="Create a new benefit program within the appropriate organization scope."
+        title="Create intervention"
+        description="Create a new benefit intervention within the appropriate organization scope."
       />
       <ProgramForm
         mode="create"
@@ -65,8 +65,8 @@ export function ProgramEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program edit denied"
-          description="Program Officers cannot edit programs."
+          title="Intervention edit denied"
+          description="Program Officers cannot edit interventions."
         />
       </PageContainer>
     );
@@ -76,8 +76,8 @@ export function ProgramEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program edit restricted"
-          description="Your role does not have permission to edit programs."
+          title="Intervention edit restricted"
+          description="Your role does not have permission to edit interventions."
         />
       </PageContainer>
     );
@@ -86,7 +86,7 @@ export function ProgramEditModule({ id }: { id: string }) {
   if (programQuery.isLoading) {
     return (
       <PageContainer>
-        <LoadingState title="Loading program for editing" lines={5} />
+        <LoadingState title="Loading intervention for editing" lines={5} />
       </PageContainer>
     );
   }
@@ -97,8 +97,8 @@ export function ProgramEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <EmptyState
-          title="Program not found"
-          description="The selected program could not be loaded for editing."
+          title="Intervention not found"
+          description="The selected intervention could not be loaded for editing."
         />
       </PageContainer>
     );
@@ -108,8 +108,8 @@ export function ProgramEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program edit denied"
-          description="Organization Admins can only edit programs within their own organization."
+          title="Intervention edit denied"
+          description="Organization Admins can only edit interventions within their own organization."
         />
       </PageContainer>
     );
@@ -120,7 +120,7 @@ export function ProgramEditModule({ id }: { id: string }) {
       <PageHeader
         eyebrow="Phase 6"
         title={`Edit ${program.name}`}
-        description="Update program profile information, schedule, budget, and lifecycle status."
+        description="Update intervention profile information, schedule, budget, and lifecycle status."
       />
       <ProgramForm
         mode="edit"

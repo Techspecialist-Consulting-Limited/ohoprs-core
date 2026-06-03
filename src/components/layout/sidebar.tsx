@@ -137,7 +137,7 @@ export function Sidebar({
             Tenant-ready shell
           </p>
           <p className={cn("mt-1 text-xs leading-5 text-sidebar-muted", collapsed && "md:hidden")}>
-            Programs, beneficiaries, and reporting modules will connect to this layout in later phases.
+            Interventions, beneficiaries, and reporting modules will connect to this layout in later phases.
           </p>
           <p className={cn("hidden text-center text-xs font-semibold text-sidebar-foreground md:block", !collapsed && "md:hidden")}>
             v1

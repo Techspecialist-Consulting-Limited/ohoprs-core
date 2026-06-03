@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { EllipsisVertical, Eye, Lock, RefreshCcw, RotateCcw, SendHorizontal } from "lucide-react";
+import { Eye, Lock, RefreshCcw, RotateCcw, SendHorizontal } from "lucide-react";
 
+import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import type { PaymentRecord } from "@/types/payment";
 import { PaymentStatusBadge } from "@/features/payments/components/payment-status-badge";
@@ -33,7 +33,7 @@ export function PaymentTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Reference", "Distribution", "Program", "Beneficiary", "Amount", "Method", "Status", "Processed By", "Processed Date", "Actions"].map((label) => (
+              {["Reference", "Distribution", "Intervention", "Beneficiary", "Amount", "Method", "Status", "Processed By", "Processed Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -93,41 +93,18 @@ function RowActions({
   canReverse: boolean;
   readOnlyHint?: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutside(event: MouseEvent) {
-      if (!ref.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    if (!open) return;
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [open]);
-
   const helper = readOnlyHint ?? "Only Super Admin can execute payment actions.";
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-surface text-muted"
-      >
-        <EllipsisVertical size={16} />
-      </button>
-
-      {open ? (
-        <div className="absolute right-0 top-12 z-20 w-60 rounded-2xl border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
+    <RowActionPopover panelClassName="w-60">
+      {({ close }) => (
+        <>
           <Link href={`/payments/${item.id}`} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted">
             <Eye size={16} />
             View
           </Link>
           {canProcess ? (
-            <button type="button" onClick={() => onProcess(item)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
+            <button type="button" onClick={() => { onProcess(item); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
               <SendHorizontal size={16} />
               Process
             </button>
@@ -135,7 +112,7 @@ function RowActions({
             <LockedRow label="Process" hint={helper} icon={<Lock size={16} />} />
           )}
           {canRetry ? (
-            <button type="button" onClick={() => onRetry(item)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
+            <button type="button" onClick={() => { onRetry(item); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
               <RefreshCcw size={16} />
               Retry
             </button>
@@ -143,16 +120,16 @@ function RowActions({
             <LockedRow label="Retry" hint={helper} icon={<Lock size={16} />} />
           )}
           {canReverse ? (
-            <button type="button" onClick={() => onReverse(item)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
+            <button type="button" onClick={() => { onReverse(item); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
               <RotateCcw size={16} />
               Reverse
             </button>
           ) : (
             <LockedRow label="Reverse" hint={helper} icon={<Lock size={16} />} />
           )}
-        </div>
-      ) : null}
-    </div>
+        </>
+      )}
+    </RowActionPopover>
   );
 }
 

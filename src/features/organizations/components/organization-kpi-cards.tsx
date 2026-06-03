@@ -7,7 +7,7 @@ import { OrganizationStatusBadge } from "@/features/organizations/components/org
 export function OrganizationKpiCards({ organization }: { organization: OrganizationDetails }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <Card icon={FolderKanban} label="Programs" value={formatNumber(organization.programCount)} />
+      <Card icon={FolderKanban} label="Interventions" value={formatNumber(organization.programCount)} />
       <Card icon={Users} label="Beneficiaries" value={formatNumber(organization.beneficiaryCount)} />
       <Card icon={CircleDollarSign} label="Total Distributed" value={formatCurrency(organization.totalDistributed)} />
       <div className="rounded-[28px] border border-border bg-surface p-5 shadow-sm">

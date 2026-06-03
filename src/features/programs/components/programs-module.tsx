@@ -77,7 +77,7 @@ export function ProgramsModule() {
   if (programsQuery.isLoading) {
     return (
       <PageContainer>
-        <LoadingState title="Loading programs" lines={5} />
+        <LoadingState title="Loading interventions" lines={5} />
       </PageContainer>
     );
   }
@@ -86,8 +86,8 @@ export function ProgramsModule() {
     return (
       <PageContainer>
         <EmptyState
-          title="Unable to load programs"
-          description="The mock program service could not return program data."
+          title="Unable to load interventions"
+          description="The mock intervention service could not return intervention data."
         />
       </PageContainer>
     );
@@ -99,15 +99,15 @@ export function ProgramsModule() {
     <PageContainer>
       <PageHeader
         eyebrow="Phase 6"
-        title="Program management"
-        description="Create, review, and manage benefit programs across organizations with role-aware access and enterprise operational visibility."
+        title="Intervention management"
+        description="Create, review, and manage benefit interventions across organizations with role-aware access and enterprise operational visibility."
       />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl text-sm text-muted">
           {showOrganizationFilter
-            ? "Review programs across organizations or narrow the view by organization, benefit type, and status."
-            : "You are viewing programs scoped to your organization."
+            ? "Review interventions across organizations or narrow the view by organization, benefit type, and status."
+            : "You are viewing interventions scoped to your organization."
           }
         </div>
         {canCreate ? (
@@ -115,7 +115,7 @@ export function ProgramsModule() {
             href="/programs/new"
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
           >
-            Create Program
+            Create Intervention
           </Link>
         ) : null}
       </div>
@@ -143,8 +143,8 @@ export function ProgramsModule() {
         />
       ) : (
         <EmptyState
-          title="No programs match your filters"
-          description="Adjust the filters or create a new program to populate this module."
+          title="No interventions match your filters"
+          description="Adjust the filters or create a new intervention to populate this module."
         />
       )}
 

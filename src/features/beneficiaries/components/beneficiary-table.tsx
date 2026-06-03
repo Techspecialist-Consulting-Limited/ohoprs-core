@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, EllipsisVertical, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
 
+import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatNumber } from "@/lib/formatters";
 import type { Beneficiary, BeneficiaryListMeta } from "@/types/beneficiary";
@@ -31,7 +31,7 @@ export function BeneficiaryTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Full Name", "NIN", "Phone", "Gender", "State", "LGA", "Organization", "Programs", "Verification Status", "Benefit Status", "Created Date", "Actions"].map((label) => (
+              {["Full Name", "NIN", "Phone", "Gender", "State", "LGA", "Organization", "Interventions", "Verification Status", "Benefit Status", "Created Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -139,35 +139,10 @@ function RowActionMenu({
   canManage: boolean;
   item: Beneficiary;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
-      if (!ref.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    if (!open) {
-      return;
-    }
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [open]);
-
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-surface text-muted"
-      >
-        <EllipsisVertical size={16} />
-      </button>
-      {open ? (
-        <div className="absolute right-0 top-12 z-20 w-56 rounded-2xl border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
+    <RowActionPopover>
+      {() => (
+        <>
           <Link
             href={`/beneficiaries/${item.id}`}
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
@@ -192,8 +167,8 @@ function RowActionMenu({
               <p className="mt-1 text-xs text-muted-soft">Auditors have read-only access.</p>
             </div>
           )}
-        </div>
-      ) : null}
-    </div>
+        </>
+      )}
+    </RowActionPopover>
   );
 }

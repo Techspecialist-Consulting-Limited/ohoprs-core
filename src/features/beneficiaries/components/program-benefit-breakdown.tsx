@@ -5,8 +5,8 @@ export function ProgramBenefitBreakdown({ items }: { items: ProgramBenefitBreakd
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
-        <p className="text-sm font-semibold text-foreground">Program-by-program benefit breakdown</p>
-        <p className="mt-1 text-sm text-muted">Everything this beneficiary has received across enrolled programs.</p>
+        <p className="text-sm font-semibold text-foreground">Intervention-by-intervention benefit breakdown</p>
+        <p className="mt-1 text-sm text-muted">Everything this beneficiary has received across enrolled interventions.</p>
       </div>
       <div className="mt-5 space-y-4">
         {items.map((item) => (
