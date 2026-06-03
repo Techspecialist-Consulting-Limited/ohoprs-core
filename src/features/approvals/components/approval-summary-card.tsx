@@ -6,6 +6,9 @@ export function ApprovalSummaryCard({ distribution }: { distribution: Distributi
     distribution.amount !== undefined
       ? formatCurrency(distribution.amount)
       : `${formatNumber(distribution.quantity ?? 0)} units`;
+  const methodLabel = distribution.method
+    ? distribution.method.replaceAll("_", " ")
+    : "Not specified";
 
   return (
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
@@ -14,7 +17,7 @@ export function ApprovalSummaryCard({ distribution }: { distribution: Distributi
         <SummaryCell label="Distribution name" value={distribution.name} />
         <SummaryCell label="Intervention" value={distribution.programName} />
         <SummaryCell label="Organization" value={distribution.organizationName} />
-        <SummaryCell label="Method" value={distribution.method.replaceAll("_", " ")} />
+        <SummaryCell label="Method" value={methodLabel} />
         <SummaryCell label="Beneficiary count" value={formatNumber(distribution.beneficiaryCount)} />
         <SummaryCell label="Amount / Quantity" value={displayValue} />
         <SummaryCell label="Created by" value={distribution.createdBy} />

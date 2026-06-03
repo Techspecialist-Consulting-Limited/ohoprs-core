@@ -26,10 +26,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
 
   const distributionQuery = useQuery({
     queryKey: ["distribution", id],
-    queryFn: async () => {
-      const response = await distributionService.getDistributionById(id);
-      return response.data;
-    },
+    queryFn: () => distributionService.getDistributionById(id),
   });
 
   const approvalQuery = useQuery({
@@ -44,7 +41,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
     return <LoadingState title="Loading approval workflow" lines={5} />;
   }
 
-  const distribution = distributionQuery.data;
+  const distribution = distributionQuery.data?.data;
   const approval = approvalQuery.data;
 
   if (!distribution || !approval) {
