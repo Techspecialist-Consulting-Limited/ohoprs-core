@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
+import { nigeriaStates } from "@/constants/nigeria-states";
 import {
   organizationSchema,
   organizationStatuses,
@@ -111,7 +112,14 @@ export function OrganizationForm({
           <input {...form.register("website")} className={inputClassName} />
         </Field>
         <Field label="State" error={form.formState.errors.state?.message}>
-          <input {...form.register("state")} className={inputClassName} />
+          <select {...form.register("state")} className={inputClassName}>
+            <option value="">Select state</option>
+            {nigeriaStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
         </Field>
       </div>
 

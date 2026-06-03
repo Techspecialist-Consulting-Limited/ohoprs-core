@@ -8,6 +8,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { nigeriaStates } from "@/constants/nigeria-states";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import { BeneficiarySegmentSelector } from "@/features/bulk-distributions/components/beneficiary-segment-selector";
@@ -17,18 +18,6 @@ import { bulkDistributionService } from "@/services/bulk-distribution.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { BulkDistributionPayload } from "@/types/bulk-distribution";
 import type { DistributionMethod } from "@/types/distribution";
-
-const stateOptions = [
-  "FCT",
-  "Lagos",
-  "Kano",
-  "Kaduna",
-  "Rivers",
-  "Borno",
-  "Osun",
-  "Benue",
-  "Bauchi",
-];
 
 const methodMap: Record<string, DistributionMethod[]> = {
   CASH: ["BANK_TRANSFER", "MOBILE_MONEY", "CASH"],
@@ -217,7 +206,7 @@ export function BulkDistributionForm({
             <Field label="State" error={form.formState.errors.state?.message}>
               <select {...form.register("state")} className={inputClassName}>
                 <option value="">Select state</option>
-                {stateOptions.map((state) => (
+                {nigeriaStates.map((state) => (
                   <option key={state} value={state}>
                     {state}
                   </option>

@@ -7,6 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
+import { nigeriaStates } from "@/constants/nigeria-states";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import {
@@ -143,7 +144,14 @@ export function BeneficiaryForm({
 
       <div className="grid gap-5 md:grid-cols-3">
         <Field label="State" error={form.formState.errors.state?.message}>
-          <input {...form.register("state")} className={inputClassName} />
+          <select {...form.register("state")} className={inputClassName}>
+            <option value="">Select state</option>
+            {nigeriaStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="LGA" error={form.formState.errors.lga?.message}>
           <input {...form.register("lga")} className={inputClassName} />
