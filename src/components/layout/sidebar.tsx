@@ -26,6 +26,17 @@ export function Sidebar({
   const pathname = usePathname();
   const currentTenant = useAuthStore((state) => state.currentTenant);
   const role = useAuthStore((state) => state.role);
+  const sidebarItems = navigationItems.flatMap((item) => {
+    if (role === "ORG_ADMIN" && item.href === "/organizations") {
+      return [{ ...item, href: "/settings/profile", label: "Profile" }];
+    }
+
+    if (role === "ORG_ADMIN" && item.href === "/settings") {
+      return [];
+    }
+
+    return [item];
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -91,7 +102,7 @@ export function Sidebar({
 
       <nav className="app-scrollbar flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1.5">
-          {navigationItems.map((item) => {
+          {sidebarItems.map((item) => {
             const isActive = pathname === item.href;
             const permission = getRoutePermission(item.href);
             const isAllowed = !permission || (role ? hasPermission(role, permission) : true);

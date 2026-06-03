@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 
+import { nigeriaStates } from "@/constants/nigeria-states";
 import { settingsService } from "@/services/settings.service";
 import type { OrganizationProfileSettings, PlatformProfileSettings } from "@/types/settings";
 
@@ -41,20 +44,96 @@ export function OrganizationProfileSettingsForm({
   organizationId: string;
 }) {
   const [form, setForm] = useState(initialData);
+  const [isEditing, setIsEditing] = useState(false);
   const mutation = useMutation({
     mutationFn: () => settingsService.updateOrganizationProfile(organizationId, form),
-    onSuccess: () => toast.success("Organization profile updated"),
+    onSuccess: () => {
+      toast.success("Organization profile updated");
+      setIsEditing(false);
+    },
   });
+
+  if (!isEditing) {
+    return (
+      <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Organization profile</p>
+            <h2 className="mt-2 text-2xl font-semibold text-foreground">{form.organizationName}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              {form.description || "No organization description has been provided yet."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/organizations/${organizationId}`}
+              className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
+            >
+              View organization details
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="inline-flex h-11 items-center gap-2 rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
+            >
+              <Pencil size={16} />
+              Edit profile
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <ReadOnlyField label="Organization Name" value={form.organizationName} />
+          <ReadOnlyField label="Short Name" value={form.shortName} />
+          <ReadOnlyField label="Contact Email" value={form.contactEmail} />
+          <ReadOnlyField label="Contact Phone" value={form.contactPhone} />
+          <ReadOnlyField label="Website" value={form.website} />
+          <ReadOnlyField label="State" value={form.state} />
+          <div className="md:col-span-2">
+            <ReadOnlyField label="Address" value={form.address} />
+          </div>
+          <div className="md:col-span-2">
+            <ReadOnlyField label="Description" value={form.description} />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+      <div className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Edit organization profile</p>
+          <p className="mt-2 text-sm text-muted">Update the profile details below. Current values are prefilled.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setForm(initialData);
+            setIsEditing(false);
+          }}
+          className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
+        >
+          Cancel
+        </button>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Organization Name"><input value={form.organizationName} onChange={(event) => setForm((current) => ({ ...current, organizationName: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Short Name"><input value={form.shortName} onChange={(event) => setForm((current) => ({ ...current, shortName: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Contact Email"><input value={form.contactEmail} onChange={(event) => setForm((current) => ({ ...current, contactEmail: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Contact Phone"><input value={form.contactPhone} onChange={(event) => setForm((current) => ({ ...current, contactPhone: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Website"><input value={form.website} onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))} className={inputClassName} /></Field>
-        <Field label="State"><input value={form.state} onChange={(event) => setForm((current) => ({ ...current, state: event.target.value }))} className={inputClassName} /></Field>
+        <Field label="State">
+          <select value={form.state} onChange={(event) => setForm((current) => ({ ...current, state: event.target.value }))} className={inputClassName}>
+            <option value="">Select state</option>
+            {nigeriaStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </Field>
         <div className="md:col-span-2">
           <Field label="Address"><input value={form.address} onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))} className={inputClassName} /></Field>
         </div>
@@ -75,6 +154,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{label}</span>
       {children}
     </label>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{label}</p>
+      <div className="mt-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground">
+        {value?.trim() ? value : "Not provided"}
+      </div>
+    </div>
   );
 }
 
