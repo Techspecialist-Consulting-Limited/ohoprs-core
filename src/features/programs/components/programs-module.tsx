@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { ProgramFilters } from "@/features/programs/components/program-filters";
@@ -37,6 +38,7 @@ export function ProgramsModule() {
   const [page, setPage] = useState(1);
   const [statusTarget, setStatusTarget] = useState<Program | null>(null);
   const [nextStatus, setNextStatus] = useState<ProgramStatus>("DRAFT");
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const scopeOrganizationId =
     role === "ORG_ADMIN" || role === "PROGRAM_OFFICER"
@@ -48,17 +50,18 @@ export function ProgramsModule() {
   const canChangeStatus = role ? hasPermission(role, "change_program_status") : false;
 
   const programsQuery = useQuery({
-    queryKey: ["programs", page, filters, role, scopeOrganizationId],
+    queryKey: ["programs", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
     queryFn: () =>
       programService.getPrograms({
         page,
         limit: 10,
-        search: filters.search,
+        search: debouncedSearch,
         organizationId: filters.organizationId,
         benefitType: filters.benefitType,
         status: filters.status,
         scopeOrganizationId,
       }),
+    placeholderData: (previousData) => previousData,
   });
 
   const statusMutation = useMutation({
@@ -76,7 +79,7 @@ export function ProgramsModule() {
     },
   });
 
-  if (programsQuery.isLoading) {
+  if (programsQuery.isLoading && !programsQuery.data) {
     return (
       <PageContainer>
         <LoadingState title="Loading interventions" lines={5} />

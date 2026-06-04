@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { organizationsData } from "@/mock/organizations.mock";
 import { BulkDistributionForm } from "@/features/bulk-distributions/components/bulk-distribution-form";
 import { BulkJobStatusBadge } from "@/features/bulk-distributions/components/bulk-job-status-badge";
@@ -23,24 +24,26 @@ export function BulkDistributionsModule() {
   const [organizationId, setOrganizationId] = useState("ALL");
   const [status, setStatus] = useState("ALL");
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(search);
 
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
   const scopeOrganizationId = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER" ? user?.organizationId ?? null : null;
 
   const jobsQuery = useQuery({
-    queryKey: ["bulk-jobs", search, organizationId, status, page, scopeOrganizationId],
+    queryKey: ["bulk-jobs", debouncedSearch, organizationId, status, page, scopeOrganizationId],
     queryFn: () =>
       bulkDistributionService.getBulkJobs({
-        search,
+        search: debouncedSearch,
         page,
         limit: 10,
         organizationId,
         status: status as import("@/types/bulk-distribution").BulkJobStatus | "ALL",
         scopeOrganizationId,
       }),
+    placeholderData: (previousData) => previousData,
   });
 
-  if (jobsQuery.isLoading) {
+  if (jobsQuery.isLoading && !jobsQuery.data) {
     return (
       <PageContainer>
         <LoadingState title="Loading bulk processing console" lines={6} />

@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
 import { paymentService } from "@/services/payment.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -19,18 +20,20 @@ export function PaymentsModule() {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
 
   const paymentsQuery = useQuery({
-    queryKey: ["payments", role, user?.organizationId, search],
+    queryKey: ["payments", role, user?.organizationId, debouncedSearch],
     queryFn: async () => {
       const response = await paymentService.getPayments({
-        search,
+        search: debouncedSearch,
         page: 1,
         limit: 50,
         scopeOrganizationId: role === "SUPER_ADMIN" || role === "AUDITOR" ? null : user?.organizationId ?? null,
       });
       return response.data.items;
     },
+    placeholderData: (previousData) => previousData,
   });
 
   const refresh = () => {
@@ -59,7 +62,7 @@ export function PaymentsModule() {
     },
   });
 
-  if (paymentsQuery.isLoading) {
+  if (paymentsQuery.isLoading && !paymentsQuery.data) {
     return <LoadingState title="Loading payment records" lines={6} />;
   }
 

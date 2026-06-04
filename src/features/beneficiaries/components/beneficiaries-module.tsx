@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
@@ -37,6 +38,7 @@ export function BeneficiariesModule() {
     benefitStatus: "ALL",
   });
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const scopeOrganizationId =
     role === "ORG_ADMIN" || role === "PROGRAM_OFFICER"
@@ -52,12 +54,12 @@ export function BeneficiariesModule() {
     : programsData.filter((program) => program.organizationId === scopeOrganizationId);
 
   const beneficiaryQuery = useQuery({
-    queryKey: ["beneficiaries", page, filters, role, scopeOrganizationId],
+    queryKey: ["beneficiaries", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
     queryFn: () =>
       beneficiaryService.getBeneficiaries({
         page,
         limit: 10,
-        search: filters.search,
+        search: debouncedSearch,
         organizationId: filters.organizationId,
         programId: filters.programId,
         state: filters.state,
@@ -65,9 +67,10 @@ export function BeneficiariesModule() {
         benefitStatus: filters.benefitStatus,
         scopeOrganizationId,
       }),
+    placeholderData: (previousData) => previousData,
   });
 
-  if (beneficiaryQuery.isLoading) {
+  if (beneficiaryQuery.isLoading && !beneficiaryQuery.data) {
     return (
       <PageContainer>
         <LoadingState title="Loading beneficiaries" lines={5} />

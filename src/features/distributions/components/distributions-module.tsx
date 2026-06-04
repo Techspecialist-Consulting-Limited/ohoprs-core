@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
 import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
 import { organizationsData } from "@/mock/organizations.mock";
@@ -35,17 +36,20 @@ export function DistributionsModule() {
   });
   const [statusTarget, setStatusTarget] = useState<Distribution | null>(null);
   const [nextStatus, setNextStatus] = useState<DistributionStatus>("COMPLETED");
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const scopeOrganizationId = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER" ? user?.organizationId ?? null : null;
 
   const distributionsQuery = useQuery({
-    queryKey: ["distributions", filters, scopeOrganizationId],
+    queryKey: ["distributions", { ...filters, search: debouncedSearch }, scopeOrganizationId],
     queryFn: () =>
       distributionService.getDistributions({
         ...filters,
+        search: debouncedSearch,
         limit: 10,
         scopeOrganizationId,
       }),
+    placeholderData: (previousData) => previousData,
   });
 
   const statusMutation = useMutation({
@@ -89,7 +93,7 @@ export function DistributionsModule() {
     return canEditDistributionRecord(role, item, user?.organizationId, user?.id);
   }
 
-  if (distributionsQuery.isLoading) {
+  if (distributionsQuery.isLoading && !distributionsQuery.data) {
     return (
       <PageContainer>
         <LoadingState title="Loading distributions" lines={6} />

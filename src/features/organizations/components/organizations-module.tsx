@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { OrganizationFilters } from "@/features/organizations/components/organization-filters";
 import { OrganizationStatusDialog } from "@/features/organizations/components/organization-status-dialog";
 import { OrganizationTable } from "@/features/organizations/components/organization-table";
@@ -34,21 +35,23 @@ export function OrganizationsModule() {
   const [page, setPage] = useState(1);
   const [statusTarget, setStatusTarget] = useState<Organization | null>(null);
   const [nextStatus, setNextStatus] = useState<OrganizationStatus>("ACTIVE");
+  const debouncedSearch = useDebouncedValue(filters.search);
 
   const scopeOrganizationId =
     role === "ORG_ADMIN" ? currentTenant?.id === "tenant-org-001" ? user?.organizationId ?? "org_001" : user?.organizationId : null;
 
   const organizationQuery = useQuery({
-    queryKey: ["organizations", page, filters, role, scopeOrganizationId],
+    queryKey: ["organizations", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
     queryFn: () =>
       organizationService.getOrganizations({
         page,
         limit: 10,
-        search: filters.search,
+        search: debouncedSearch,
         status: filters.status,
         type: filters.type,
         scopeOrganizationId,
       }),
+    placeholderData: (previousData) => previousData,
   });
 
   const statusMutation = useMutation({
@@ -78,7 +81,7 @@ export function OrganizationsModule() {
     );
   }
 
-  if (organizationQuery.isLoading) {
+  if (organizationQuery.isLoading && !organizationQuery.data) {
     return (
       <PageContainer>
         <LoadingState title="Loading organizations" lines={5} />
