@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { beneficiaryService } from "@/services/beneficiary.service";
 import { useAuthStore } from "@/store/auth.store";
 import { BeneficiaryForm } from "@/features/beneficiaries/components/beneficiary-form";
@@ -15,12 +16,12 @@ export function BeneficiaryCreateModule() {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
 
-  if (role === "AUDITOR") {
+  if (!role || !hasPermission(role, "create_beneficiaries")) {
     return (
       <PageContainer>
         <PermissionDeniedState
           title="Beneficiary creation denied"
-          description="Auditors cannot create beneficiary records."
+          description="Your role cannot create beneficiary records."
         />
       </PageContainer>
     );
@@ -35,8 +36,8 @@ export function BeneficiaryCreateModule() {
       />
       <BeneficiaryForm
         mode="create"
-        canChooseOrganization={role === "SUPER_ADMIN"}
-        defaultOrganizationId={role !== "SUPER_ADMIN" ? user?.organizationId ?? undefined : undefined}
+        canChooseOrganization={false}
+        defaultOrganizationId={user?.organizationId ?? undefined}
       />
     </PageContainer>
   );
@@ -50,12 +51,12 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
     queryFn: () => beneficiaryService.getBeneficiaryById(id),
   });
 
-  if (role === "AUDITOR") {
+  if (!role || !hasPermission(role, "edit_beneficiaries")) {
     return (
       <PageContainer>
         <PermissionDeniedState
           title="Beneficiary edit denied"
-          description="Auditors cannot edit beneficiary records."
+          description="Your role cannot edit beneficiary records."
         />
       </PageContainer>
     );
@@ -103,7 +104,7 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
       <BeneficiaryForm
         mode="edit"
         beneficiaryId={beneficiary.id}
-        canChooseOrganization={role === "SUPER_ADMIN"}
+        canChooseOrganization={false}
         defaultOrganizationId={beneficiary.organizationId}
         isProgramOfficerEditing={role === "PROGRAM_OFFICER"}
         initialValues={{

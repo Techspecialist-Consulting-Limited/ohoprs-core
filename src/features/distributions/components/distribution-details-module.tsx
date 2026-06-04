@@ -24,7 +24,6 @@ function canViewDistribution(role: string | null, organizationId: string, userOr
 }
 
 function canEditDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined, createdByUserId: string, userId: string | undefined) {
-  if (role === "SUPER_ADMIN") return true;
   if (role === "ORG_ADMIN") return userOrganizationId === organizationId;
   if (role === "PROGRAM_OFFICER") return userOrganizationId === organizationId && userId === createdByUserId;
   return false;

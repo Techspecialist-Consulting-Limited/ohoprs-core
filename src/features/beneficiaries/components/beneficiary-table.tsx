@@ -7,7 +7,6 @@ import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatNumber } from "@/lib/formatters";
 import type { Beneficiary, BeneficiaryListMeta } from "@/types/beneficiary";
-import type { UserRole } from "@/types/auth";
 import { BeneficiaryStatusBadge } from "@/features/beneficiaries/components/beneficiary-status-badge";
 import { VerificationStatusBadge } from "@/features/beneficiaries/components/verification-status-badge";
 
@@ -15,14 +14,13 @@ export function BeneficiaryTable({
   items,
   meta,
   onPageChange,
-  role,
+  canEdit,
 }: {
   items: Beneficiary[];
   meta: BeneficiaryListMeta;
   onPageChange: (page: number) => void;
-  role: UserRole;
+  canEdit: boolean;
 }) {
-  const canManage = role !== "AUDITOR";
   const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
   return (
@@ -60,7 +58,7 @@ export function BeneficiaryTable({
                   {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "2-digit", month: "short", year: "numeric" })}
                 </td>
                 <td className="px-5 py-4">
-                  <RowActionMenu canManage={canManage} item={item} />
+                  <RowActionMenu canEdit={canEdit} item={item} />
                 </td>
               </tr>
             ))}
@@ -133,10 +131,10 @@ function ProgramChips({ names }: { names: string[] }) {
 }
 
 function RowActionMenu({
-  canManage,
+  canEdit,
   item,
 }: {
-  canManage: boolean;
+  canEdit: boolean;
   item: Beneficiary;
 }) {
   return (
@@ -150,7 +148,7 @@ function RowActionMenu({
             <SquareArrowOutUpRight size={16} />
             View Details
           </Link>
-          {canManage ? (
+          {canEdit ? (
             <Link
               href={`/beneficiaries/${item.id}/edit`}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
@@ -164,7 +162,7 @@ function RowActionMenu({
                 <Lock size={16} />
                 Edit Beneficiary
               </div>
-              <p className="mt-1 text-xs text-muted-soft">Auditors have read-only access.</p>
+              <p className="mt-1 text-xs text-muted-soft">Your role has read-only access to beneficiary records.</p>
             </div>
           )}
         </>

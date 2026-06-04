@@ -3,6 +3,7 @@
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { useAuthStore } from "@/store/auth.store";
 import { BeneficiaryImportPreview } from "@/features/beneficiaries/components/beneficiary-import-preview";
 import { BeneficiaryUploadCard } from "@/features/beneficiaries/components/beneficiary-upload-card";
@@ -10,12 +11,12 @@ import { BeneficiaryUploadCard } from "@/features/beneficiaries/components/benef
 export function BeneficiaryUploadModule() {
   const role = useAuthStore((state) => state.role);
 
-  if (role === "AUDITOR") {
+  if (!role || !hasPermission(role, "upload_beneficiaries")) {
     return (
       <PageContainer>
         <PermissionDeniedState
           title="Beneficiary upload denied"
-          description="Auditors cannot upload beneficiary records."
+          description="Your role cannot upload beneficiary records."
         />
       </PageContainer>
     );

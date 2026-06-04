@@ -68,7 +68,7 @@ export function BeneficiaryDetailsModule({ id }: { id: string }) {
     );
   }
 
-  const canEdit = role === "SUPER_ADMIN" || role === "ORG_ADMIN" || role === "PROGRAM_OFFICER";
+  const canEdit = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER";
 
   return (
     <PageContainer>

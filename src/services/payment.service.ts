@@ -444,6 +444,28 @@ export const paymentService = {
   },
 
   async reversePayment(id: string, actor: AuthUser): Promise<ApiResponse<PaymentActionResult>> {
+    const currentPayment = paymentStore.find((payment) => payment.id === id) ?? null;
+
+    if (!currentPayment) {
+      return Promise.resolve({ success: false, message: "Payment not found", data: { payment: null } });
+    }
+
+    if (actor.role !== "ORG_ADMIN") {
+      return Promise.resolve({
+        success: false,
+        message: "Only Organization Admin can reverse payments",
+        data: { payment: null },
+      });
+    }
+
+    if (actor.organizationId !== currentPayment.organizationId) {
+      return Promise.resolve({
+        success: false,
+        message: "You can only reverse payments within your organization",
+        data: { payment: null },
+      });
+    }
+
     let updated: PaymentDetails | null = null;
     const now = new Date().toISOString();
 

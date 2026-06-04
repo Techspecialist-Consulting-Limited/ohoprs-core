@@ -641,7 +641,7 @@ export const paymentConsoleService = {
       return { success: false, message: "Distribution not found", data: { console: null } };
     }
 
-    if (!canProcess(user.role, result.distribution)) {
+    if (user.role !== "ORG_ADMIN" || user.organizationId !== result.distribution.organizationId) {
       return { success: false, message: "You cannot reverse payments for this distribution.", data: { console: null } };
     }
 

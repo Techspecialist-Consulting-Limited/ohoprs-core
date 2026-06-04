@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { paymentService } from "@/services/payment.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { PaymentRecord } from "@/types/payment";
@@ -91,8 +92,8 @@ export function PaymentsModule() {
           onReverse={(item) => actionMutation.mutate({ action: "reverse", item })}
           canProcess={(item) => role === "SUPER_ADMIN" && item.status === "PENDING"}
           canRetry={(item) => role === "SUPER_ADMIN" && (item.status === "FAILED" || item.status === "RETRY_PENDING")}
-          canReverse={(item) => role === "SUPER_ADMIN" && item.status === "PAID"}
-          readOnlyHint={role === "ORG_ADMIN" ? "Only Super Admin can execute payment actions." : "Your role can view payment status but cannot execute payment actions."}
+          canReverse={(item) => Boolean(role && hasPermission(role, "reverse_payment") && item.status === "PAID")}
+          readOnlyHint={role === "ORG_ADMIN" ? "Only Organization Admin can reverse paid payments." : "Your role can view payment status but cannot reverse paid payments."}
         />
       ) : (
         <EmptyState title="No payment records found" description="Adjust your search or create approved cash distributions to populate payment processing records." />

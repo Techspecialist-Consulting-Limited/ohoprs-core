@@ -8,6 +8,7 @@ import { PermissionDeniedState } from "@/components/shared/permission-denied-sta
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
+import { hasPermission } from "@/lib/rbac";
 import { paymentConsoleService } from "@/services/payment-console.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { PaymentConsoleDialogState, PaymentConsoleFilters, PaymentConsoleTab } from "@/types/payment-console";
@@ -345,7 +346,7 @@ export function PaymentConsoleModule({ id }: { id: string }) {
               }
               canProcessItem={(item) => role === "SUPER_ADMIN" && data.isCashDistribution && item.status === "PENDING" && data.distribution.approvalStatus === "APPROVED"}
               canRetryItem={(item) => role === "SUPER_ADMIN" && data.isCashDistribution && (item.status === "FAILED" || item.status === "RETRY_PENDING") && data.distribution.approvalStatus === "APPROVED"}
-              canReverseItem={(item) => role === "SUPER_ADMIN" && data.isCashDistribution && item.status === "PAID"}
+              canReverseItem={(item) => hasPermission(role, "reverse_payment") && data.isCashDistribution && item.status === "PAID"}
             />
           ) : (
             <EmptyState title="No payment rows match the active filters" description="Adjust your beneficiary or payment filters to inspect another subset of the distribution." />

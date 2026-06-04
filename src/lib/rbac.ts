@@ -9,11 +9,13 @@ const routePermissionMap: Record<string, Permission | null> = {
   "/workspace": null,
   "/programs": "view_programs",
   "/programs/new": "create_program",
+  "/programs/[id]/edit": "edit_program",
   "/beneficiaries": "view_beneficiaries",
-  "/beneficiaries/new": "view_beneficiaries",
+  "/beneficiaries/new": "create_beneficiaries",
   "/beneficiaries/upload": "upload_beneficiaries",
   "/distributions": "view_distributions",
   "/distributions/new": "create_distribution",
+  "/distributions/[id]/edit": "edit_distribution",
   "/distributions/bulk": "view_distributions",
   "/payments": "view_distributions",
   "/reports": "view_reports",
@@ -54,7 +56,7 @@ export function getRoutePermissionForPath(pathname: string) {
   }
 
   if (pathname.startsWith("/programs/") && pathname.endsWith("/edit")) {
-    return "create_program";
+    return "edit_program";
   }
 
   if (pathname.startsWith("/programs/")) {
@@ -62,7 +64,7 @@ export function getRoutePermissionForPath(pathname: string) {
   }
 
   if (pathname.startsWith("/beneficiaries/") && pathname.endsWith("/edit")) {
-    return "view_beneficiaries";
+    return "edit_beneficiaries";
   }
 
   if (pathname.startsWith("/beneficiaries/")) {
@@ -70,7 +72,7 @@ export function getRoutePermissionForPath(pathname: string) {
   }
 
   if (pathname.startsWith("/distributions/") && pathname.endsWith("/edit")) {
-    return "create_distribution";
+    return "edit_distribution";
   }
 
   if (pathname.startsWith("/distributions/") && pathname.endsWith("/approval")) {

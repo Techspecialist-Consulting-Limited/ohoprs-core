@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import { beneficiaryService } from "@/services/beneficiary.service";
@@ -43,7 +44,9 @@ export function BeneficiariesModule() {
       : null;
 
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
-  const canManage = role !== "AUDITOR";
+  const canCreate = role ? hasPermission(role, "create_beneficiaries") : false;
+  const canUpload = role ? hasPermission(role, "upload_beneficiaries") : false;
+  const canEdit = role ? hasPermission(role, "edit_beneficiaries") : false;
   const scopedPrograms = showOrganizationFilter
     ? programsData
     : programsData.filter((program) => program.organizationId === scopeOrganizationId);
@@ -101,20 +104,24 @@ export function BeneficiariesModule() {
             : "You are viewing beneficiaries scoped to your organization."
           }
         </div>
-        {canManage ? (
+        {canCreate || canUpload ? (
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="/beneficiaries/upload"
-              className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
-            >
-              Upload Beneficiaries
-            </Link>
-            <Link
-              href="/beneficiaries/new"
-              className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
-            >
-              Create Beneficiary
-            </Link>
+            {canUpload ? (
+              <Link
+                href="/beneficiaries/upload"
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
+              >
+                Upload Beneficiaries
+              </Link>
+            ) : null}
+            {canCreate ? (
+              <Link
+                href="/beneficiaries/new"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
+              >
+                Create Beneficiary
+              </Link>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -136,7 +143,7 @@ export function BeneficiariesModule() {
           items={response.items}
           meta={response.meta}
           onPageChange={setPage}
-          role={role!}
+          canEdit={canEdit}
         />
       ) : (
         <EmptyState

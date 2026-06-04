@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { ProgramForm } from "@/features/programs/components/program-form";
 import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -15,18 +16,7 @@ export function ProgramCreateModule() {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
 
-  if (role === "PROGRAM_OFFICER") {
-    return (
-      <PageContainer>
-        <PermissionDeniedState
-          title="Intervention creation denied"
-          description="Program Officers cannot create interventions."
-        />
-      </PageContainer>
-    );
-  }
-
-  if (role !== "SUPER_ADMIN" && role !== "ORG_ADMIN") {
+  if (!role || !hasPermission(role, "create_program")) {
     return (
       <PageContainer>
         <PermissionDeniedState
@@ -46,8 +36,8 @@ export function ProgramCreateModule() {
       />
       <ProgramForm
         mode="create"
-        canChooseOrganization={role === "SUPER_ADMIN"}
-        defaultOrganizationId={role === "ORG_ADMIN" ? user?.organizationId ?? undefined : undefined}
+        canChooseOrganization={false}
+        defaultOrganizationId={user?.organizationId ?? undefined}
       />
     </PageContainer>
   );
@@ -61,18 +51,7 @@ export function ProgramEditModule({ id }: { id: string }) {
     queryFn: () => programService.getProgramById(id),
   });
 
-  if (role === "PROGRAM_OFFICER") {
-    return (
-      <PageContainer>
-        <PermissionDeniedState
-          title="Intervention edit denied"
-          description="Program Officers cannot edit interventions."
-        />
-      </PageContainer>
-    );
-  }
-
-  if (role !== "SUPER_ADMIN" && role !== "ORG_ADMIN") {
+  if (!role || !hasPermission(role, "edit_program")) {
     return (
       <PageContainer>
         <PermissionDeniedState
@@ -104,7 +83,7 @@ export function ProgramEditModule({ id }: { id: string }) {
     );
   }
 
-  if (role === "ORG_ADMIN" && user?.organizationId !== program.organizationId) {
+  if (user?.organizationId !== program.organizationId) {
     return (
       <PageContainer>
         <PermissionDeniedState
@@ -125,7 +104,7 @@ export function ProgramEditModule({ id }: { id: string }) {
       <ProgramForm
         mode="edit"
         programId={program.id}
-        canChooseOrganization={role === "SUPER_ADMIN"}
+        canChooseOrganization={false}
         defaultOrganizationId={program.organizationId}
         initialValues={{
           name: program.name,

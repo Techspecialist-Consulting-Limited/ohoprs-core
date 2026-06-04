@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { ProgramFilters } from "@/features/programs/components/program-filters";
 import { ProgramStatusDialog } from "@/features/programs/components/program-status-dialog";
@@ -43,7 +44,8 @@ export function ProgramsModule() {
       : null;
 
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
-  const canCreate = role === "SUPER_ADMIN" || role === "ORG_ADMIN";
+  const canCreate = role ? hasPermission(role, "create_program") : false;
+  const canChangeStatus = role ? hasPermission(role, "change_program_status") : false;
 
   const programsQuery = useQuery({
     queryKey: ["programs", page, filters, role, scopeOrganizationId],
@@ -140,6 +142,7 @@ export function ProgramsModule() {
             setNextStatus(program.status);
           }}
           role={role!}
+          canChangeStatus={canChangeStatus}
         />
       ) : (
         <EmptyState

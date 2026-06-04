@@ -7,12 +7,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { DistributionForm } from "@/features/distributions/components/distribution-form";
 import { distributionService } from "@/services/distribution.service";
 import { useAuthStore } from "@/store/auth.store";
 
 function canEditDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined, createdByUserId: string, userId: string | undefined) {
-  if (role === "SUPER_ADMIN") return true;
   if (role === "ORG_ADMIN") return userOrganizationId === organizationId;
   if (role === "PROGRAM_OFFICER") return userOrganizationId === organizationId && userId === createdByUserId;
   return false;
@@ -22,10 +22,10 @@ export function DistributionCreateModule() {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
 
-  if (role === "AUDITOR") {
+  if (!role || !hasPermission(role, "create_distribution")) {
     return (
       <PageContainer>
-        <PermissionDeniedState title="Distribution creation denied" description="Auditors have read-only access to distribution workflows." />
+        <PermissionDeniedState title="Distribution creation denied" description="Your role has read-only access to distribution workflows." />
       </PageContainer>
     );
   }
@@ -33,7 +33,7 @@ export function DistributionCreateModule() {
   return (
     <PageContainer>
       <PageHeader eyebrow="Phase 9" title="Create distribution" description="Create a prototype batch showing how benefits move from program to beneficiary delivery." />
-      <DistributionForm mode="create" canChooseOrganization={role === "SUPER_ADMIN"} defaultOrganizationId={role === "SUPER_ADMIN" ? undefined : user?.organizationId ?? undefined} />
+      <DistributionForm mode="create" canChooseOrganization={false} defaultOrganizationId={user?.organizationId ?? undefined} />
     </PageContainer>
   );
 }
@@ -46,10 +46,10 @@ export function DistributionEditModule({ id }: { id: string }) {
     queryFn: () => distributionService.getDistributionById(id),
   });
 
-  if (role === "AUDITOR") {
+  if (!role || !hasPermission(role, "edit_distribution")) {
     return (
       <PageContainer>
-        <PermissionDeniedState title="Distribution edit denied" description="Auditors can inspect batches but cannot edit them." />
+        <PermissionDeniedState title="Distribution edit denied" description="Your role can inspect batches but cannot edit them." />
       </PageContainer>
     );
   }
@@ -86,7 +86,7 @@ export function DistributionEditModule({ id }: { id: string }) {
       <DistributionForm
         mode="edit"
         distributionId={distribution.id}
-        canChooseOrganization={role === "SUPER_ADMIN"}
+        canChooseOrganization={false}
         defaultOrganizationId={distribution.organizationId}
         initialValues={{
           name: distribution.name,

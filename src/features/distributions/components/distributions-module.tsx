@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import { DistributionFilters } from "@/features/distributions/components/distribution-filters";
@@ -76,13 +77,18 @@ export function DistributionsModule() {
     return programsData;
   }, [filters.organizationId, scopeOrganizationId, showOrganizationFilter]);
 
-  const canManage = role !== "AUDITOR";
-  const canCreate = role !== "AUDITOR";
+  const canChangeStatus = role ? hasPermission(role, "change_distribution_status") : false;
+  const canCreate = role ? hasPermission(role, "create_distribution") : false;
 
   function canEditItem(item: Distribution) {
-    if (role === "SUPER_ADMIN") return true;
     if (role === "ORG_ADMIN") return user?.organizationId === item.organizationId;
-    if (role === "PROGRAM_OFFICER") return user?.organizationId === item.organizationId && user?.id === item.createdByUserId;
+    if (role === "PROGRAM_OFFICER") {
+      return (
+        hasPermission(role, "edit_distribution") &&
+        user?.organizationId === item.organizationId &&
+        user?.id === item.createdByUserId
+      );
+    }
     return false;
   }
 
@@ -133,7 +139,7 @@ export function DistributionsModule() {
             setStatusTarget(item);
             setNextStatus(item.status === "COMPLETED" ? "FAILED" : "COMPLETED");
           }}
-          canManage={canManage}
+          canManage={canChangeStatus}
           canEditItem={canEditItem}
         />
       )}

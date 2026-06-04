@@ -65,7 +65,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
     );
   }
 
-  const canEdit = role === "SUPER_ADMIN" || (role === "ORG_ADMIN" && user?.organizationId === program.organizationId);
+  const canEdit = role === "ORG_ADMIN" && user?.organizationId === program.organizationId;
 
   return (
     <PageContainer>

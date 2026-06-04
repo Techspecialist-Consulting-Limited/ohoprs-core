@@ -17,14 +17,16 @@ export function ProgramTable({
   onPageChange,
   onStatusAction,
   role,
+  canChangeStatus,
 }: {
   items: Program[];
   meta: ProgramListMeta;
   onPageChange: (page: number) => void;
   onStatusAction: (program: Program) => void;
   role: UserRole;
+  canChangeStatus: boolean;
 }) {
-  const canManage = role === "SUPER_ADMIN" || role === "ORG_ADMIN";
+  const canEdit = role === "ORG_ADMIN";
   const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
   return (
@@ -55,7 +57,7 @@ export function ProgramTable({
                 <td className="px-5 py-4 text-sm text-muted">{item.startDate}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.endDate}</td>
                 <td className="px-5 py-4">
-                  <RowActionMenu canManage={canManage} item={item} onStatusAction={onStatusAction} />
+                  <RowActionMenu canEdit={canEdit} canChangeStatus={canChangeStatus} item={item} onStatusAction={onStatusAction} />
                 </td>
               </tr>
             ))}
@@ -108,11 +110,13 @@ export function ProgramTable({
 }
 
 function RowActionMenu({
-  canManage,
+  canEdit,
+  canChangeStatus,
   item,
   onStatusAction,
 }: {
-  canManage: boolean;
+  canEdit: boolean;
+  canChangeStatus: boolean;
   item: Program;
   onStatusAction: (program: Program) => void;
 }) {
@@ -127,7 +131,7 @@ function RowActionMenu({
             <SquareArrowOutUpRight size={16} />
             View Details
           </Link>
-          {canManage ? (
+          {canEdit ? (
             <Link
               href={`/programs/${item.id}/edit`}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
@@ -144,7 +148,7 @@ function RowActionMenu({
               <p className="mt-1 text-xs text-muted-soft">Your role has read-only access to interventions.</p>
             </div>
           )}
-          {canManage ? (
+          {canChangeStatus ? (
             <button
               type="button"
               onClick={() => {
