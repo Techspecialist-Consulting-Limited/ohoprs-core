@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Lock, RefreshCcw, RotateCcw, SendHorizontal } from "lucide-react";
+import { Eye, RefreshCcw, RotateCcw, SendHorizontal } from "lucide-react";
 
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
@@ -16,7 +16,6 @@ export function PaymentTable({
   canProcess,
   canRetry,
   canReverse,
-  readOnlyHint,
 }: {
   items: PaymentRecord[];
   onProcess: (item: PaymentRecord) => void;
@@ -25,7 +24,6 @@ export function PaymentTable({
   canProcess: (item: PaymentRecord) => boolean;
   canRetry: (item: PaymentRecord) => boolean;
   canReverse: (item: PaymentRecord) => boolean;
-  readOnlyHint?: string;
 }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-sm">
@@ -62,7 +60,6 @@ export function PaymentTable({
                     canProcess={canProcess(item)}
                     canRetry={canRetry(item)}
                     canReverse={canReverse(item)}
-                    readOnlyHint={readOnlyHint}
                   />
                 </td>
               </tr>
@@ -82,7 +79,6 @@ function RowActions({
   canProcess,
   canRetry,
   canReverse,
-  readOnlyHint,
 }: {
   item: PaymentRecord;
   onProcess: (item: PaymentRecord) => void;
@@ -91,10 +87,7 @@ function RowActions({
   canProcess: boolean;
   canRetry: boolean;
   canReverse: boolean;
-  readOnlyHint?: string;
 }) {
-  const helper = readOnlyHint ?? "Only Super Admin can execute payment actions.";
-
   return (
     <RowActionPopover panelClassName="w-60">
       {({ close }) => (
@@ -108,39 +101,21 @@ function RowActions({
               <SendHorizontal size={16} />
               Process
             </button>
-          ) : (
-            <LockedRow label="Process" hint={helper} icon={<Lock size={16} />} />
-          )}
+          ) : null}
           {canRetry ? (
             <button type="button" onClick={() => { onRetry(item); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
               <RefreshCcw size={16} />
               Retry
             </button>
-          ) : (
-            <LockedRow label="Retry" hint={helper} icon={<Lock size={16} />} />
-          )}
+          ) : null}
           {canReverse ? (
             <button type="button" onClick={() => { onReverse(item); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted">
               <RotateCcw size={16} />
               Reverse
             </button>
-          ) : (
-            <LockedRow label="Reverse" hint={helper} icon={<Lock size={16} />} />
-          )}
+          ) : null}
         </>
       )}
     </RowActionPopover>
-  );
-}
-
-function LockedRow({ label, hint, icon }: { label: string; hint: string; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-xl px-3 py-2 text-sm text-muted">
-      <div className="flex items-center gap-2">
-        {icon}
-        {label}
-      </div>
-      <p className="mt-1 text-xs text-muted-soft">{hint}</p>
-    </div>
   );
 }

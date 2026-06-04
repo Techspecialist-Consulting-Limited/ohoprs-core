@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide-react";
 
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/formatters";
@@ -135,15 +135,7 @@ function RowActionMenu({
               <Pencil size={16} />
               Edit Organization
             </Link>
-          ) : (
-            <div className="rounded-xl px-3 py-2 text-sm text-muted">
-              <div className="flex items-center gap-2">
-                <Lock size={16} />
-                Edit Organization
-              </div>
-              <p className="mt-1 text-xs text-muted-soft">Only Super Admin can edit organizations.</p>
-            </div>
-          )}
+          ) : null}
 
           {canManage ? (
             <button
@@ -157,15 +149,7 @@ function RowActionMenu({
               <Pencil size={16} />
               Change Status
             </button>
-          ) : (
-            <div className="rounded-xl px-3 py-2 text-sm text-muted">
-              <div className="flex items-center gap-2">
-                <Lock size={16} />
-                Change Status
-              </div>
-              <p className="mt-1 text-xs text-muted-soft">Status changes require Super Admin access.</p>
-            </div>
-          )}
+          ) : null}
         </>
       )}
     </RowActionPopover>

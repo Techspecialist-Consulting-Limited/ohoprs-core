@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide-react";
 
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { cn } from "@/lib/utils";
@@ -156,15 +156,7 @@ function RowActionMenu({
               <Pencil size={16} />
               Edit Beneficiary
             </Link>
-          ) : (
-            <div className="rounded-xl px-3 py-2 text-sm text-muted">
-              <div className="flex items-center gap-2">
-                <Lock size={16} />
-                Edit Beneficiary
-              </div>
-              <p className="mt-1 text-xs text-muted-soft">Your role has read-only access to beneficiary records.</p>
-            </div>
-          )}
+          ) : null}
         </>
       )}
     </RowActionPopover>

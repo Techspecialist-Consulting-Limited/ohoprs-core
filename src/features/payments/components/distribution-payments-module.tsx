@@ -166,7 +166,6 @@ export function DistributionPaymentsModule({ id }: { id: string }) {
           canProcess={(item) => role === "SUPER_ADMIN" && item.status === "PENDING"}
           canRetry={(item) => role === "SUPER_ADMIN" && (item.status === "FAILED" || item.status === "RETRY_PENDING")}
           canReverse={(item) => Boolean(role && hasPermission(role, "reverse_payment") && item.status === "PAID")}
-          readOnlyHint={role === "ORG_ADMIN" ? "Only Organization Admin can reverse paid payments." : "Your role can view payment history but cannot reverse paid payments."}
         />
       )}
 

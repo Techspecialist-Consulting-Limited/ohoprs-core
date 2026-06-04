@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Lock, Pencil, SquareArrowOutUpRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide-react";
 
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/formatters";
@@ -143,15 +143,7 @@ function RowActionMenu({
               <Pencil size={16} />
               Edit Distribution
             </Link>
-          ) : (
-            <div className="rounded-xl px-3 py-2 text-sm text-muted">
-              <div className="flex items-center gap-2">
-                <Lock size={16} />
-                Edit Distribution
-              </div>
-              <p className="mt-1 text-xs text-muted-soft">You do not have permission to edit this distribution.</p>
-            </div>
-          )}
+          ) : null}
           {canManage && canEditItem ? (
             <button
               type="button"
@@ -164,15 +156,7 @@ function RowActionMenu({
               <Pencil size={16} />
               Change Status
             </button>
-          ) : (
-            <div className="rounded-xl px-3 py-2 text-sm text-muted">
-              <div className="flex items-center gap-2">
-                <Lock size={16} />
-                Change Status
-              </div>
-              <p className="mt-1 text-xs text-muted-soft">Status changes require distribution management access.</p>
-            </div>
-          )}
+          ) : null}
         </>
       )}
     </RowActionPopover>
