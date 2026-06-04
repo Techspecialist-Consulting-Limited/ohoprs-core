@@ -30,7 +30,6 @@ export function ProgramCreateModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 6"
         title="Create intervention"
         description="Create a new benefit intervention within the appropriate organization scope."
       />
@@ -97,7 +96,6 @@ export function ProgramEditModule({ id }: { id: string }) {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 6"
         title={`Edit ${program.name}`}
         description="Update intervention profile information, schedule, budget, and lifecycle status."
       />

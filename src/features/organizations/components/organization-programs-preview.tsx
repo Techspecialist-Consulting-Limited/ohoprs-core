@@ -25,7 +25,7 @@ export function OrganizationProgramsPreview({ items }: { items: OrganizationProg
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border-strong px-4 py-8 text-center text-sm text-muted">
-            Program management will be implemented in Phase 5.
+            Program management will be available here.
           </div>
         )}
       </div>

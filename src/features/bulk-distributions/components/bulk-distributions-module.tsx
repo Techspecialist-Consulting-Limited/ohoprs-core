@@ -54,9 +54,8 @@ export function BulkDistributionsModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 10"
         title="Bulk distribution engine"
-        description="Enterprise-scale batch processing console for mock delivery jobs spanning tens of thousands to millions of beneficiary records."
+        description="Enterprise-scale batch processing console for delivery jobs spanning tens of thousands to millions of beneficiary records."
       />
 
       <BulkJobSummary items={items} />

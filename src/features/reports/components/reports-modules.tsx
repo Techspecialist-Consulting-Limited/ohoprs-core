@@ -240,7 +240,7 @@ export function DistributionsReportModule() {
         <ReportChartCard title="Distribution Status Breakdown" description="Completed, failed, and pending distribution batches.">
           <BenefitTypeChart data={data.statusBreakdown} />
         </ReportChartCard>
-        <ReportChartCard title="Bulk Job Status Breakdown" description="Phase 10 bulk-engine job status mix.">
+        <ReportChartCard title="Bulk Job Status Breakdown" description="Bulk-engine job status mix.">
           <BenefitTypeChart data={data.bulkStatusBreakdown} />
         </ReportChartCard>
       </section>

@@ -48,7 +48,7 @@ export function SettingsDashboardModule() {
   const cards = cardsQuery.data?.data ?? [];
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Settings & Platform Administration" description="Administrative configuration for platform governance, organization settings, security, and future-ready integrations." />
+      <PageHeader title="Settings & Platform Administration" description="Administrative configuration for platform governance, organization settings, security, and future-ready integrations." />
       <SettingsCardGrid items={cards} />
     </PageContainer>
   );
@@ -78,7 +78,7 @@ export function SettingsProfileModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Profile Settings" description={role === "SUPER_ADMIN" ? "Manage the platform profile and support configuration." : "Manage your organization profile and contact details."} />
+      <PageHeader title="Profile Settings" description={role === "SUPER_ADMIN" ? "Manage the platform profile and support configuration." : "Manage your organization profile and contact details."} />
       {role === "SUPER_ADMIN" ? (
         <PlatformProfileSettingsForm initialData={data as import("@/types/settings").PlatformProfileSettings} />
       ) : (
@@ -107,7 +107,7 @@ export function SettingsUsersModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="User Management" description="View platform or organization users, access roles, and invite status." />
+      <PageHeader title="User Management" description="View platform or organization users, access roles, and invite status." />
       <UserManagementTable items={usersQuery.data?.data ?? []} canManage={role === "SUPER_ADMIN"} />
     </PageContainer>
   );
@@ -122,7 +122,7 @@ export function SettingsRolesModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Roles & Permissions" description="Read the current RBAC matrix directly from the active permission configuration." />
+      <PageHeader title="Roles & Permissions" description="Read the current RBAC matrix directly from the active permission configuration." />
       <RolePermissionMatrix />
     </PageContainer>
   );
@@ -146,7 +146,7 @@ export function SettingsSecurityModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Security Settings" description="Security controls for MFA, password policy, session handling, IP restrictions, and audit retention." />
+      <PageHeader title="Security Settings" description="Security controls for MFA, password policy, session handling, IP restrictions, and audit retention." />
       <SecuritySettingsPanel initialData={securityQuery.data!.data} readOnly={role === "AUDITOR"} />
     </PageContainer>
   );
@@ -170,7 +170,7 @@ export function SettingsIntegrationsModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Integrations" description="Future-ready provider configuration across payment, identity, communication, and storage categories." />
+      <PageHeader title="Integrations" description="Future-ready provider configuration across payment, identity, communication, and storage categories." />
       <IntegrationCards items={integrationsQuery.data?.data ?? []} />
     </PageContainer>
   );
@@ -194,7 +194,7 @@ export function SettingsApprovalsModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Approval Workflows" description="Configure mock approval requirements for programs, beneficiary uploads, distributions, and bulk payments." />
+      <PageHeader title="Approval Workflows" description="Configure mock approval requirements for programs, beneficiary uploads, distributions, and bulk payments." />
       <ApprovalSettingsPanel initialData={approvalsQuery.data!.data} />
     </PageContainer>
   );
@@ -218,7 +218,7 @@ export function SettingsPaymentsModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Payments" description="Placeholder configuration for payment providers, batch limits, and reconciliation controls." />
+      <PageHeader title="Payments" description="Placeholder configuration for payment providers, batch limits, and reconciliation controls." />
       <PaymentSettingsPanel initialData={paymentsQuery.data!.data} />
     </PageContainer>
   );
@@ -242,7 +242,7 @@ export function SettingsNotificationsModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 14" title="Notification Settings" description="Configure platform-level communication channel settings and delivery behavior defaults." />
+      <PageHeader title="Notification Settings" description="Configure platform-level communication channel settings and delivery behavior defaults." />
       <NotificationSettingsPanel initialData={notificationsQuery.data!.data} />
     </PageContainer>
   );

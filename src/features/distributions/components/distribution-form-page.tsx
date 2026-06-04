@@ -27,7 +27,7 @@ export function DistributionCreateModule() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 9" title="Create distribution" description="Create a prototype batch showing how benefits move from program to beneficiary delivery." />
+      <PageHeader title="Create distribution" description="Create a distribution batch showing how benefits move from program to beneficiary delivery." />
       <DistributionForm mode="create" canChooseOrganization={false} defaultOrganizationId={user?.organizationId ?? undefined} />
     </PageContainer>
   );
@@ -84,7 +84,7 @@ export function DistributionEditModule({ id }: { id: string }) {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Phase 9" title={`Edit ${distribution.name}`} description="Update distribution setup, method, scheduling, and prototype execution status." />
+      <PageHeader title={`Edit ${distribution.name}`} description="Update distribution setup, method, scheduling, and execution status." />
       <DistributionForm
         mode="edit"
         distributionId={distribution.id}

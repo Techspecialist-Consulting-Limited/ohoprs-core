@@ -25,7 +25,6 @@ export function BeneficiaryUploadModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 7"
         title="Upload beneficiaries"
         description="Prepare bulk beneficiary imports with template download, import rules, and preview-only review."
       />

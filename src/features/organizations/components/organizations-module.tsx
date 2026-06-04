@@ -104,7 +104,6 @@ export function OrganizationsModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 4"
         title="Organization management"
         description="Create, review, and administer participating organizations across the multi-tenant platform."
       />

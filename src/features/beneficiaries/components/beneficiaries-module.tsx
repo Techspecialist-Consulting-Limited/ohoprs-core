@@ -92,7 +92,6 @@ export function BeneficiariesModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 7"
         title="Beneficiary management"
         description="Manage beneficiary records, enrollment previews, verification state, and upload preparation across organization scopes."
       />

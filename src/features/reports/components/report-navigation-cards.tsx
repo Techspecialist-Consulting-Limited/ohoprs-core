@@ -21,7 +21,7 @@ const cards = [
   },
   {
     title: "Distribution Reports",
-    description: "See delivery performance together with bulk-processing metrics from Phase 10.",
+    description: "See delivery performance together with bulk-processing metrics.",
     href: "/reports/distributions",
   },
 ];

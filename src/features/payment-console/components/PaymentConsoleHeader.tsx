@@ -36,7 +36,6 @@ export function PaymentConsoleHeader({
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">Phase 16</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{distribution.name}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
             Payment batch review and execution console for {distribution.programName}. Review approval governance,

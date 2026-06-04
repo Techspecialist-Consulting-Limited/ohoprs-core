@@ -39,7 +39,6 @@ export function OrganizationCreateModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 4"
         title="Create organization"
         description="Register a new ministry, agency, partner, or donor in the multi-tenant platform."
       />
@@ -101,7 +100,6 @@ export function OrganizationEditModule({ id }: { id: string }) {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 4"
         title={`Edit ${organization.name}`}
         description="Update organization profile information, status, and operational contact details."
       />

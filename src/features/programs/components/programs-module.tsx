@@ -100,7 +100,6 @@ export function ProgramsModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 6"
         title="Intervention management"
         description="Create, review, and manage benefit interventions across organizations with role-aware access and enterprise operational visibility."
       />

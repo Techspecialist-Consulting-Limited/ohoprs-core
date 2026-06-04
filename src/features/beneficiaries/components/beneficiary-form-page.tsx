@@ -30,7 +30,6 @@ export function BeneficiaryCreateModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 7"
         title="Create beneficiary"
         description="Register a beneficiary record within the correct organization and program scope."
       />
@@ -97,7 +96,6 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 7"
         title={`Edit ${beneficiary.fullName}`}
         description="Update beneficiary contact, location, verification, and benefit status information."
       />

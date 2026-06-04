@@ -92,7 +92,6 @@ export function BulkJobDetailsModule({ jobId }: { jobId: string }) {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">Phase 10</span>
               {role === "AUDITOR" ? <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Read-only oversight view</span> : null}
               <BulkJobStatusBadge status={job.status} />
             </div>

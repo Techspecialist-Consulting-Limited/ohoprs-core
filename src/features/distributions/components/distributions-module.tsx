@@ -103,7 +103,6 @@ export function DistributionsModule() {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow="Phase 9"
         title="Distribution management"
         description="Manage delivery batches that connect programs, beneficiaries, and accountable benefit execution."
       />
