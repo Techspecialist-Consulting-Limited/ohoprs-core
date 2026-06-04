@@ -147,11 +147,15 @@ export const approvalService = {
       return Promise.resolve({ success: false, message: "Distribution not found", data: null });
     }
 
-    if (actor.role === "ORG_ADMIN" && distribution.organizationId !== actor.organizationId) {
+    if (actor.role !== "ORG_ADMIN") {
+      return Promise.resolve({ success: false, message: "Only Organization Admin can approve distributions", data: null });
+    }
+
+    if (distribution.organizationId !== actor.organizationId) {
       return Promise.resolve({ success: false, message: "Approval access denied", data: null });
     }
 
-    if (actor.role === "ORG_ADMIN" && distribution.createdByUserId === actor.id) {
+    if (distribution.createdByUserId === actor.id) {
       return Promise.resolve({
         success: false,
         message: "You cannot approve a distribution you created.",
@@ -208,14 +212,18 @@ export const approvalService = {
       return Promise.resolve({ success: false, message: "Rejection reason is required", data: null });
     }
 
-    if (actor.role === "ORG_ADMIN" && distribution.organizationId !== actor.organizationId) {
+    if (actor.role !== "ORG_ADMIN") {
+      return Promise.resolve({ success: false, message: "Only Organization Admin can reject distributions", data: null });
+    }
+
+    if (distribution.organizationId !== actor.organizationId) {
       return Promise.resolve({ success: false, message: "Approval access denied", data: null });
     }
 
-    if (actor.role === "ORG_ADMIN" && distribution.createdByUserId === actor.id) {
+    if (distribution.createdByUserId === actor.id) {
       return Promise.resolve({
         success: false,
-        message: "You cannot approve a distribution you created.",
+        message: "You cannot reject a distribution you created.",
         data: null,
       });
     }

@@ -48,10 +48,6 @@ function canApproveOrReject(role: UserRole, distribution: DistributionDetails, u
     return false;
   }
 
-  if (role === "SUPER_ADMIN") {
-    return true;
-  }
-
   if (role !== "ORG_ADMIN") {
     return false;
   }

@@ -59,10 +59,9 @@ export function DistributionApprovalModule({ id }: { id: string }) {
 
   const canApprove =
     approval.approvalStatus === "SUBMITTED" &&
-    ((role === "ORG_ADMIN" &&
-      user?.organizationId === distribution.organizationId &&
-      user.id !== distribution.createdByUserId) ||
-      role === "SUPER_ADMIN");
+    role === "ORG_ADMIN" &&
+    user?.organizationId === distribution.organizationId &&
+    user.id !== distribution.createdByUserId;
 
   const canReject = canApprove;
 

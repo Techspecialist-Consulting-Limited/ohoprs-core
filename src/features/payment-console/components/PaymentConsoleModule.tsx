@@ -174,11 +174,10 @@ export function PaymentConsoleModule({ id }: { id: string }) {
 
   const canSubmit = role === "PROGRAM_OFFICER" && data.distribution.approvalStatus === "DRAFT" && data.distribution.createdByUserId === user.id;
   const canApprove =
-    (role === "SUPER_ADMIN" && data.distribution.approvalStatus === "SUBMITTED") ||
-    (role === "ORG_ADMIN" &&
-      data.distribution.approvalStatus === "SUBMITTED" &&
-      data.distribution.organizationId === user.organizationId &&
-      data.distribution.createdByUserId !== user.id);
+    role === "ORG_ADMIN" &&
+    data.distribution.approvalStatus === "SUBMITTED" &&
+    data.distribution.organizationId === user.organizationId &&
+    data.distribution.createdByUserId !== user.id;
   const canReject = canApprove;
   const canProcessAll =
     role === "SUPER_ADMIN" &&
