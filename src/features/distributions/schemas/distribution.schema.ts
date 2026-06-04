@@ -7,7 +7,7 @@ export const distributionSchema = z
   .object({
     name: z.string().min(3, "Distribution name is required"),
     organizationId: z.string().min(1, "Organization is required"),
-    programId: z.string().min(1, "Program is required"),
+    programId: z.string().min(1, "Intervention is required"),
     method: z.enum([...cashMethods, ...supportMethods]),
     description: z.string().min(10, "Description is required"),
     beneficiaryCount: z.coerce.number().min(1, "Beneficiary count must be at least 1"),

@@ -37,7 +37,7 @@ export function OrganizationReportTable({ rows }: { rows: OrganizationReportRow[
           <thead className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
             <tr>
               <th className="px-5 py-4">Organization</th>
-              <SortableHeader label="Programs" active={sortKey === "programCount"} onClick={() => handleSort("programCount")} />
+              <SortableHeader label="Interventions" active={sortKey === "programCount"} onClick={() => handleSort("programCount")} />
               <SortableHeader label="Beneficiaries" active={sortKey === "beneficiaryCount"} onClick={() => handleSort("beneficiaryCount")} />
               <SortableHeader label="Total Distributed" active={sortKey === "totalDistributed"} onClick={() => handleSort("totalDistributed")} />
               <SortableHeader label="Completion Rate" active={sortKey === "completionRate"} onClick={() => handleSort("completionRate")} />

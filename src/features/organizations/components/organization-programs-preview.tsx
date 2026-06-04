@@ -5,8 +5,8 @@ export function OrganizationProgramsPreview({ items }: { items: OrganizationProg
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
-        <p className="text-sm font-semibold text-foreground">Programs preview</p>
-        <p className="mt-1 text-sm text-muted">Selected program records linked to this organization.</p>
+        <p className="text-sm font-semibold text-foreground">Interventions preview</p>
+        <p className="mt-1 text-sm text-muted">Selected intervention records linked to this organization.</p>
       </div>
       <div className="mt-5 space-y-3">
         {items.length ? (
@@ -25,7 +25,7 @@ export function OrganizationProgramsPreview({ items }: { items: OrganizationProg
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border-strong px-4 py-8 text-center text-sm text-muted">
-            Program management will be available here.
+            Intervention management will be available here.
           </div>
         )}
       </div>

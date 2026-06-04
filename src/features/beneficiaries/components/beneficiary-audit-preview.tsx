@@ -6,7 +6,7 @@ export function BeneficiaryAuditPreview({ items }: { items: BeneficiaryAuditItem
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">Audit trail preview</p>
-        <p className="mt-1 text-sm text-muted">Latest beneficiary-related actions across verification, programs, and distributions.</p>
+        <p className="mt-1 text-sm text-muted">Latest beneficiary-related actions across verification, interventions, and distributions.</p>
       </div>
       <div className="mt-5 space-y-3">
         {items.slice(0, 5).map((item) => (

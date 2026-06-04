@@ -21,7 +21,7 @@ export const programStatuses = [
 
 export const programSchema = z
   .object({
-    name: z.string().min(3, "Program name is required"),
+    name: z.string().min(3, "Intervention name is required"),
     organizationId: z.string().min(1, "Organization is required"),
     benefitType: z.enum(benefitTypes),
     description: z.string().min(10, "Description is required"),

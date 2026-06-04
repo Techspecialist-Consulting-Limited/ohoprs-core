@@ -18,7 +18,7 @@ export function ProgramStatusDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <button type="button" className="absolute inset-0 bg-[#161616]/55" onClick={onClose} />
       <div className="relative z-10 w-full max-w-lg rounded-[32px] border border-border bg-surface p-6 shadow-2xl">
-        <h2 className="text-2xl font-semibold text-foreground">Change program status</h2>
+        <h2 className="text-2xl font-semibold text-foreground">Change intervention status</h2>
         <p className="mt-2 text-sm text-muted">
           Confirm the status update for <span className="font-semibold text-foreground">{program.name}</span>.
         </p>
@@ -41,7 +41,7 @@ export function ProgramStatusDialog({
           </label>
         </div>
         <p className="mt-4 text-sm text-warning">
-          This change affects how the program appears across workspaces, dashboards, and future operational modules.
+          This change affects how the intervention appears across workspaces, dashboards, and future operational modules.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground">

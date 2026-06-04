@@ -47,7 +47,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <EmptyState
-          title="Program not found"
+          title="Intervention not found"
           description="The requested program could not be loaded from the mock service layer."
         />
       </PageContainer>
@@ -58,7 +58,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Program access denied"
+          title="Intervention access denied"
           description="Your role cannot access this program because it belongs to another organization."
         />
       </PageContainer>
@@ -75,7 +75,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
         <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-foreground">Program profile</p>
+              <p className="text-sm font-semibold text-foreground">Intervention profile</p>
               <p className="mt-1 text-sm text-muted">Core program profile, lifecycle window, and budget posture.</p>
             </div>
             <ProgramStatusBadge status={program.status} />
@@ -129,7 +129,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
             </Link>
             {canEdit ? (
               <Link href={`/programs/${program.id}/edit`} className="block rounded-2xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
-                Edit Program
+                Edit Intervention
               </Link>
             ) : null}
           </div>

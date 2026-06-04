@@ -90,13 +90,13 @@ export function ReportFilters({
         ) : null}
 
         <label className="block">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Program</span>
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention</span>
           <select
             value={value.programId ?? "ALL"}
             onChange={(event) => onChange({ ...value, programId: event.target.value })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
-            <option value="ALL">All programs</option>
+            <option value="ALL">All interventions</option>
             {availablePrograms.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}

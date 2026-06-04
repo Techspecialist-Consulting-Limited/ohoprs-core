@@ -194,7 +194,7 @@ export function SettingsApprovalsModule() {
 
   return (
     <PageContainer>
-      <PageHeader title="Approval Workflows" description="Configure mock approval requirements for programs, beneficiary uploads, distributions, and bulk payments." />
+      <PageHeader title="Approval Workflows" description="Configure mock approval requirements for interventions, beneficiary uploads, distributions, and bulk payments." />
       <ApprovalSettingsPanel initialData={approvalsQuery.data!.data} />
     </PageContainer>
   );

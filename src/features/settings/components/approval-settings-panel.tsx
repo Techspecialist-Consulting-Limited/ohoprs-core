@@ -15,7 +15,7 @@ export function ApprovalSettingsPanel({ initialData }: { initialData: ApprovalSe
   });
 
   const rows = [
-    { key: "programApprovalRequired", label: "Program approval required" },
+    { key: "programApprovalRequired", label: "Intervention approval required" },
     { key: "beneficiaryUploadApprovalRequired", label: "Beneficiary upload approval required" },
     { key: "distributionApprovalRequired", label: "Distribution approval required" },
     { key: "bulkPaymentApprovalRequired", label: "Bulk payment approval required" },

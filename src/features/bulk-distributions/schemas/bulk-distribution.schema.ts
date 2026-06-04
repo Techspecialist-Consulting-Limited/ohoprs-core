@@ -6,7 +6,7 @@ const supportMethods = ["FOOD_PACKAGE", "MEDICAL_SUPPORT", "EDUCATION_SUPPORT", 
 export const bulkDistributionSchema = z
   .object({
     organizationId: z.string().min(1, "Organization is required"),
-    programId: z.string().min(1, "Program is required"),
+    programId: z.string().min(1, "Intervention is required"),
     method: z.enum([...cashMethods, ...supportMethods]),
     segment: z.enum(["ALL_VERIFIED", "SELECTED_STATE", "PROGRAM_ENROLLED", "PENDING_UNPAID", "CUSTOM_UPLOAD"]),
     state: z.string().optional(),

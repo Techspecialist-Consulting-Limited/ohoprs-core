@@ -31,7 +31,7 @@ export function BeneficiaryCreateModule() {
     <PageContainer>
       <PageHeader
         title="Create beneficiary"
-        description="Register a beneficiary record within the correct organization and program scope."
+        description="Register a beneficiary record within the correct organization and intervention scope."
       />
       <BeneficiaryForm
         mode="create"

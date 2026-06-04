@@ -30,9 +30,9 @@ export function ReportKpiGrid({
       tone: "neutral" as const,
     },
     {
-      label: "Total Programs",
+      label: "Total Interventions",
       value: formatNumber(kpis.totalPrograms),
-      change: "Programs in scope",
+      change: "Interventions in scope",
       icon: FolderKanban,
       tone: "neutral" as const,
     },

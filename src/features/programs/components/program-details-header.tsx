@@ -38,7 +38,7 @@ export function ProgramDetailsHeader({
             className="inline-flex h-11 items-center gap-2 rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
           >
             <Pencil size={16} />
-            Edit Program
+            Edit Intervention
           </Link>
         ) : null}
       </div>

@@ -99,7 +99,7 @@ export function BeneficiariesModule() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl text-sm text-muted">
           {showOrganizationFilter
-            ? "Review beneficiaries across organizations, programs, and verification states."
+            ? "Review beneficiaries across organizations, interventions, and verification states."
             : "You are viewing beneficiaries scoped to your organization."
           }
         </div>

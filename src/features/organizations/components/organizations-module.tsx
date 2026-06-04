@@ -72,7 +72,7 @@ export function OrganizationsModule() {
       <PageContainer>
         <PermissionDeniedState
           title="Organizations access denied"
-          description="Program Officers can work with program and beneficiary operations, but cannot access organization management."
+          description="Program Officers can work with intervention and beneficiary operations, but cannot access organization management."
         />
       </PageContainer>
     );

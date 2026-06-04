@@ -62,7 +62,7 @@ export function DistributionFilters({
             onChange={(event) => onChange({ ...value, programId: event.target.value })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
-            <option value="ALL">All programs</option>
+            <option value="ALL">All interventions</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}

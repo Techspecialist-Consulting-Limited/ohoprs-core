@@ -105,7 +105,7 @@ export function BulkJobDetailsModule({ jobId }: { jobId: string }) {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href={`/programs/${job.programId}`} className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground">
-              View Program
+              View Intervention
             </Link>
             <Link href="/beneficiaries" className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground">
               View Beneficiaries

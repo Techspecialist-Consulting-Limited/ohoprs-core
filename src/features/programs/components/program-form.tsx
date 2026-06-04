@@ -86,7 +86,7 @@ export function ProgramForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8">
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Program Name" error={form.formState.errors.name?.message}>
+        <Field label="Intervention Name" error={form.formState.errors.name?.message}>
           <input {...form.register("name")} className={inputClassName} />
         </Field>
 
@@ -160,7 +160,7 @@ export function ProgramForm({
           disabled={mutation.isPending}
           className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
         >
-          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Program" : "Save Changes"}
+          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Intervention" : "Save Changes"}
         </button>
       </div>
     </form>

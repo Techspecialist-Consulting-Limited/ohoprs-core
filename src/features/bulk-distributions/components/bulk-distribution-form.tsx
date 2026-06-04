@@ -133,7 +133,7 @@ export function BulkDistributionForm({
             </select>
           </Field>
 
-          <Field label="Program" error={form.formState.errors.programId?.message}>
+          <Field label="Intervention" error={form.formState.errors.programId?.message}>
             <select
               {...form.register("programId", {
                 onChange: (event) => {
@@ -146,7 +146,7 @@ export function BulkDistributionForm({
               })}
               className={inputClassName}
             >
-              <option value="">Select program</option>
+              <option value="">Select intervention</option>
               {availablePrograms.map((program) => (
                 <option key={program.id} value={program.id}>
                   {program.name}
@@ -160,7 +160,7 @@ export function BulkDistributionForm({
               value={selectedProgram?.benefitType.replaceAll("_", " ") ?? ""}
               disabled
               className={`${inputClassName} bg-surface-muted`}
-              placeholder="Derived from selected program"
+              placeholder="Derived from selected intervention"
             />
           </Field>
 

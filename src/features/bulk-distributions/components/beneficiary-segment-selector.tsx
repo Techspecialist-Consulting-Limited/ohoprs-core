@@ -3,9 +3,9 @@
 import type { BeneficiarySegment } from "@/types/bulk-distribution";
 
 const segmentDescriptions: Record<BeneficiarySegment, string> = {
-  ALL_VERIFIED: "All verified beneficiaries in the selected program scope.",
+  ALL_VERIFIED: "All verified beneficiaries in the selected intervention scope.",
   SELECTED_STATE: "Only beneficiaries from a selected state.",
-  PROGRAM_ENROLLED: "Beneficiaries already enrolled in the selected program.",
+  PROGRAM_ENROLLED: "Beneficiaries already enrolled in the selected intervention.",
   PENDING_UNPAID: "Eligible beneficiaries with unpaid delivery records.",
   CUSTOM_UPLOAD: "Custom uploaded list for targeted operations.",
 };

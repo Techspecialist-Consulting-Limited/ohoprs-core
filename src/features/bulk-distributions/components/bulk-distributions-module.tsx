@@ -139,7 +139,7 @@ export function BulkDistributionsModule() {
                 <table className="min-w-full">
                   <thead className="border-b border-border bg-surface-muted">
                     <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-                      {["Job", "Program", "Organization", "Records", "Per Beneficiary", "Status", "Updated", ""].map((label) => (
+                      {["Job", "Intervention", "Organization", "Records", "Per Beneficiary", "Status", "Updated", ""].map((label) => (
                         <th key={label} className="px-5 py-4">{label}</th>
                       ))}
                     </tr>

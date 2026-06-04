@@ -36,7 +36,7 @@ export function ProgramReportTable({ rows }: { rows: ProgramReportRow[] }) {
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
             <tr>
-              <th className="px-5 py-4">Program</th>
+              <th className="px-5 py-4">Intervention</th>
               <th className="px-5 py-4">Organization</th>
               <th className="px-5 py-4">Benefit Type</th>
               <SortableHeader label="Enrolled Beneficiaries" active={sortKey === "enrolledBeneficiaries"} onClick={() => handleSort("enrolledBeneficiaries")} />

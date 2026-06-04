@@ -11,7 +11,7 @@ export function BeneficiaryImportPreview() {
         <table className="min-w-full">
           <thead>
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["First Name", "Last Name", "NIN", "Phone", "State", "Organization", "Program IDs"].map((label) => (
+              {["First Name", "Last Name", "NIN", "Phone", "State", "Organization", "Intervention IDs"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>

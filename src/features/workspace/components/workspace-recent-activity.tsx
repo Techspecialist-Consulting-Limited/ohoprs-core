@@ -15,7 +15,7 @@ export function WorkspaceRecentActivity({ items }: { items: WorkspaceActivity[] 
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">Recent activity</p>
-        <p className="mt-1 text-sm text-muted">Latest organization-level actions across programs, beneficiaries, and distributions.</p>
+        <p className="mt-1 text-sm text-muted">Latest organization-level actions across interventions, beneficiaries, and distributions.</p>
       </div>
       <div className="mt-5 space-y-3">
         {items.map((item) => {

@@ -26,7 +26,7 @@ export function ProgramFilters({
         <input
           value={value.search}
           onChange={(event) => onChange({ ...value, search: event.target.value })}
-          placeholder="Search programs by name, organization, or benefit type"
+          placeholder="Search interventions by name, organization, or benefit type"
           className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-soft"
         />
       </label>

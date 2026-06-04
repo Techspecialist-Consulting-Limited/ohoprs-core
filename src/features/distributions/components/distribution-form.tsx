@@ -115,7 +115,7 @@ export function DistributionForm({
 
         <Field label="Intervention" error={form.formState.errors.programId?.message}>
           <select {...form.register("programId")} className={inputClassName}>
-            <option value="">Select program</option>
+            <option value="">Select intervention</option>
             {availablePrograms.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -129,7 +129,7 @@ export function DistributionForm({
             value={selectedProgram?.benefitType.replaceAll("_", " ") ?? ""}
             disabled
             className={`${inputClassName} bg-surface-muted`}
-            placeholder="Derived from selected program"
+            placeholder="Derived from selected intervention"
           />
         </Field>
 

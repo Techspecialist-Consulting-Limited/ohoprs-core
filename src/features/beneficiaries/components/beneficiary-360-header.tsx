@@ -42,7 +42,7 @@ export function Beneficiary360Header({
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{beneficiary.fullName}</h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Full benefit traceability across programs, distributions, verification, and audit activity.
+            Full benefit traceability across interventions, distributions, verification, and audit activity.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted">
             <span>NIN: {maskValue(beneficiary.nin)}</span>

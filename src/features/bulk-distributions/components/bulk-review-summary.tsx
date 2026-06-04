@@ -26,8 +26,8 @@ export function BulkReviewSummary({
       <h2 className="mt-2 text-xl font-semibold text-foreground">Approval-style job review</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <SummaryRow label="Organization" value={organizationName ?? "Select organization"} />
-        <SummaryRow label="Program" value={programName ?? "Select program"} />
-        <SummaryRow label="Benefit Type" value={benefitType?.replaceAll("_", " ") ?? "Derived from program"} />
+        <SummaryRow label="Intervention" value={programName ?? "Select intervention"} />
+        <SummaryRow label="Benefit Type" value={benefitType?.replaceAll("_", " ") ?? "Derived from intervention"} />
         <SummaryRow label="Method" value={values.method.replaceAll("_", " ")} />
         <SummaryRow label="Segment" value={values.segment.replaceAll("_", " ")} />
         <SummaryRow label="Estimated Beneficiaries" value={formatNumber(values.beneficiaryCount || 0)} />

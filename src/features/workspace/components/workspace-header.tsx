@@ -41,7 +41,7 @@ export function WorkspaceHeader({
             {workspace.organization.shortName} Operational Overview
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted sm:text-base">
-            Organization-level command center for program operations, beneficiary coverage, distribution activity, and operational health.
+            Organization-level command center for intervention operations, beneficiary coverage, distribution activity, and operational health.
           </p>
         </div>
         <div className="rounded-3xl border border-border bg-surface-muted px-4 py-3">

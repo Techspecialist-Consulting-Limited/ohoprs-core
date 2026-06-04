@@ -76,7 +76,7 @@ export function PaymentDetailsModule({ id }: { id: string }) {
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <DetailCell label="Beneficiary" value={payment.beneficiaryName} />
               <DetailCell label="Masked NIN" value={payment.beneficiaryNin} />
-              <DetailCell label="Program" value={payment.programName} />
+              <DetailCell label="Intervention" value={payment.programName} />
               <DetailCell label="Organization" value={payment.organizationName} />
               <DetailCell label="Bank" value={payment.bankName} />
               <DetailCell label="Account number" value={payment.accountNumber} />

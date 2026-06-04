@@ -6,12 +6,12 @@ import { ArrowRight } from "lucide-react";
 const cards = [
   {
     title: "Organization Reports",
-    description: "Rank organizations by delivery scale, program count, and completion performance.",
+    description: "Rank organizations by delivery scale, intervention count, and completion performance.",
     href: "/reports/organizations",
   },
   {
-    title: "Program Reports",
-    description: "Track program performance, enrolled beneficiaries, and distribution outcomes.",
+    title: "Intervention Reports",
+    description: "Track intervention performance, enrolled beneficiaries, and distribution outcomes.",
     href: "/reports/programs",
   },
   {

@@ -77,7 +77,7 @@ export function ReportsDashboardModule() {
     <PageContainer>
       <ReportHeader
         title="Reports & Analytics"
-        description="Executive and audit-friendly reporting across distributions, beneficiaries, programs, and organizations."
+        description="Executive and audit-friendly reporting across distributions, beneficiaries, interventions, and organizations."
         readOnly={readOnly}
       />
       <div className="flex justify-end">
@@ -103,7 +103,7 @@ export function ReportsDashboardModule() {
         <ReportChartCard title="Beneficiary Coverage by State" description="Beneficiary footprint across states in the filtered view.">
           <StateDistributionChart data={data.beneficiaryCoverageByState} />
         </ReportChartCard>
-        <ReportChartCard title="Program Performance" description="High-level program delivery performance score.">
+        <ReportChartCard title="Intervention Performance" description="High-level intervention delivery performance score.">
           <ProgramPerformanceChart data={data.programPerformance} />
         </ReportChartCard>
         <ReportChartCard title="Distribution Status Breakdown" description="Completed, failed, and pending distribution mix.">
@@ -153,7 +153,7 @@ export function ProgramsReportModule() {
   const rows = dataQuery.data?.data ?? [];
   return (
     <PageContainer>
-      <ReportHeader title="Program Report" description="Compare programs by enrolled beneficiaries, total distributed value, and success rate." readOnly={readOnly} />
+      <ReportHeader title="Intervention Report" description="Compare interventions by enrolled beneficiaries, total distributed value, and success rate." readOnly={readOnly} />
       <div className="flex justify-end">
         <ExportButtons reportType="programs" filters={{ ...filters, organizationId: scopedOrganizationId }} />
       </div>

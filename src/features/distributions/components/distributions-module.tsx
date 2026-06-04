@@ -104,7 +104,7 @@ export function DistributionsModule() {
     <PageContainer>
       <PageHeader
         title="Distribution management"
-        description="Manage delivery batches that connect programs, beneficiaries, and accountable benefit execution."
+        description="Manage delivery batches that connect interventions, beneficiaries, and accountable benefit execution."
       />
 
       {canCreate ? (

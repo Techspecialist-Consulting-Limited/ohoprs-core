@@ -79,7 +79,7 @@ export function BeneficiaryUploadCard() {
         <ul className="mt-4 space-y-2 text-sm text-muted">
           <li>NIN must be exactly 11 digits.</li>
           <li>BVN must be 11 digits when provided.</li>
-          <li>Program IDs should be pipe-separated in the `programIds` column.</li>
+          <li>Intervention IDs should be pipe-separated in the `programIds` column.</li>
           <li>Uploaded rows in this phase are preview-only and will not mutate the main beneficiary list.</li>
         </ul>
       </div>

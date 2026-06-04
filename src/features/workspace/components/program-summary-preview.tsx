@@ -5,8 +5,8 @@ export function ProgramSummaryPreview({ items }: { items: WorkspaceProgramPrevie
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
-        <p className="text-sm font-semibold text-foreground">Program operations</p>
-        <p className="mt-1 text-sm text-muted">Active organization programs and current delivery footprint.</p>
+        <p className="text-sm font-semibold text-foreground">Intervention operations</p>
+        <p className="mt-1 text-sm text-muted">Active organization interventions and current delivery footprint.</p>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {items.map((item) => (
