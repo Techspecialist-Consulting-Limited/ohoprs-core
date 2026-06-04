@@ -11,6 +11,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { hasPermission } from "@/lib/rbac";
+import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import { DistributionFilters } from "@/features/distributions/components/distribution-filters";
@@ -81,15 +82,11 @@ export function DistributionsModule() {
   const canCreate = role ? hasPermission(role, "create_distribution") : false;
 
   function canEditItem(item: Distribution) {
-    if (role === "ORG_ADMIN") return user?.organizationId === item.organizationId;
-    if (role === "PROGRAM_OFFICER") {
-      return (
-        hasPermission(role, "edit_distribution") &&
-        user?.organizationId === item.organizationId &&
-        user?.id === item.createdByUserId
-      );
+    if (!role || !hasPermission(role, "edit_distribution")) {
+      return false;
     }
-    return false;
+
+    return canEditDistributionRecord(role, item, user?.organizationId, user?.id);
   }
 
   if (distributionsQuery.isLoading) {

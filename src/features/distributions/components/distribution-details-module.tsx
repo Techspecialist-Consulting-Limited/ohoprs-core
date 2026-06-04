@@ -17,16 +17,11 @@ import { DistributionMethodBadge } from "@/features/distributions/components/dis
 import { DistributionStatistics } from "@/features/distributions/components/distribution-statistics";
 import { DistributionStatusBadge } from "@/features/distributions/components/distribution-status-badge";
 import { DistributionTimeline } from "@/features/distributions/components/distribution-timeline";
+import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
 
 function canViewDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined) {
   if (role === "SUPER_ADMIN" || role === "AUDITOR") return true;
   return userOrganizationId === organizationId;
-}
-
-function canEditDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined, createdByUserId: string, userId: string | undefined) {
-  if (role === "ORG_ADMIN") return userOrganizationId === organizationId;
-  if (role === "PROGRAM_OFFICER") return userOrganizationId === organizationId && userId === createdByUserId;
-  return false;
 }
 
 function displayValue(amount?: number, quantity?: number) {
@@ -67,7 +62,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
     );
   }
 
-  const canEdit = canEditDistribution(role, distribution.organizationId, user?.organizationId, distribution.createdByUserId, user?.id);
+  const canEdit = canEditDistributionRecord(role, distribution, user?.organizationId, user?.id);
   const actions = [
     ...(canEdit ? [{ label: "Edit Distribution", href: `/distributions/${distribution.id}/edit`, icon: Pencil }] : []),
     { label: "Open Approval Review", href: `/distributions/${distribution.id}/approval`, icon: ArrowRight },

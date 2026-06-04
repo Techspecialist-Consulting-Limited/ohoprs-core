@@ -8,15 +8,10 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { hasPermission } from "@/lib/rbac";
+import { canEditDistributionRecord, isDistributionEditLocked } from "@/features/distributions/lib/distribution-permissions";
 import { DistributionForm } from "@/features/distributions/components/distribution-form";
 import { distributionService } from "@/services/distribution.service";
 import { useAuthStore } from "@/store/auth.store";
-
-function canEditDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined, createdByUserId: string, userId: string | undefined) {
-  if (role === "ORG_ADMIN") return userOrganizationId === organizationId;
-  if (role === "PROGRAM_OFFICER") return userOrganizationId === organizationId && userId === createdByUserId;
-  return false;
-}
 
 export function DistributionCreateModule() {
   const role = useAuthStore((state) => state.role);
@@ -72,10 +67,17 @@ export function DistributionEditModule({ id }: { id: string }) {
     );
   }
 
-  if (!canEditDistribution(role, distribution.organizationId, user?.organizationId, distribution.createdByUserId, user?.id)) {
+  if (!canEditDistributionRecord(role, distribution, user?.organizationId, user?.id)) {
     return (
       <PageContainer>
-        <PermissionDeniedState title="Distribution edit denied" description="You do not have permission to edit this distribution batch." />
+        <PermissionDeniedState
+          title="Distribution edit denied"
+          description={
+            isDistributionEditLocked(distribution.approvalStatus, distribution.executionStatus)
+              ? "Approved or in-flight distributions cannot be edited."
+              : "You do not have permission to edit this distribution batch."
+          }
+        />
       </PageContainer>
     );
   }
