@@ -25,6 +25,11 @@ const roleLabels: Record<UserRole, string> = {
   ORG_ADMIN: "Org Admin",
   PROGRAM_OFFICER: "Program Admin",
   AUDITOR: "Auditor",
+  ORGANIZATION_MANAGER: "Organization Manager",
+  STORE_MANAGER: "Store Manager",
+  DISTRIBUTION_MANAGER: "Distribution Manager",
+  ACCOUNTANT: "Accountant",
+  DIRECTOR: "Director",
 };
 
 export function LoginForm() {

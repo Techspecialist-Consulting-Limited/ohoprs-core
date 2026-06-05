@@ -18,6 +18,7 @@ export function ProgramTable({
   onStatusAction,
   role,
   canChangeStatus,
+  approvalUserId,
 }: {
   items: Program[];
   meta: ProgramListMeta;
@@ -25,8 +26,9 @@ export function ProgramTable({
   onStatusAction: (program: Program) => void;
   role: UserRole;
   canChangeStatus: boolean;
+  approvalUserId?: string | null;
 }) {
-  const canEdit = role === "ORG_ADMIN";
+  const canEdit = role === "SUPER_ADMIN";
   const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
   return (
@@ -35,7 +37,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Intervention Name", "Organization", "Benefit Type", "Status", "Beneficiaries", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Organization", "Benefit Type", "Status", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -46,18 +48,28 @@ export function ProgramTable({
                 <td className="px-5 py-4">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                    <p className="mt-1 text-xs text-muted">{formatCurrency(item.budget)} budget</p>
+                    <p className="mt-1 text-xs text-muted">
+                      {item.amount !== null && item.amount !== undefined
+                        ? `${formatCurrency(item.amount)} amount`
+                        : `${formatCurrency(item.budget ?? 0)} budget`}
+                    </p>
+                    {approvalUserId ? <ApprovalAssignmentHint item={item} approvalUserId={approvalUserId} /> : null}
                   </div>
                 </td>
                 <td className="px-5 py-4 text-sm text-muted">{item.organizationName}</td>
                 <td className="px-5 py-4"><BenefitTypeBadge benefitType={item.benefitType} /></td>
                 <td className="px-5 py-4"><ProgramStatusBadge status={item.status} /></td>
-                <td className="px-5 py-4 text-sm text-foreground">{formatNumber(item.beneficiaryCount)}</td>
                 <td className="px-5 py-4 text-sm text-foreground">{formatCurrency(item.totalDistributed)}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.startDate}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.endDate}</td>
                 <td className="px-5 py-4">
-                  <RowActionMenu canEdit={canEdit} canChangeStatus={canChangeStatus} item={item} onStatusAction={onStatusAction} />
+                  <RowActionMenu
+                    canEdit={canEdit}
+                    canChangeStatus={canChangeStatus}
+                    item={item}
+                    onStatusAction={onStatusAction}
+                    approvalUserId={approvalUserId}
+                  />
                 </td>
               </tr>
             ))}
@@ -114,12 +126,18 @@ function RowActionMenu({
   canChangeStatus,
   item,
   onStatusAction,
+  approvalUserId,
 }: {
   canEdit: boolean;
   canChangeStatus: boolean;
   item: Program;
   onStatusAction: (program: Program) => void;
+  approvalUserId?: string | null;
 }) {
+  const assignedStep = approvalUserId
+    ? item.approvalSteps?.find((step) => step.assigneeUserId === approvalUserId) ?? null
+    : null;
+
   return (
     <RowActionPopover>
       {({ close }) => (
@@ -131,6 +149,15 @@ function RowActionMenu({
             <SquareArrowOutUpRight size={16} />
             View Details
           </Link>
+          {assignedStep ? (
+            <Link
+              href={`/programs/${item.id}/approval`}
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
+            >
+              <SquareArrowOutUpRight size={16} />
+              Open Approval Review
+            </Link>
+          ) : null}
           {canEdit ? (
             <Link
               href={`/programs/${item.id}/edit`}
@@ -156,5 +183,30 @@ function RowActionMenu({
         </>
       )}
     </RowActionPopover>
+  );
+}
+
+function ApprovalAssignmentHint({
+  item,
+  approvalUserId,
+}: {
+  item: Program;
+  approvalUserId: string;
+}) {
+  const assignedStep = item.approvalSteps?.find((step) => step.assigneeUserId === approvalUserId) ?? null;
+
+  if (!assignedStep) {
+    return null;
+  }
+
+  const currentPendingStep = item.approvalSteps?.find((step) => step.status === "PENDING") ?? null;
+  const isActionable = currentPendingStep?.id === assignedStep.id;
+
+  return (
+    <p className={cn("mt-1 text-xs", isActionable ? "text-accent" : "text-muted")}>
+      {isActionable
+        ? `Awaiting your approval at Step ${assignedStep.order}`
+        : `Assigned to you at Step ${assignedStep.order}`}
+    </p>
   );
 }

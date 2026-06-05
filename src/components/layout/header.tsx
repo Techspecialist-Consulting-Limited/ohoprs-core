@@ -18,6 +18,11 @@ const roleLabels: Record<UserRole, string> = {
   ORG_ADMIN: "Organization Admin",
   PROGRAM_OFFICER: "Program Officer",
   AUDITOR: "Auditor",
+  ORGANIZATION_MANAGER: "Organization Manager",
+  STORE_MANAGER: "Store Manager",
+  DISTRIBUTION_MANAGER: "Distribution Manager",
+  ACCOUNTANT: "Accountant",
+  DIRECTOR: "Director",
 };
 
 const organizationLogoById: Record<string, string> = {

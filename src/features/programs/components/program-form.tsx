@@ -1,19 +1,107 @@
 "use client";
 
+import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { ArrowLeftRight, GripHorizontal, Plus, Trash2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import { organizationsData } from "@/mock/organizations.mock";
-import { programSchema, benefitTypes, programStatuses } from "@/features/programs/schemas/program.schema";
+import { fundingSourceOptions } from "@/mock/programs.mock";
+import { mockUsers } from "@/mock/auth.mock";
+import {
+  benefitTypes,
+  programSchema,
+  programStatuses,
+  systemApprovalRoles,
+} from "@/features/programs/schemas/program.schema";
 import { programService } from "@/services/program.service";
-import type { ProgramPayload } from "@/types/program";
+import { useAuthStore } from "@/store/auth.store";
+import type {
+  ProgramApprovalStep,
+  ProgramFundingSource,
+  ProgramPayload,
+  ProgramStatus,
+  SystemApprovalRole,
+} from "@/types/program";
 
 type ProgramFormValues = z.input<typeof programSchema>;
 type ProgramSubmitValues = z.output<typeof programSchema>;
+
+const approvalRoleLabels: Record<SystemApprovalRole, string> = {
+  ORGANIZATION_MANAGER: "Organization Manager",
+  STORE_MANAGER: "Store Manager",
+  DISTRIBUTION_MANAGER: "Distribution Manager",
+  ACCOUNTANT: "Accountant",
+  DIRECTOR: "Director",
+};
+
+const statusLabels: Record<ProgramStatus, string> = {
+  IN_PROGRESS: "In Progress",
+  COMPLETED: "Completed",
+  REJECTED: "Rejected",
+  APPROVED: "Approved",
+  ACTIVE: "Active",
+  SUSPENDED: "Suspended",
+};
+
+const systemApprovalUsers = mockUsers.filter((user) =>
+  [
+    "ORGANIZATION_MANAGER",
+    "STORE_MANAGER",
+    "DISTRIBUTION_MANAGER",
+    "ACCOUNTANT",
+    "DIRECTOR",
+  ].includes(user.role),
+);
+
+function formatDateForInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayDateForInput() {
+  return formatDateForInput(new Date());
+}
+
+function addDurationToDate(startDate: string, duration: ProgramFormValues["duration"]) {
+  if (!startDate) {
+    return "";
+  }
+
+  const years = Number(duration.years ?? 0);
+  const months = Number(duration.months ?? 0);
+  const weeks = Number(duration.weeks ?? 0);
+  const days = Number(duration.days ?? 0);
+
+  const nextDate = new Date(`${startDate}T00:00:00`);
+  if (Number.isNaN(nextDate.getTime())) {
+    return "";
+  }
+
+  nextDate.setFullYear(nextDate.getFullYear() + years);
+  nextDate.setMonth(nextDate.getMonth() + months);
+  nextDate.setDate(nextDate.getDate() + weeks * 7 + days);
+  return formatDateForInput(nextDate);
+}
+
+function createApprovalStep(role: SystemApprovalRole): ProgramApprovalStep {
+  return {
+    id: `approval_step_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    order: 1,
+    role,
+    assigneeUserId: "",
+    assigneeName: "",
+    assigneeEmail: "",
+    status: "PENDING",
+    approvedAt: null,
+  };
+}
 
 export function ProgramForm({
   canChooseOrganization,
@@ -29,6 +117,13 @@ export function ProgramForm({
   programId?: string;
 }) {
   const router = useRouter();
+  const currentUser = useAuthStore((state) => state.user);
+  const customFundingId = useId();
+  const [customFundingName, setCustomFundingName] = useState("");
+  const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
+  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [...fundingSourceOptions]);
+  const todayDate = getTodayDateForInput();
+
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: {
@@ -38,19 +133,69 @@ export function ProgramForm({
       description: initialValues?.description ?? "",
       startDate: initialValues?.startDate ?? "",
       endDate: initialValues?.endDate ?? "",
-      targetBeneficiaries: initialValues?.targetBeneficiaries ?? 1,
+      duration: initialValues?.duration ?? {
+        days: 0,
+        weeks: 0,
+        months: 0,
+        years: 0,
+      },
+      amount: initialValues?.amount ?? null,
       budget: initialValues?.budget ?? 0,
-      status: initialValues?.status ?? "DRAFT",
+      fundingSources: initialValues?.fundingSources ?? [fundingSourceOptions[0]],
+      status: initialValues?.status ?? "IN_PROGRESS",
+      approvalSteps:
+        initialValues?.approvalSteps?.length
+          ? initialValues.approvalSteps
+          : [createApprovalStep("ORGANIZATION_MANAGER")],
     },
   });
-  const selectedOrganizationId = useWatch({
-    control: form.control,
-    name: "organizationId",
-  });
+
+  const selectedBenefitType = useWatch({ control: form.control, name: "benefitType" });
+  const selectedStatus = useWatch({ control: form.control, name: "status" });
+  const selectedStartDate = useWatch({ control: form.control, name: "startDate" });
+  const duration = useWatch({ control: form.control, name: "duration" });
+  const selectedFundingSources = useWatch({ control: form.control, name: "fundingSources" });
+  const approvalSteps = useWatch({ control: form.control, name: "approvalSteps" });
+
+  const isCashBenefit = selectedBenefitType === "CASH";
+  const isLocked = mode === "edit" && (selectedStatus === "APPROVED" || selectedStatus === "ACTIVE");
+  const canEditCustomFunding =
+    !isLocked &&
+    (mode === "create" ||
+      selectedFundingSources.some(
+        (source) => source.isCustom && source.createdByUserId === currentUser?.id,
+      ));
+
+  useEffect(() => {
+    if (!selectedStartDate) {
+      return;
+    }
+
+    const computedEndDate = addDurationToDate(selectedStartDate, duration);
+    form.setValue("endDate", computedEndDate, { shouldValidate: true, shouldDirty: true });
+  }, [duration, form, selectedStartDate]);
+
+  useEffect(() => {
+    if (isCashBenefit) {
+      form.setValue("budget", null, { shouldDirty: true });
+      if (form.getValues("amount") === null) {
+        form.setValue("amount", 0, { shouldDirty: true });
+      }
+      return;
+    }
+
+    form.setValue("amount", null, { shouldDirty: true });
+    if (form.getValues("budget") === null) {
+      form.setValue("budget", 0, { shouldDirty: true });
+    }
+  }, [form, isCashBenefit]);
 
   const mutation = useMutation({
     mutationFn: async (values: ProgramSubmitValues) => {
-      const payload: ProgramPayload = values;
+      const payload: ProgramPayload = {
+        ...values,
+        createdByUserId: initialValues?.createdByUserId ?? currentUser?.id ?? null,
+      };
 
       if (mode === "create") {
         return programService.createProgram(payload);
@@ -68,47 +213,171 @@ export function ProgramForm({
       router.push(`/programs/${response.data.id}`);
     },
     onError: () => {
-      toast.error("Unable to save program.");
+      toast.error("Unable to save intervention.");
     },
   });
 
   const inputClassName =
-    "focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft";
+    "focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft disabled:cursor-not-allowed disabled:bg-surface-muted";
+
+  const selectedFundingIds = useMemo(
+    () => new Set(selectedFundingSources.map((source) => source.id)),
+    [selectedFundingSources],
+  );
+
+  const selectedAssigneeIds = useMemo(
+    () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
+    [approvalSteps],
+  );
 
   function onSubmit(values: ProgramFormValues) {
     mutation.mutate({
       ...values,
-      targetBeneficiaries: Number(values.targetBeneficiaries),
-      budget: Number(values.budget),
+      duration: {
+        days: Number(values.duration.days),
+        weeks: Number(values.duration.weeks),
+        months: Number(values.duration.months),
+        years: Number(values.duration.years),
+      },
+      amount: isCashBenefit ? Number(values.amount ?? 0) : null,
+      budget: isCashBenefit ? null : Number(values.budget ?? 0),
+      approvalSteps: values.approvalSteps.map((step, index) => ({
+        ...step,
+        order: index + 1,
+      })),
     });
   }
 
+  function toggleFundingSource(option: ProgramFundingSource) {
+    const current = form.getValues("fundingSources");
+    const exists = current.some((source) => source.id === option.id);
+
+    const next = exists
+      ? current.filter((source) => source.id !== option.id)
+      : [...current, option];
+
+    form.setValue("fundingSources", next, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function addCustomFundingSource() {
+    const nextName = customFundingName.trim();
+
+    if (!nextName) {
+      toast.error("Enter a funding source name before adding it.");
+      return;
+    }
+
+    const duplicate = fundingOptions.find(
+      (option) => option.name.toLowerCase() === nextName.toLowerCase(),
+    );
+
+    if (duplicate) {
+      toggleFundingSource(duplicate);
+      setCustomFundingName("");
+      return;
+    }
+
+    const nextSource: ProgramFundingSource = {
+      id: `fund_custom_${Date.now()}`,
+      name: nextName,
+      createdByUserId: currentUser?.id ?? null,
+      isCustom: true,
+    };
+
+    fundingSourceOptions.push(nextSource);
+    setFundingOptions((current) => [...current, nextSource]);
+    form.setValue("fundingSources", [...form.getValues("fundingSources"), nextSource], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setCustomFundingName("");
+  }
+
+  function updateApprovalStep(index: number, patch: Partial<ProgramApprovalStep>) {
+    const nextSteps = [...form.getValues("approvalSteps")];
+    nextSteps[index] = {
+      ...nextSteps[index],
+      ...patch,
+    };
+    form.setValue(
+      "approvalSteps",
+      nextSteps.map((step, stepIndex) => ({ ...step, order: stepIndex + 1 })),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
+  function addApprovalStep() {
+    const nextSteps = [...form.getValues("approvalSteps"), createApprovalStep("ORGANIZATION_MANAGER")];
+    form.setValue(
+      "approvalSteps",
+      nextSteps.map((step, index) => ({ ...step, order: index + 1 })),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
+  function removeApprovalStep(index: number) {
+    const current = form.getValues("approvalSteps");
+    if (current.length === 1) {
+      toast.error("At least one approval step is required.");
+      return;
+    }
+
+    form.setValue(
+      "approvalSteps",
+      current
+        .filter((_, itemIndex) => itemIndex !== index)
+        .map((step, stepIndex) => ({ ...step, order: stepIndex + 1 })),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
+  function moveStep(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    const nextSteps = [...form.getValues("approvalSteps")];
+    const [movedStep] = nextSteps.splice(fromIndex, 1);
+    nextSteps.splice(toIndex, 0, movedStep);
+
+    form.setValue(
+      "approvalSteps",
+      nextSteps.map((step, index) => ({ ...step, order: index + 1 })),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-6 rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8"
+    >
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Intervention Name" error={form.formState.errors.name?.message}>
           <input {...form.register("name")} className={inputClassName} />
         </Field>
 
         <Field label="Organization" error={form.formState.errors.organizationId?.message}>
-          {canChooseOrganization ? (
-            <select {...form.register("organizationId")} className={inputClassName}>
-              <option value="">Select organization</option>
-              {organizationsData.map((organization) => (
-                <option key={organization.id} value={organization.id}>
-                  {organization.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="flex h-12 items-center rounded-2xl border border-border bg-surface-muted px-4 text-sm text-foreground">
-              {organizationsData.find((organization) => organization.id === selectedOrganizationId)?.name ?? "Assigned organization"}
-            </div>
-          )}
+          <select
+            {...form.register("organizationId")}
+            className={inputClassName}
+            disabled={!canChooseOrganization || isLocked}
+          >
+            <option value="">Select organization</option>
+            {organizationsData.map((organization) => (
+              <option key={organization.id} value={organization.id}>
+                {organization.name}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field label="Benefit Type" error={form.formState.errors.benefitType?.message}>
-          <select {...form.register("benefitType")} className={inputClassName}>
+          <select
+            {...form.register("benefitType")}
+            className={inputClassName}
+            disabled={isLocked}
+          >
             {benefitTypes.map((benefitType) => (
               <option key={benefitType} value={benefitType}>
                 {benefitType.replaceAll("_", " ")}
@@ -121,7 +390,7 @@ export function ProgramForm({
           <select {...form.register("status")} className={inputClassName}>
             {programStatuses.map((status) => (
               <option key={status} value={status}>
-                {status}
+                {statusLabels[status]}
               </option>
             ))}
           </select>
@@ -129,23 +398,257 @@ export function ProgramForm({
       </div>
 
       <Field label="Description" error={form.formState.errors.description?.message}>
-        <textarea {...form.register("description")} className="focus-ring min-h-32 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground" />
+        <textarea
+          {...form.register("description")}
+          className="focus-ring min-h-32 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground"
+        />
       </Field>
+
+      <section className="rounded-[28px] border border-border bg-background/50 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Duration</h2>
+            <p className="mt-1 text-sm text-muted">
+              Leave a field at zero if that unit is not needed. Duration is required for every intervention.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-4">
+          <Field label="Days" error={form.formState.errors.duration?.days?.message}>
+            <input type="number" min={0} max={27} {...form.register("duration.days")} className={inputClassName} disabled={isLocked} />
+          </Field>
+          <Field label="Weeks" error={form.formState.errors.duration?.weeks?.message}>
+            <input type="number" min={0} max={3} {...form.register("duration.weeks")} className={inputClassName} disabled={isLocked} />
+          </Field>
+          <Field label="Months" error={form.formState.errors.duration?.months?.message}>
+            <input type="number" min={0} max={11} {...form.register("duration.months")} className={inputClassName} disabled={isLocked} />
+          </Field>
+          <Field label="Years" error={form.formState.errors.duration?.years?.message}>
+            <input type="number" min={0} max={20} {...form.register("duration.years")} className={inputClassName} disabled={isLocked} />
+          </Field>
+        </div>
+        {form.formState.errors.duration?.message ? (
+          <p className="mt-3 text-sm text-danger">{form.formState.errors.duration.message}</p>
+        ) : null}
+      </section>
 
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Start Date" error={form.formState.errors.startDate?.message}>
-          <input type="date" {...form.register("startDate")} className={inputClassName} />
+          <input type="date" min={todayDate} {...form.register("startDate")} className={inputClassName} />
         </Field>
         <Field label="End Date" error={form.formState.errors.endDate?.message}>
-          <input type="date" {...form.register("endDate")} className={inputClassName} />
-        </Field>
-        <Field label="Target Beneficiaries" error={form.formState.errors.targetBeneficiaries?.message}>
-          <input type="number" {...form.register("targetBeneficiaries")} className={inputClassName} />
-        </Field>
-        <Field label="Budget" error={form.formState.errors.budget?.message}>
-          <input type="number" {...form.register("budget")} className={inputClassName} />
+          <input
+            type="date"
+            min={selectedStartDate || todayDate}
+            {...form.register("endDate")}
+            className={inputClassName}
+          />
         </Field>
       </div>
+
+      <section>
+        <Field
+          label={isCashBenefit ? "Amount" : "Budget"}
+          error={isCashBenefit ? form.formState.errors.amount?.message : form.formState.errors.budget?.message}
+        >
+          <input
+            type="number"
+            min={0}
+            {...form.register(isCashBenefit ? "amount" : "budget")}
+            className={inputClassName}
+            disabled={isLocked}
+          />
+        </Field>
+      </section>
+
+      <section className="rounded-[28px] border border-border bg-background/50 p-5">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Funding Source</h2>
+          <p className="mt-1 text-sm text-muted">
+            Select one or more sponsors backing this intervention. Custom sources become shared mock options.
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {fundingOptions.map((option) => (
+            <label
+              key={option.id}
+              className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
+            >
+              <input
+                type="checkbox"
+                checked={selectedFundingIds.has(option.id)}
+                onChange={() => toggleFundingSource(option)}
+                disabled={isLocked}
+                className="mt-1"
+              />
+              <span>{option.name}</span>
+            </label>
+          ))}
+        </div>
+
+        {canEditCustomFunding ? (
+          <div className="mt-5 flex flex-col gap-3 md:flex-row">
+            <input
+              id={customFundingId}
+              value={customFundingName}
+              onChange={(event) => setCustomFundingName(event.target.value)}
+              className={inputClassName}
+              placeholder="Add another funding source"
+            />
+            <button
+              type="button"
+              onClick={addCustomFundingSource}
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
+            >
+              Add Source
+            </button>
+          </div>
+        ) : null}
+
+        {form.formState.errors.fundingSources?.message ? (
+          <p className="mt-3 text-sm text-danger">{form.formState.errors.fundingSources.message}</p>
+        ) : null}
+      </section>
+
+      <section className="rounded-[28px] border border-border bg-background/50 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Approval Steps</h2>
+            <p className="mt-1 text-sm text-muted">
+              Arrange the approval flow in order. Step 1 must be approved before Step 2, and so on.
+            </p>
+          </div>
+          {!isLocked ? (
+            <button
+              type="button"
+              onClick={addApprovalStep}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
+            >
+              <Plus size={16} />
+              Add Step
+            </button>
+          ) : null}
+        </div>
+
+        <div className="mt-5 flex gap-4 overflow-x-auto pb-2">
+          {approvalSteps.map((step, index) => {
+            const assignees = systemApprovalUsers.filter((user) => user.role === step.role);
+
+            return (
+              <div
+                key={step.id}
+                draggable={!isLocked}
+                onDragStart={() => setDraggedStepId(step.id)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => {
+                  if (!draggedStepId) {
+                    return;
+                  }
+
+                  const draggedIndex = approvalSteps.findIndex((item) => item.id === draggedStepId);
+                  if (draggedIndex >= 0) {
+                    moveStep(draggedIndex, index);
+                  }
+                  setDraggedStepId(null);
+                }}
+                className="min-w-[320px] rounded-[24px] border border-border bg-surface p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                    <GripHorizontal size={14} />
+                    Step {index + 1}
+                  </div>
+                  {!isLocked ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => index > 0 && moveStep(index, index - 1)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-foreground"
+                      >
+                        <ArrowLeftRight size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeApprovalStep(index)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-danger/20 text-danger"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 space-y-4">
+                  <Field label="Approval Role" error={form.formState.errors.approvalSteps?.[index]?.role?.message}>
+                    <select
+                      value={step.role}
+                      onChange={(event) => {
+                        updateApprovalStep(index, {
+                          role: event.target.value as SystemApprovalRole,
+                          assigneeUserId: "",
+                          assigneeName: "",
+                          assigneeEmail: "",
+                        });
+                      }}
+                      className={inputClassName}
+                      disabled={isLocked}
+                    >
+                      {systemApprovalRoles.map((role) => (
+                        <option key={role} value={role}>
+                          {approvalRoleLabels[role]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Assignee" error={form.formState.errors.approvalSteps?.[index]?.assigneeUserId?.message}>
+                    <select
+                      value={step.assigneeUserId}
+                      onChange={(event) => {
+                        const assignee = assignees.find((user) => user.id === event.target.value);
+                        updateApprovalStep(index, {
+                          assigneeUserId: assignee?.id ?? "",
+                          assigneeName: assignee?.name ?? "",
+                          assigneeEmail: assignee?.email ?? "",
+                        });
+                      }}
+                      className={inputClassName}
+                      disabled={isLocked}
+                    >
+                      <option value="">Select assignee</option>
+                      {assignees.map((assignee) => {
+                        const alreadyUsed =
+                          selectedAssigneeIds.has(assignee.id) && assignee.id !== step.assigneeUserId;
+
+                        return (
+                          <option key={assignee.id} value={assignee.id} disabled={alreadyUsed}>
+                            {assignee.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </Field>
+
+                  <div className="rounded-2xl bg-surface-muted px-4 py-3 text-sm text-muted">
+                    {step.assigneeEmail ? (
+                      <span>
+                        Assigned to <span className="font-semibold text-foreground">{step.assigneeName}</span> ({step.assigneeEmail})
+                      </span>
+                    ) : (
+                      <span>Select a system approver for this step.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {form.formState.errors.approvalSteps?.message ? (
+          <p className="mt-3 text-sm text-danger">{form.formState.errors.approvalSteps.message}</p>
+        ) : null}
+      </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <button

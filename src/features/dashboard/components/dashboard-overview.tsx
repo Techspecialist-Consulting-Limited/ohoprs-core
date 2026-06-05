@@ -13,13 +13,13 @@ import { BenefitTypeBreakdown } from "@/features/dashboard/components/benefit-ty
 import { KpiCardGrid } from "@/features/dashboard/components/kpi-card-grid";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
 import { RecentActivityFeed } from "@/features/dashboard/components/recent-activity-feed";
-import { SystemStatusCard } from "@/features/dashboard/components/system-status-card";
 import { dashboardService } from "@/services/dashboard.service";
 import { useAuthStore } from "@/store/auth.store";
 
 export function DashboardOverview() {
   const currentTenant = useAuthStore((state) => state.currentTenant);
   const role = useAuthStore((state) => state.role);
+  const userName = useAuthStore((state) => state.user?.name ?? "Authenticated User");
 
   const dashboardQuery = useQuery({
     queryKey: ["dashboard", role, currentTenant?.tenantId],
@@ -72,7 +72,7 @@ export function DashboardOverview() {
 
   return (
     <PageContainer>
-      <DashboardHeader dashboard={dashboard} role={role!} />
+      <DashboardHeader dashboard={dashboard} userName={userName} />
       <KpiCardGrid kpis={dashboard.kpis} />
       <section className="grid min-w-0 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <DistributionOverviewChart data={dashboard.distributionOverview} />

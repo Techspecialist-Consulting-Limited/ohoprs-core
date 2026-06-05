@@ -30,16 +30,10 @@ export function Sidebar({
       return [{ ...item, href: "/settings/profile", label: "Profile" }];
     }
 
-    // To hide the Settings for now 
-     if (item.href === "/settings") {
+
+    if (role === "ORG_ADMIN" && item.href === "/settings") {
       return [];
     }
-
-
-
-    // if (role === "ORG_ADMIN" && item.href === "/settings") {
-    //   return [];
-    // }
 
     return [item];
   });

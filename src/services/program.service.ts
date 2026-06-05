@@ -1,16 +1,67 @@
 import { organizationsData } from "@/mock/organizations.mock";
-import { programsData } from "@/mock/programs.mock";
+import { defaultProgramDuration, fundingSourceOptions, programsData } from "@/mock/programs.mock";
+import { mockUsers } from "@/mock/auth.mock";
 import type { ApiResponse } from "@/types/api";
 import type {
   Program,
+  ProgramApprovalStep,
+  ProgramApprovalHistoryItem,
   ProgramDetails,
+  ProgramFundingSource,
   ProgramListParams,
   ProgramListResponse,
   ProgramPayload,
   ProgramStatus,
 } from "@/types/program";
+import type { AuthUser } from "@/types/auth";
 
 let programStore = [...programsData];
+
+function normalizeFundingSources(sources?: ProgramFundingSource[]) {
+  return sources?.length ? sources : [fundingSourceOptions[0]];
+}
+
+function normalizeApprovalSteps(steps?: ProgramApprovalStep[]) {
+  return (steps ?? []).map((step, index) => ({
+    ...step,
+    order: index + 1,
+  }));
+}
+
+function normalizeProgram(program: ProgramDetails): ProgramDetails {
+  return {
+    ...program,
+    duration: program.duration ?? defaultProgramDuration,
+    amount: program.amount ?? null,
+    budget: program.budget ?? null,
+    fundingSources: normalizeFundingSources(program.fundingSources),
+    approvalSteps: normalizeApprovalSteps(program.approvalSteps),
+    rejectionReason: program.rejectionReason ?? null,
+    approvalHistory: program.approvalHistory ?? [],
+    createdByUserId: program.createdByUserId ?? null,
+  };
+}
+
+function getCurrentPendingStep(steps: ProgramApprovalStep[]) {
+  return steps.find((step) => step.status === "PENDING") ?? null;
+}
+
+function canUserAccessApproval(program: ProgramDetails, userId?: string | null) {
+  if (!userId) {
+    return false;
+  }
+
+  return normalizeApprovalSteps(program.approvalSteps).some((step) => step.assigneeUserId === userId);
+}
+
+function isCurrentPendingAssignee(program: ProgramDetails, userId?: string | null) {
+  if (!userId) {
+    return false;
+  }
+
+  const currentStep = getCurrentPendingStep(normalizeApprovalSteps(program.approvalSteps));
+  return currentStep?.assigneeUserId === userId;
+}
 
 function findOrganization(id: string) {
   return organizationsData.find((item) => item.id === id) ?? null;
@@ -24,14 +75,30 @@ export const programService = {
       organizationId = "ALL",
       page = 1,
       scopeOrganizationId = null,
+      assignedApproverUserId = null,
       search = "",
       status = "ALL",
     } = params;
 
-    let filtered = [...programStore];
+    let filtered = [...programStore].map(normalizeProgram);
 
     if (scopeOrganizationId) {
       filtered = filtered.filter((item) => item.organizationId === scopeOrganizationId);
+    }
+
+    if (assignedApproverUserId) {
+      filtered = filtered
+        .filter((item) => canUserAccessApproval(item, assignedApproverUserId))
+        .sort((left, right) => {
+          const leftActionable = isCurrentPendingAssignee(left, assignedApproverUserId) ? 1 : 0;
+          const rightActionable = isCurrentPendingAssignee(right, assignedApproverUserId) ? 1 : 0;
+
+          if (leftActionable !== rightActionable) {
+            return rightActionable - leftActionable;
+          }
+
+          return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+        });
     }
 
     if (organizationId !== "ALL") {
@@ -84,7 +151,7 @@ export const programService = {
     return Promise.resolve({
       success: Boolean(program),
       message: program ? "Program details fetched successfully" : "Program not found",
-      data: program,
+      data: program ? normalizeProgram(program) : null,
     });
   },
 
@@ -100,6 +167,7 @@ export const programService = {
     }
 
     const timestamp = new Date().toISOString();
+    const creator = mockUsers.find((user) => user.id === payload.createdByUserId) ?? mockUsers[0];
     const next: ProgramDetails = {
       id: `program_${String(programStore.length + 1).padStart(3, "0")}`,
       organizationId: payload.organizationId,
@@ -112,9 +180,15 @@ export const programService = {
       status: payload.status,
       startDate: payload.startDate,
       endDate: payload.endDate,
-      targetBeneficiaries: payload.targetBeneficiaries,
+      duration: payload.duration,
       beneficiaryCount: 0,
+      amount: payload.amount,
       budget: payload.budget,
+      fundingSources: payload.fundingSources,
+      approvalSteps: payload.approvalSteps,
+      rejectionReason: null,
+      approvalHistory: [],
+      createdByUserId: payload.createdByUserId ?? creator.id,
       totalDistributed: 0,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -134,8 +208,8 @@ export const programService = {
       recentActivities: [
         {
           id: `activity_${Date.now()}`,
-          actor: "Amina Bello",
-          action: "created program",
+          actor: creator.name,
+          action: "created intervention",
           timestamp,
         },
       ],
@@ -146,7 +220,7 @@ export const programService = {
     return Promise.resolve({
       success: true,
       message: "Program created successfully",
-      data: next,
+      data: normalizeProgram(next),
     });
   },
 
@@ -180,14 +254,18 @@ export const programService = {
         status: payload.status,
         startDate: payload.startDate,
         endDate: payload.endDate,
-        targetBeneficiaries: payload.targetBeneficiaries,
+        duration: payload.duration,
+        amount: payload.amount,
         budget: payload.budget,
+        fundingSources: payload.fundingSources,
+        approvalSteps: payload.approvalSteps,
+        rejectionReason: item.status === "REJECTED" ? item.rejectionReason ?? null : null,
         updatedAt: new Date().toISOString(),
         recentActivities: [
           {
             id: `activity_${Date.now()}`,
             actor: "Amina Bello",
-            action: "updated program profile",
+            action: "updated intervention profile",
             timestamp: new Date().toISOString(),
           },
           ...item.recentActivities,
@@ -200,7 +278,7 @@ export const programService = {
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Program updated successfully" : "Program not found",
-      data: updated,
+      data: updated ? normalizeProgram(updated) : null,
     });
   },
 
@@ -233,7 +311,170 @@ export const programService = {
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Program status updated successfully" : "Program not found",
-      data: updated,
+      data: updated ? normalizeProgram(updated) : null,
+    });
+  },
+
+  canAccessProgram(program: ProgramDetails, role: string | null, userOrganizationId?: string | null, userId?: string | null) {
+    if (role === "SUPER_ADMIN" || role === "AUDITOR") {
+      return true;
+    }
+
+    if (
+      role === "ORGANIZATION_MANAGER" ||
+      role === "STORE_MANAGER" ||
+      role === "DISTRIBUTION_MANAGER" ||
+      role === "ACCOUNTANT" ||
+      role === "DIRECTOR"
+    ) {
+      return canUserAccessApproval(program, userId);
+    }
+
+    return userOrganizationId === program.organizationId;
+  },
+
+  async approveProgram(id: string, actor: AuthUser): Promise<ApiResponse<ProgramDetails | null>> {
+    let updated: ProgramDetails | null = null;
+    let message = "Program not found";
+
+    programStore = programStore.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
+
+      const program = normalizeProgram(item);
+      const currentStep = getCurrentPendingStep(program.approvalSteps ?? []);
+
+      if (!currentStep) {
+        message = "This intervention has no pending approval step.";
+        return item;
+      }
+
+      if (currentStep.assigneeUserId !== actor.id) {
+        message = `Approval is awaiting Step ${currentStep.order}: ${currentStep.assigneeName}. Complete earlier steps first.`;
+        return item;
+      }
+
+      const nextSteps = (program.approvalSteps ?? []).map((step) =>
+        step.id === currentStep.id
+          ? { ...step, status: "APPROVED" as const, approvedAt: new Date().toISOString(), rejectionReason: null }
+          : step,
+      );
+      const hasPending = nextSteps.some((step) => step.status === "PENDING");
+      const nextStatus: ProgramStatus = hasPending ? "COMPLETED" : "APPROVED";
+      const historyEntry: ProgramApprovalHistoryItem = {
+        id: `program_approval_${Date.now()}`,
+        actor: actor.name,
+        actorRole: actor.role,
+        action: "APPROVED",
+        stepOrder: currentStep.order,
+        timestamp: new Date().toISOString(),
+      };
+
+      updated = {
+        ...program,
+        approvalSteps: nextSteps,
+        approvalHistory: [historyEntry, ...(program.approvalHistory ?? [])],
+        rejectionReason: null,
+        status: nextStatus,
+        updatedAt: historyEntry.timestamp,
+        recentActivities: [
+          {
+            id: `activity_${Date.now()}`,
+            actor: actor.name,
+            action: `approved intervention step ${currentStep.order}`,
+            timestamp: historyEntry.timestamp,
+          },
+          ...program.recentActivities,
+        ],
+      };
+
+      message = hasPending
+        ? `Step ${currentStep.order} approved. The next approver can now review this intervention.`
+        : "Intervention approved successfully.";
+      return updated;
+    });
+
+    return Promise.resolve({
+      success: Boolean(updated),
+      message,
+      data: updated ? normalizeProgram(updated) : null,
+    });
+  },
+
+  async rejectProgram(id: string, reason: string, actor: AuthUser): Promise<ApiResponse<ProgramDetails | null>> {
+    let updated: ProgramDetails | null = null;
+    let message = "Program not found";
+    const trimmedReason = reason.trim();
+
+    if (!trimmedReason) {
+      return Promise.resolve({
+        success: false,
+        message: "A rejection reason is required.",
+        data: null,
+      });
+    }
+
+    programStore = programStore.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
+
+      const program = normalizeProgram(item);
+      const currentStep = getCurrentPendingStep(program.approvalSteps ?? []);
+
+      if (!currentStep) {
+        message = "This intervention has no pending approval step.";
+        return item;
+      }
+
+      if (currentStep.assigneeUserId !== actor.id) {
+        message = `Approval is awaiting Step ${currentStep.order}: ${currentStep.assigneeName}. Complete earlier steps first.`;
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      const nextSteps = (program.approvalSteps ?? []).map((step) =>
+        step.id === currentStep.id
+          ? { ...step, status: "REJECTED" as const, approvedAt: null, rejectionReason: trimmedReason }
+          : step,
+      );
+      const historyEntry: ProgramApprovalHistoryItem = {
+        id: `program_rejection_${Date.now()}`,
+        actor: actor.name,
+        actorRole: actor.role,
+        action: "REJECTED",
+        reason: trimmedReason,
+        stepOrder: currentStep.order,
+        timestamp,
+      };
+
+      updated = {
+        ...program,
+        approvalSteps: nextSteps,
+        approvalHistory: [historyEntry, ...(program.approvalHistory ?? [])],
+        rejectionReason: trimmedReason,
+        status: "REJECTED",
+        updatedAt: timestamp,
+        recentActivities: [
+          {
+            id: `activity_${Date.now()}`,
+            actor: actor.name,
+            action: `rejected intervention at step ${currentStep.order}`,
+            timestamp,
+          },
+          ...program.recentActivities,
+        ],
+      };
+
+      message = "Intervention rejected successfully.";
+      return updated;
+    });
+
+    return Promise.resolve({
+      success: Boolean(updated),
+      message,
+      data: updated ? normalizeProgram(updated) : null,
     });
   },
 };

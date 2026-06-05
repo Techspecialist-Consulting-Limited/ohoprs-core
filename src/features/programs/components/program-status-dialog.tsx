@@ -35,7 +35,7 @@ export function ProgramStatusDialog({
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
             >
               {programStatuses.map((status) => (
-                <option key={status} value={status}>{status}</option>
+                <option key={status} value={status}>{status.replaceAll("_", " ")}</option>
               ))}
             </select>
           </label>

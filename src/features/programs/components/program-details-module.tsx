@@ -16,14 +16,6 @@ import { ProgramStatusBadge } from "@/features/programs/components/program-statu
 import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
 
-function canAccessProgram(role: string | null, programOrganizationId: string, userOrganizationId: string | null | undefined) {
-  if (role === "SUPER_ADMIN" || role === "AUDITOR") {
-    return true;
-  }
-
-  return userOrganizationId === programOrganizationId;
-}
-
 export function ProgramDetailsModule({ id }: { id: string }) {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
@@ -54,18 +46,27 @@ export function ProgramDetailsModule({ id }: { id: string }) {
     );
   }
 
-  if (!canAccessProgram(role, program.organizationId, user?.organizationId)) {
+  if (!programService.canAccessProgram(program, role, user?.organizationId, user?.id)) {
     return (
       <PageContainer>
         <PermissionDeniedState
           title="Intervention access denied"
-          description="Your role cannot access this program because it belongs to another organization."
+          description="Your role cannot access this intervention because it is outside your scope or not assigned to you for approval."
         />
       </PageContainer>
     );
   }
 
-  const canEdit = role === "ORG_ADMIN" && user?.organizationId === program.organizationId;
+  const canEdit = role === "SUPER_ADMIN";
+  const isAssignedApprover = Boolean(
+    user?.id && program.approvalSteps?.some((step) => step.assigneeUserId === user.id),
+  );
+  const isApprovalRole =
+    role === "ORGANIZATION_MANAGER" ||
+    role === "STORE_MANAGER" ||
+    role === "DISTRIBUTION_MANAGER" ||
+    role === "ACCOUNTANT" ||
+    role === "DIRECTOR";
 
   return (
     <PageContainer>
@@ -76,7 +77,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Intervention profile</p>
-              <p className="mt-1 text-sm text-muted">Core program profile, lifecycle window, and budget posture.</p>
+              <p className="mt-1 text-sm text-muted">Core intervention profile, lifecycle window, value posture, and governance setup.</p>
             </div>
             <ProgramStatusBadge status={program.status} />
           </div>
@@ -84,7 +85,10 @@ export function ProgramDetailsModule({ id }: { id: string }) {
             <Info label="Start Date" value={program.startDate} />
             <Info label="End Date" value={program.endDate} />
             <Info label="Benefit Type" value={program.benefitType.replaceAll("_", " ")} />
-            <Info label="Budget" value={program.budget.toLocaleString("en-NG")} />
+            <Info
+              label={program.amount !== null && program.amount !== undefined ? "Amount" : "Budget"}
+              value={(program.amount ?? program.budget ?? 0).toLocaleString("en-NG")}
+            />
           </div>
         </div>
 
@@ -96,11 +100,11 @@ export function ProgramDetailsModule({ id }: { id: string }) {
             <Info label="Status" value={program.organizationStatus.replaceAll("_", " ")} />
             <div className="pt-2">
               <div className="flex flex-wrap gap-3">
-                <Link href={`/organizations/${program.organizationId}`} className="text-sm font-medium text-accent hover:underline">
+                <Link
+                  href={`/organizations/${program.organizationId}?from=${encodeURIComponent(`/programs/${program.id}`)}`}
+                  className="text-sm font-medium text-accent hover:underline"
+                >
                   View organization details
-                </Link>
-                <Link href={`/organizations/${program.organizationId}/workspace`} className="text-sm font-medium text-accent hover:underline">
-                  Open organization workspace
                 </Link>
               </div>
             </div>
@@ -109,7 +113,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-        <ProgramBeneficiaryPreview summary={program.beneficiarySummary} />
+        <ProgramBeneficiaryPreview />
         <ProgramDistributionPreview summary={program.distributionSummary} />
       </section>
 
@@ -118,15 +122,24 @@ export function ProgramDetailsModule({ id }: { id: string }) {
         <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-sm font-semibold text-foreground">Quick actions</p>
           <div className="mt-5 space-y-3">
-            <Link href="/beneficiaries" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
-              View Beneficiaries
-            </Link>
-            <Link href="/distributions" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
-              Open Distributions
-            </Link>
-            <Link href="/reports" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
-              View Reports
-            </Link>
+            {isAssignedApprover ? (
+              <Link href={`/programs/${program.id}/approval`} className="block rounded-2xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
+                Open Approval Review
+              </Link>
+            ) : null}
+            {!isApprovalRole ? (
+              <>
+                <Link href="/beneficiaries" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
+                  View Beneficiaries
+                </Link>
+                <Link href="/distributions" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
+                  Open Distributions
+                </Link>
+                <Link href="/reports" className="block rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground">
+                  View Reports
+                </Link>
+              </>
+            ) : null}
             {canEdit ? (
               <Link href={`/programs/${program.id}/edit`} className="block rounded-2xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
                 Edit Intervention

@@ -19,6 +19,14 @@ import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { BenefitType, Program, ProgramStatus } from "@/types/program";
 
+const approvalRoles = new Set([
+  "ORGANIZATION_MANAGER",
+  "STORE_MANAGER",
+  "DISTRIBUTION_MANAGER",
+  "ACCOUNTANT",
+  "DIRECTOR",
+]);
+
 export function ProgramsModule() {
   const currentTenant = useAuthStore((state) => state.currentTenant);
   const role = useAuthStore((state) => state.role);
@@ -37,20 +45,34 @@ export function ProgramsModule() {
   });
   const [page, setPage] = useState(1);
   const [statusTarget, setStatusTarget] = useState<Program | null>(null);
-  const [nextStatus, setNextStatus] = useState<ProgramStatus>("DRAFT");
+  const [nextStatus, setNextStatus] = useState<ProgramStatus>("IN_PROGRESS");
   const debouncedSearch = useDebouncedValue(filters.search);
+  const isApprovalRole = role ? approvalRoles.has(role) : false;
 
   const scopeOrganizationId =
     role === "ORG_ADMIN" || role === "PROGRAM_OFFICER"
       ? user?.organizationId ?? organizationsData.find((organization) => organization.shortName === currentTenant?.shortCode)?.id ?? null
       : null;
 
-  const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
+  const showOrganizationFilter =
+    role === "SUPER_ADMIN" ||
+    role === "AUDITOR" ||
+    role === "ORGANIZATION_MANAGER" ||
+    role === "STORE_MANAGER" ||
+    role === "DISTRIBUTION_MANAGER" ||
+    role === "ACCOUNTANT";
   const canCreate = role ? hasPermission(role, "create_program") : false;
   const canChangeStatus = role ? hasPermission(role, "change_program_status") : false;
 
   const programsQuery = useQuery({
-    queryKey: ["programs", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
+    queryKey: [
+      "programs",
+      page,
+      { ...filters, search: debouncedSearch },
+      role,
+      scopeOrganizationId,
+      isApprovalRole ? user?.id ?? null : null,
+    ],
     queryFn: () =>
       programService.getPrograms({
         page,
@@ -60,6 +82,7 @@ export function ProgramsModule() {
         benefitType: filters.benefitType,
         status: filters.status,
         scopeOrganizationId,
+        assignedApproverUserId: isApprovalRole ? user?.id ?? null : null,
       }),
     placeholderData: (previousData) => previousData,
   });
@@ -103,13 +126,19 @@ export function ProgramsModule() {
   return (
     <PageContainer>
       <PageHeader
-        title="Intervention management"
-        description="Create, review, and manage benefit interventions across organizations with role-aware access and enterprise operational visibility."
+        title={isApprovalRole ? "Intervention approvals" : "Intervention management"}
+        description={
+          isApprovalRole
+            ? "Review interventions assigned to you for approval. Actionable items are prioritized at the top of the queue."
+            : "Create, review, and manage benefit interventions across organizations with role-aware access and enterprise operational visibility."
+        }
       />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl text-sm text-muted">
-          {showOrganizationFilter
+          {isApprovalRole
+            ? "Only interventions assigned to you in the approval chain are shown here. Open approval review to approve or reject in sequence."
+            : showOrganizationFilter
             ? "Review interventions across organizations or narrow the view by organization, benefit type, and status."
             : "You are viewing interventions scoped to your organization."
           }
@@ -145,11 +174,16 @@ export function ProgramsModule() {
           }}
           role={role!}
           canChangeStatus={canChangeStatus}
+          approvalUserId={isApprovalRole ? user?.id ?? null : null}
         />
       ) : (
         <EmptyState
-          title="No interventions match your filters"
-          description="Adjust the filters or create a new intervention to populate this module."
+          title={isApprovalRole ? "No interventions are assigned to you" : "No interventions match your filters"}
+          description={
+            isApprovalRole
+              ? "When an intervention approval step is assigned to you, it will appear here for review."
+              : "Adjust the filters or create a new intervention to populate this module."
+          }
         />
       )}
 

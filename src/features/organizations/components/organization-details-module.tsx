@@ -17,7 +17,6 @@ import { useAuthStore } from "@/store/auth.store";
 export function OrganizationDetailsModule({ id }: { id: string }) {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
-
   const organizationQuery = useQuery({
     queryKey: ["organization", id],
     queryFn: () => organizationService.getOrganizationById(id),

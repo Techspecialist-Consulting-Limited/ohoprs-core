@@ -4,7 +4,12 @@ export type UserRole =
   | "SUPER_ADMIN"
   | "ORG_ADMIN"
   | "PROGRAM_OFFICER"
-  | "AUDITOR";
+  | "AUDITOR"
+  | "ORGANIZATION_MANAGER"
+  | "STORE_MANAGER"
+  | "DISTRIBUTION_MANAGER"
+  | "ACCOUNTANT"
+  | "DIRECTOR";
 
 export interface AuthUser {
   id: string;

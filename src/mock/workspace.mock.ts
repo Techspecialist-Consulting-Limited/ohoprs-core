@@ -195,6 +195,26 @@ export const workspaceQuickActionsByRole: Record<UserRole, { id: string; label: 
     { id: "ws_qa_013", label: "View Audit Logs", href: "/audit-logs" },
     { id: "ws_qa_014", label: "View Distribution History", href: "/distributions" },
   ],
+  ORGANIZATION_MANAGER: [
+    { id: "ws_qa_015", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_016", label: "Review Interventions", href: "/programs" },
+  ],
+  STORE_MANAGER: [
+    { id: "ws_qa_017", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_018", label: "Review Interventions", href: "/programs" },
+  ],
+  DISTRIBUTION_MANAGER: [
+    { id: "ws_qa_019", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_020", label: "Review Interventions", href: "/programs" },
+  ],
+  ACCOUNTANT: [
+    { id: "ws_qa_021", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_022", label: "Review Interventions", href: "/programs" },
+  ],
+  DIRECTOR: [
+    { id: "ws_qa_023", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_024", label: "Review Interventions", href: "/programs" },
+  ],
 };
 
 export const sampleWorkspaceLinks = [

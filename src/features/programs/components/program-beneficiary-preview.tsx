@@ -1,7 +1,7 @@
+import { SYSTEM_BENEFICIARY_SUMMARY } from "@/constants/system-metrics";
 import { formatNumber } from "@/lib/formatters";
-import type { ProgramDetails } from "@/types/program";
 
-export function ProgramBeneficiaryPreview({ summary }: { summary: ProgramDetails["beneficiarySummary"] }) {
+export function ProgramBeneficiaryPreview() {
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
@@ -9,10 +9,10 @@ export function ProgramBeneficiaryPreview({ summary }: { summary: ProgramDetails
         <p className="mt-1 text-sm text-muted">Current verification posture and record quality indicators.</p>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <Stat label="Total" value={formatNumber(summary.total)} />
-        <Stat label="Verified" value={formatNumber(summary.verified)} />
-        <Stat label="Pending Verification" value={formatNumber(summary.pendingVerification)} />
-        <Stat label="Flagged" value={formatNumber(summary.flagged)} />
+        <Stat label="Total" value={formatNumber(SYSTEM_BENEFICIARY_SUMMARY.total)} />
+        <Stat label="Verified" value={formatNumber(SYSTEM_BENEFICIARY_SUMMARY.verified)} />
+        <Stat label="Pending Verification" value={formatNumber(SYSTEM_BENEFICIARY_SUMMARY.pendingVerification)} />
+        <Stat label="Flagged" value={formatNumber(SYSTEM_BENEFICIARY_SUMMARY.flagged)} />
       </div>
     </div>
   );

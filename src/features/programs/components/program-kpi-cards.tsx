@@ -1,14 +1,17 @@
-import { CircleDollarSign, ClipboardList, ShieldCheck, Users } from "lucide-react";
+import { CircleDollarSign, ShieldCheck, Users } from "lucide-react";
 
+import { SYSTEM_BENEFICIARY_TOTAL } from "@/constants/system-metrics";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 import type { ProgramDetails } from "@/types/program";
 
 export function ProgramKpiCards({ program }: { program: ProgramDetails }) {
+  const valueLabel = program.amount !== null && program.amount !== undefined ? "Amount" : "Budget";
+  const valueDisplay = formatCurrency(program.amount ?? program.budget ?? 0);
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <Card icon={Users} label="Beneficiaries" value={formatNumber(program.beneficiaryCount)} />
-      <Card icon={ClipboardList} label="Target Beneficiaries" value={formatNumber(program.targetBeneficiaries)} />
-      <Card icon={CircleDollarSign} label="Budget" value={formatCurrency(program.budget)} />
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <Card icon={Users} label="Beneficiaries" value={formatNumber(SYSTEM_BENEFICIARY_TOTAL)} />
+      <Card icon={CircleDollarSign} label={valueLabel} value={valueDisplay} />
       <Card icon={ShieldCheck} label="Total Distributed" value={formatCurrency(program.totalDistributed)} />
     </div>
   );

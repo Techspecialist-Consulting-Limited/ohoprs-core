@@ -4,7 +4,7 @@ const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 
 export const nationalDashboardData: DashboardResponse = {
   scope: "NATIONAL",
-  title: "National Benefits Overview",
+  title: "Social Protection Overview",
   subtitle: "Real-time visibility across government benefit programs, distribution performance, and beneficiary reach nationwide.",
   kpis: {
     totalOrganizations: 12,

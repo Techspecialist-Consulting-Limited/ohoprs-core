@@ -9,11 +9,55 @@ export type BenefitType =
   | "OTHER";
 
 export type ProgramStatus =
-  | "DRAFT"
-  | "ACTIVE"
-  | "PAUSED"
+  | "IN_PROGRESS"
   | "COMPLETED"
+  | "REJECTED"
+  | "APPROVED"
+  | "ACTIVE"
   | "SUSPENDED";
+
+export type SystemApprovalRole =
+  | "ORGANIZATION_MANAGER"
+  | "STORE_MANAGER"
+  | "DISTRIBUTION_MANAGER"
+  | "ACCOUNTANT"
+  | "DIRECTOR";
+
+export interface ProgramDuration {
+  days: number;
+  weeks: number;
+  months: number;
+  years: number;
+}
+
+export interface ProgramFundingSource {
+  id: string;
+  name: string;
+  createdByUserId: string | null;
+  isCustom: boolean;
+}
+
+export interface ProgramApprovalStep {
+  id: string;
+  order: number;
+  role: SystemApprovalRole;
+  assigneeUserId: string;
+  assigneeName: string;
+  assigneeEmail: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  approvedAt: string | null;
+  rejectionReason?: string | null;
+}
+
+export interface ProgramApprovalHistoryItem {
+  id: string;
+  actor: string;
+  actorRole: string;
+  action: "APPROVED" | "REJECTED";
+  reason?: string | null;
+  stepOrder: number;
+  timestamp: string;
+}
 
 export interface Program {
   id: string;
@@ -25,9 +69,15 @@ export interface Program {
   status: ProgramStatus;
   startDate: string;
   endDate: string;
-  targetBeneficiaries: number;
+  duration?: ProgramDuration;
   beneficiaryCount: number;
-  budget: number;
+  amount?: number | null;
+  budget: number | null;
+  fundingSources?: ProgramFundingSource[];
+  approvalSteps?: ProgramApprovalStep[];
+  rejectionReason?: string | null;
+  approvalHistory?: ProgramApprovalHistoryItem[];
+  createdByUserId?: string | null;
   totalDistributed: number;
   createdAt: string;
   updatedAt: string;
@@ -77,6 +127,7 @@ export interface ProgramListParams {
   benefitType?: BenefitType | "ALL";
   status?: ProgramStatus | "ALL";
   scopeOrganizationId?: string | null;
+  assignedApproverUserId?: string | null;
 }
 
 export interface ProgramPayload {
@@ -86,7 +137,11 @@ export interface ProgramPayload {
   description: string;
   startDate: string;
   endDate: string;
-  targetBeneficiaries: number;
-  budget: number;
+  duration: ProgramDuration;
+  amount: number | null;
+  budget: number | null;
+  fundingSources: ProgramFundingSource[];
+  approvalSteps: ProgramApprovalStep[];
   status: ProgramStatus;
+  createdByUserId?: string | null;
 }

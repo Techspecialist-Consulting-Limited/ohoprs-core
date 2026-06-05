@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+function getTodayDateForValidation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export const benefitTypes = [
   "CASH",
   "FOOD",
@@ -12,12 +20,47 @@ export const benefitTypes = [
 ] as const;
 
 export const programStatuses = [
-  "DRAFT",
-  "ACTIVE",
-  "PAUSED",
+  "IN_PROGRESS",
   "COMPLETED",
+  "REJECTED",
+  "APPROVED",
+  "ACTIVE",
   "SUSPENDED",
 ] as const;
+
+export const systemApprovalRoles = [
+  "ORGANIZATION_MANAGER",
+  "STORE_MANAGER",
+  "DISTRIBUTION_MANAGER",
+  "ACCOUNTANT",
+  "DIRECTOR",
+] as const;
+
+export const programDurationSchema = z.object({
+  days: z.coerce.number().int().min(0).max(27),
+  weeks: z.coerce.number().int().min(0).max(3),
+  months: z.coerce.number().int().min(0).max(11),
+  years: z.coerce.number().int().min(0).max(20),
+});
+
+export const programFundingSourceSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  createdByUserId: z.string().nullable(),
+  isCustom: z.boolean(),
+});
+
+export const programApprovalStepSchema = z.object({
+  id: z.string().min(1),
+  order: z.coerce.number().int().min(1),
+  role: z.enum(systemApprovalRoles),
+  assigneeUserId: z.string().min(1, "Select an assignee."),
+  assigneeName: z.string().min(1),
+  assigneeEmail: z.string().min(1),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).default("PENDING"),
+  approvedAt: z.string().nullable().default(null),
+  rejectionReason: z.string().nullable().optional(),
+});
 
 export const programSchema = z
   .object({
@@ -25,13 +68,71 @@ export const programSchema = z
     organizationId: z.string().min(1, "Organization is required"),
     benefitType: z.enum(benefitTypes),
     description: z.string().min(10, "Description is required"),
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().min(1, "End date is required"),
-    targetBeneficiaries: z.coerce.number().min(1),
-    budget: z.coerce.number().min(0),
+    startDate: z.string().optional().default(""),
+    endDate: z.string().optional().default(""),
+    duration: programDurationSchema,
+    amount: z.coerce.number().nullable().optional(),
+    budget: z.coerce.number().nullable().optional(),
+    fundingSources: z.array(programFundingSourceSchema).min(1, "Select at least one funding source."),
     status: z.enum(programStatuses),
+    approvalSteps: z.array(programApprovalStepSchema).min(1, "Add at least one approval step."),
+    createdByUserId: z.string().nullable().optional(),
   })
-  .refine((values) => values.endDate >= values.startDate, {
-    message: "End date cannot be earlier than start date.",
-    path: ["endDate"],
+  .superRefine((values, ctx) => {
+    const isCash = values.benefitType === "CASH";
+    const today = getTodayDateForValidation();
+
+    if (
+      values.duration.days === 0 &&
+      values.duration.weeks === 0 &&
+      values.duration.months === 0 &&
+      values.duration.years === 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration"],
+        message: "Provide at least one duration value.",
+      });
+    }
+
+    if (values.startDate && values.startDate < today) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startDate"],
+        message: "Start date cannot be earlier than today.",
+      });
+    }
+
+    if (values.startDate && values.endDate && values.endDate < values.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endDate"],
+        message: "End date cannot be earlier than start date.",
+      });
+    }
+
+    if (isCash) {
+      if (values.amount === null || values.amount === undefined || Number.isNaN(values.amount) || values.amount <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["amount"],
+          message: "Amount is required for cash interventions.",
+        });
+      }
+    } else if (values.budget === null || values.budget === undefined || Number.isNaN(values.budget) || values.budget <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["budget"],
+        message: "Budget is required for non-cash interventions.",
+      });
+    }
+
+    const assigneeIds = values.approvalSteps.map((step) => step.assigneeUserId);
+    if (new Set(assigneeIds).size !== assigneeIds.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["approvalSteps"],
+        message: "Each approval step must have a different assignee.",
+      });
+    }
   });

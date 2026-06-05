@@ -14,7 +14,6 @@ import { useAuthStore } from "@/store/auth.store";
 
 export function ProgramCreateModule() {
   const role = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
 
   if (!role || !hasPermission(role, "create_program")) {
     return (
@@ -31,12 +30,11 @@ export function ProgramCreateModule() {
     <PageContainer>
       <PageHeader
         title="Create intervention"
-        description="Create a new benefit intervention within the appropriate organization scope."
+        description="Create a new intervention, assign it to an organization, and configure funding and approval flow."
       />
       <ProgramForm
         mode="create"
-        canChooseOrganization={false}
-        defaultOrganizationId={user?.organizationId ?? undefined}
+        canChooseOrganization
       />
     </PageContainer>
   );
@@ -44,7 +42,6 @@ export function ProgramCreateModule() {
 
 export function ProgramEditModule({ id }: { id: string }) {
   const role = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
   const programQuery = useQuery({
     queryKey: ["program", id],
     queryFn: () => programService.getProgramById(id),
@@ -82,27 +79,16 @@ export function ProgramEditModule({ id }: { id: string }) {
     );
   }
 
-  if (user?.organizationId !== program.organizationId) {
-    return (
-      <PageContainer>
-        <PermissionDeniedState
-          title="Intervention edit denied"
-          description="Organization Admins can only edit interventions within their own organization."
-        />
-      </PageContainer>
-    );
-  }
-
   return (
     <PageContainer>
       <PageHeader
         title={`Edit ${program.name}`}
-        description="Update intervention profile information, schedule, budget, and lifecycle status."
+        description="Update intervention profile information, governance stages, funding sources, and approval flow."
       />
       <ProgramForm
         mode="edit"
         programId={program.id}
-        canChooseOrganization={false}
+        canChooseOrganization
         defaultOrganizationId={program.organizationId}
         initialValues={{
           name: program.name,
@@ -111,9 +97,13 @@ export function ProgramEditModule({ id }: { id: string }) {
           description: program.description,
           startDate: program.startDate,
           endDate: program.endDate,
-          targetBeneficiaries: program.targetBeneficiaries,
+          duration: program.duration,
+          amount: program.amount,
           budget: program.budget,
+          fundingSources: program.fundingSources,
           status: program.status,
+          approvalSteps: program.approvalSteps,
+          createdByUserId: program.createdByUserId,
         }}
       />
     </PageContainer>
