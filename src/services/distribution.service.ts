@@ -1,5 +1,4 @@
 import { distributionsData } from "@/mock/distributions.mock";
-import { programsData } from "@/mock/programs.mock";
 import type { ApiResponse } from "@/types/api";
 import type {
   Distribution,
@@ -12,6 +11,7 @@ import type {
   DistributionPayload,
   DistributionStatus,
 } from "@/types/distribution";
+import { programService } from "@/services/program.service";
 
 let distributionStore = [...distributionsData];
 
@@ -20,7 +20,7 @@ function cloneDistribution<T>(value: T): T {
 }
 
 function programById(id: string) {
-  return programsData.find((program) => program.id === id) ?? null;
+  return programService.getProgramSnapshot(id);
 }
 
 function isCashMethod(method: DistributionPayload["method"]) {

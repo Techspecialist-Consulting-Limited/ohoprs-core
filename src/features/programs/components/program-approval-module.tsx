@@ -11,10 +11,11 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { ProgramActivityFeed } from "@/features/programs/components/program-activity-feed";
 import { ProgramDetailsHeader } from "@/features/programs/components/program-details-header";
-import { ProgramKpiCards } from "@/features/programs/components/program-kpi-cards";
 import { ProgramStatusBadge } from "@/features/programs/components/program-status-badge";
 import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
+import { SYSTEM_BENEFICIARY_TOTAL } from "@/constants/system-metrics";
+import { formatCurrency, formatNumber } from "@/lib/formatters";
 
 const approvalRoleLabels: Record<string, string> = {
   ORGANIZATION_MANAGER: "Organization Manager",
@@ -104,7 +105,13 @@ export function ProgramApprovalModule({ id }: { id: string }) {
       <ProgramDetailsHeader canEdit={false} program={program} readOnly />
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <ProgramKpiCards program={program} />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+          <ApprovalKpiCard label="Beneficiaries" value={formatNumber(SYSTEM_BENEFICIARY_TOTAL)} />
+          <ApprovalKpiCard
+            label={program.amount !== null && program.amount !== undefined ? "Amount" : "Budget"}
+            value={formatCurrency(program.amount ?? program.budget ?? 0)}
+          />
+        </div>
         <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-sm font-semibold text-foreground">Approval Status</p>
           <div className="mt-4 space-y-3">
@@ -222,5 +229,14 @@ export function ProgramApprovalModule({ id }: { id: string }) {
         </div>
       </section>
     </PageContainer>
+  );
+}
+
+function ApprovalKpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[28px] border border-border bg-surface p-5 shadow-sm">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+    </div>
   );
 }

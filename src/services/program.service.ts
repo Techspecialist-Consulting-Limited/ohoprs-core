@@ -67,6 +67,10 @@ function findOrganization(id: string) {
   return organizationsData.find((item) => item.id === id) ?? null;
 }
 
+function isDistributionEligibleProgram(program: ProgramDetails) {
+  return program.status === "APPROVED" || program.status === "ACTIVE";
+}
+
 export const programService = {
   async getPrograms(params: ProgramListParams = {}): Promise<ApiResponse<ProgramListResponse>> {
     const {
@@ -153,6 +157,30 @@ export const programService = {
       message: program ? "Program details fetched successfully" : "Program not found",
       data: program ? normalizeProgram(program) : null,
     });
+  },
+
+  getProgramSnapshot(id: string) {
+    const program = programStore.find((item) => item.id === id) ?? null;
+    return program ? normalizeProgram(program) : null;
+  },
+
+  getProgramOptions(params?: {
+    organizationId?: string | null;
+    eligibleForDistribution?: boolean;
+  }) {
+    const { organizationId = null, eligibleForDistribution = false } = params ?? {};
+
+    return programStore
+      .map(normalizeProgram)
+      .filter((program) => (organizationId ? program.organizationId === organizationId : true))
+      .filter((program) => (eligibleForDistribution ? isDistributionEligibleProgram(program) : true))
+      .map((program) => ({
+        id: program.id,
+        name: program.name,
+        organizationId: program.organizationId,
+        benefitType: program.benefitType,
+        status: program.status,
+      }));
   },
 
   async createProgram(payload: ProgramPayload): Promise<ApiResponse<ProgramDetails | null>> {

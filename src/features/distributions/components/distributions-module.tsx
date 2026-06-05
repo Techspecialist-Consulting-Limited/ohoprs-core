@@ -14,11 +14,11 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
 import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
 import { organizationsData } from "@/mock/organizations.mock";
-import { programsData } from "@/mock/programs.mock";
 import { DistributionFilters } from "@/features/distributions/components/distribution-filters";
 import { DistributionStatusDialog } from "@/features/distributions/components/distribution-status-dialog";
 import { DistributionTable } from "@/features/distributions/components/distribution-table";
 import { distributionService } from "@/services/distribution.service";
+import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { Distribution, DistributionStatus } from "@/types/distribution";
 
@@ -72,14 +72,22 @@ export function DistributionsModule() {
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
   const availablePrograms = useMemo(() => {
     if (showOrganizationFilter && filters.organizationId !== "ALL") {
-      return programsData.filter((program) => program.organizationId === filters.organizationId);
+      return programService.getProgramOptions({
+        organizationId: filters.organizationId,
+        eligibleForDistribution: true,
+      });
     }
 
     if (scopeOrganizationId) {
-      return programsData.filter((program) => program.organizationId === scopeOrganizationId);
+      return programService.getProgramOptions({
+        organizationId: scopeOrganizationId,
+        eligibleForDistribution: true,
+      });
     }
 
-    return programsData;
+    return programService.getProgramOptions({
+      eligibleForDistribution: true,
+    });
   }, [filters.organizationId, scopeOrganizationId, showOrganizationFilter]);
 
   const canChangeStatus = role ? hasPermission(role, "change_distribution_status") : false;

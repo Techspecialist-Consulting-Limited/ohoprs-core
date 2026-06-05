@@ -9,9 +9,9 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { organizationsData } from "@/mock/organizations.mock";
-import { programsData } from "@/mock/programs.mock";
 import { distributionSchema } from "@/features/distributions/schemas/distribution.schema";
 import { distributionService } from "@/services/distribution.service";
+import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { DistributionFormValues, DistributionPayload } from "@/types/distribution";
 
@@ -55,9 +55,19 @@ export function DistributionForm({
   const organizationId = useWatch({ control: form.control, name: "organizationId" });
   const method = useWatch({ control: form.control, name: "method" });
   const programId = useWatch({ control: form.control, name: "programId" });
-  const selectedProgram = programsData.find((program) => program.id === programId) ?? null;
+  const eligiblePrograms = organizationId
+    ? programService.getProgramOptions({
+        organizationId,
+        eligibleForDistribution: true,
+      })
+    : [];
+  const currentProgram = programId ? programService.getProgramSnapshot(programId) : null;
+  const availablePrograms =
+    currentProgram && organizationId === currentProgram.organizationId && !eligiblePrograms.some((program) => program.id === currentProgram.id)
+      ? [...eligiblePrograms, currentProgram]
+      : eligiblePrograms;
+  const selectedProgram = availablePrograms.find((program) => program.id === programId) ?? null;
   const isCash = cashMethods.has(method);
-  const availablePrograms = organizationId ? programsData.filter((program) => program.organizationId === organizationId) : [];
 
   const mutation = useMutation({
     mutationFn: async (values: DistributionPayload) => {
