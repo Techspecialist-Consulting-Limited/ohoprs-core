@@ -22,7 +22,7 @@ const statusStyles = {
 
 export function SystemStatusCard({ items }: { items: SystemStatus[] }) {
   return (
-    <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+    <div className=" rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-foreground">System status</p>
         <p className="mt-1 text-sm text-muted">Platform health indicators across key operational services.</p>

@@ -130,7 +130,9 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className={cn("border-t border-white/8 px-4 py-4", collapsed && "md:px-3")}>
+
+{/* Might be added later for a brief slogan */}
+      <div className={cn("hidden border-t border-white/8 px-4 py-4", collapsed && "md:px-3")}>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
           <p className={cn("text-sm font-semibold text-sidebar-foreground", collapsed && "md:hidden")}>
             Tenant-ready shell

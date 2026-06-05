@@ -76,15 +76,17 @@ export function DashboardOverview() {
       <KpiCardGrid kpis={dashboard.kpis} />
       <section className="grid min-w-0 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <DistributionOverviewChart data={dashboard.distributionOverview} />
-        <SystemStatusCard items={dashboard.systemStatus} />
+                <QuickActions actions={dashboard.quickActions} role={role!} />
+
+        {/* <SystemStatusCard items={dashboard.systemStatus} /> */}
       </section>
       <section className="grid min-w-0 gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <BeneficiaryGrowthChart data={dashboard.beneficiaryGrowth} />
-        <QuickActions actions={dashboard.quickActions} role={role!} />
+             <RecentActivityFeed data={dashboard.recentActivities} />
+
       </section>
       <section className="grid min-w-0 gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <BenefitTypeBreakdown data={dashboard.benefitTypeBreakdown} />
-        <RecentActivityFeed data={dashboard.recentActivities} />
       </section>
     </PageContainer>
   );
