@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Bell, Check, ChevronsUpDown, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -46,7 +45,6 @@ export function Header({
   menuIcon: React.ReactNode;
   onOpenMobileMenu: () => void;
 }) {
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTenantMenuOpen, setIsTenantMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -259,7 +257,7 @@ export function Header({
                     onClick={() => {
                       logout();
                       setIsMenuOpen(false);
-                      router.push("/login");
+                      window.location.href = "https://ohoprs.vercel.app/";
                     }}
                   >
                     <LogOut size={16} />
