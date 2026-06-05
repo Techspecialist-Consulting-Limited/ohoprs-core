@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { LoadingState } from "@/components/ui/loading-state";
+import { AuthTransitionLoader } from "@/components/shared/auth-transition-loader";
 import { canAccessRoute, getRoutePermissionForPath, hasPermission } from "@/lib/rbac";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -45,11 +45,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     !allowModuleDeniedPage && role && missingPermission ? !hasPermission(role, missingPermission) : false;
 
   if (!isHydrated || !isAuthenticated || isBlocked || (role && !canAccessRoute(role, pathname))) {
-    return (
-      <div className="mx-auto w-full max-w-xl py-16">
-        <LoadingState title="Preparing your secure workspace" lines={4} />
-      </div>
-    );
+    return <AuthTransitionLoader />;
   }
 
   return children;

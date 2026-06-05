@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { LoadingState } from "@/components/ui/loading-state";
+import { AuthTransitionLoader } from "@/components/shared/auth-transition-loader";
 import { useAuthStore } from "@/store/auth.store";
 
 export function PublicOnlyGuard({ children }: { children: React.ReactNode }) {
@@ -18,19 +18,11 @@ export function PublicOnlyGuard({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, isHydrated, router]);
 
   if (!isHydrated) {
-    return (
-      <div className="mx-auto w-full max-w-xl py-16">
-        <LoadingState title="Loading authentication state" lines={3} />
-      </div>
-    );
+    return <AuthTransitionLoader />;
   }
 
   if (isAuthenticated) {
-    return (
-      <div className="mx-auto w-full max-w-xl py-16">
-        <LoadingState title="Redirecting to dashboard" lines={3} />
-      </div>
-    );
+    return <AuthTransitionLoader />;
   }
 
   return children;
