@@ -1,6 +1,12 @@
 import { organizationsData } from "@/mock/organizations.mock";
+import { mockUsers } from "@/mock/auth.mock";
 import { getRegionForState } from "@/constants/nigeria-regions";
-import type { ProgramDetails, ProgramDuration, ProgramFundingSource } from "@/types/program";
+import type {
+  DistributionApprovalTemplateStep,
+  ProgramDetails,
+  ProgramDuration,
+  ProgramFundingSource,
+} from "@/types/program";
 
 export const defaultProgramDuration: ProgramDuration = {
   days: 0,
@@ -24,6 +30,27 @@ export const fundingSourceOptions: ProgramFundingSource[] = [
 
 function organizationById(id: string) {
   return organizationsData.find((item) => item.id === id)!;
+}
+
+function buildDistributionApprovalTemplate(prefix: string): DistributionApprovalTemplateStep[] {
+  const roleOrder: DistributionApprovalTemplateStep["role"][] = [
+    "ORGANIZATION_MANAGER",
+    "STORE_MANAGER",
+    "DIRECTOR",
+  ];
+
+  return roleOrder.map((role, index) => {
+    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
+
+    return {
+      id: `${prefix}_distribution_approval_${role.toLowerCase()}`,
+      order: index + 1,
+      role,
+      assigneeUserId: assignee.id,
+      assigneeName: assignee.name,
+      assigneeEmail: assignee.email,
+    };
+  });
 }
 
 const rawProgramsData: (ProgramDetails & { targetBeneficiaries?: number })[] = [
@@ -487,6 +514,7 @@ export const programsData: ProgramDetails[] = rawProgramsData.map((item) => {
     budget: isCashBenefit ? null : item.budget ?? null,
     numberOfTrenches: isCashBenefit ? trancheOrBatchCount : null,
     batch: isCashBenefit ? null : trancheOrBatchCount,
+    distributionApprovalSteps: buildDistributionApprovalTemplate(item.id),
   };
 });
 

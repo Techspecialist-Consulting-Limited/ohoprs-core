@@ -7,8 +7,13 @@ import type {
 export function isDistributionEditLocked(
   approvalStatus: DistributionApprovalStatus,
   executionStatus: DistributionExecutionStatus,
+  distributionApprovalSteps?: Array<{ status: "PENDING" | "APPROVED" | "REJECTED" }>,
 ) {
   if (approvalStatus === "APPROVED") {
+    return true;
+  }
+
+  if (distributionApprovalSteps?.some((step) => step.status === "APPROVED" || step.status === "REJECTED")) {
     return true;
   }
 
@@ -19,12 +24,12 @@ export function canEditDistributionRecord(
   role: string | null,
   distribution: Pick<
     Distribution,
-    "organizationId" | "createdByUserId" | "approvalStatus" | "executionStatus"
+    "organizationId" | "createdByUserId" | "approvalStatus" | "executionStatus" | "distributionApprovalSteps"
   >,
   userOrganizationId: string | null | undefined,
   userId: string | undefined,
 ) {
-  if (isDistributionEditLocked(distribution.approvalStatus, distribution.executionStatus)) {
+  if (isDistributionEditLocked(distribution.approvalStatus, distribution.executionStatus, distribution.distributionApprovalSteps)) {
     return false;
   }
 

@@ -1,4 +1,3 @@
-import { mockUsers } from "@/mock/auth.mock";
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { distributionsData } from "@/mock/distributions.mock";
 import { programsData } from "@/mock/programs.mock";
@@ -23,34 +22,7 @@ import type { ProgramDetails } from "@/types/program";
 let distributionStore = [...distributionsData];
 
 function getProgram(id: string) {
-  const program = programsData.find((item) => item.id === id) as ProgramDetails | undefined;
-  if (!program) {
-    return undefined;
-  }
-
-  if (program.distributionApprovalSteps?.length) {
-    return program;
-  }
-
-  return {
-    ...program,
-    distributionApprovalSteps: seededDistributionApprovalSteps(),
-  };
-}
-
-function seededDistributionApprovalSteps() {
-  const roleOrder = ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DIRECTOR"] as const;
-  return roleOrder.map((role, index) => {
-    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
-    return {
-      id: `seed_distribution_approval_${role.toLowerCase()}`,
-      order: index + 1,
-      role,
-      assigneeUserId: assignee.id,
-      assigneeName: assignee.name,
-      assigneeEmail: assignee.email,
-    };
-  });
+  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
@@ -291,6 +263,18 @@ function buildDistributionApprovalSteps(program: ProgramDetails): DistributionAp
   }));
 }
 
+function getDistributionApprovalStatus(steps: DistributionApprovalStep[]): DistributionApprovalStatus {
+  if (steps.some((step) => step.status === "REJECTED")) {
+    return "REJECTED";
+  }
+
+  if (steps.length > 0 && steps.every((step) => step.status === "APPROVED")) {
+    return "APPROVED";
+  }
+
+  return "SUBMITTED";
+}
+
 function toDistributionDetails(input: {
   id: string;
   program: ProgramDetails;
@@ -335,6 +319,9 @@ function toDistributionDetails(input: {
     amount ?? beneficiaryCount * 15000,
     input.status === "FAILED" ? Math.max(1, Math.round(beneficiaryCount * 0.01)) : 0,
   );
+  const distributionApprovalSteps = buildDistributionApprovalSteps(program);
+  const derivedApprovalStatus =
+    distributionApprovalSteps.length > 0 ? getDistributionApprovalStatus(distributionApprovalSteps) : input.approvalStatus;
 
   return {
     id: input.id,
@@ -354,9 +341,9 @@ function toDistributionDetails(input: {
     amount,
     quantity,
     status: input.status,
-    approvalStatus: input.approvalStatus,
+    approvalStatus: derivedApprovalStatus ?? input.approvalStatus,
     executionStatus: input.executionStatus,
-    distributionApprovalSteps: buildDistributionApprovalSteps(program),
+    distributionApprovalSteps,
     scheduledDate: input.scheduledDate,
     createdByUserId: input.createdByUserId,
     createdBy: input.createdBy,
@@ -557,7 +544,7 @@ export const distributionService = {
       createdByUserId,
       createdBy,
       status: "SCHEDULED",
-      approvalStatus: "DRAFT",
+      approvalStatus: "SUBMITTED",
       executionStatus: "NOT_STARTED",
       scheduledDate: timestamp,
       createdAt: timestamp,

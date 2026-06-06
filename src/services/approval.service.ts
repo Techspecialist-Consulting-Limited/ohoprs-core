@@ -136,7 +136,10 @@ export const approvalService = {
 
     return Promise.resolve({
       success: true,
-      message: "Distribution approved successfully",
+      message:
+        syncApprovalCache(distributionId)?.approvalStatus === "APPROVED"
+          ? "Distribution fully approved successfully"
+          : `Step ${currentStep.order} approved. The next agency approver can now review this distribution.`,
       data: syncApprovalCache(distributionId),
     });
   },
@@ -185,7 +188,7 @@ export const approvalService = {
 
     return Promise.resolve({
       success: true,
-      message: "Distribution rejected successfully",
+      message: `Distribution rejected at Step ${currentStep.order}.`,
       data: syncApprovalCache(distributionId),
     });
   },

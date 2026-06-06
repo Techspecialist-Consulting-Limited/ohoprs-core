@@ -28,7 +28,8 @@ export function ProgramTable({
   canChangeStatus: boolean;
   approvalUserId?: string | null;
 }) {
-  const canEdit = role === "SUPER_ADMIN";
+  const canEditIntervention = role === "SUPER_ADMIN";
+  const canManageDistributionApproval = role === "ORG_ADMIN";
   const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
   return (
@@ -83,7 +84,8 @@ export function ProgramTable({
                 <td className="px-5 py-4 text-sm text-muted">{item.endDate}</td>
                 <td className="px-5 py-4">
                   <RowActionMenu
-                    canEdit={canEdit}
+                    canEditIntervention={canEditIntervention}
+                    canManageDistributionApproval={canManageDistributionApproval}
                     canChangeStatus={canChangeStatus}
                     item={item}
                     onStatusAction={onStatusAction}
@@ -141,13 +143,15 @@ export function ProgramTable({
 }
 
 function RowActionMenu({
-  canEdit,
+  canEditIntervention,
+  canManageDistributionApproval,
   canChangeStatus,
   item,
   onStatusAction,
   approvalUserId,
 }: {
-  canEdit: boolean;
+  canEditIntervention: boolean;
+  canManageDistributionApproval: boolean;
   canChangeStatus: boolean;
   item: Program;
   onStatusAction: (program: Program) => void;
@@ -177,7 +181,7 @@ function RowActionMenu({
               Open Approval Review
             </Link>
           ) : null}
-          {canEdit ? (
+          {canManageDistributionApproval ? (
             <Link
               href={`/programs/${item.id}/distribution-approval`}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
@@ -186,7 +190,7 @@ function RowActionMenu({
               Add Approval Steps
             </Link>
           ) : null}
-          {canEdit ? (
+          {canEditIntervention ? (
             <Link
               href={`/programs/${item.id}/edit`}
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"

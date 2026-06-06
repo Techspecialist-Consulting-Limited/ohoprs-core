@@ -1,6 +1,5 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { programsData } from "@/mock/programs.mock";
-import { mockUsers } from "@/mock/auth.mock";
 import type {
   DistributionApprovalStatus,
   DistributionDetails,
@@ -21,34 +20,7 @@ const creatorDirectory = {
 } as const;
 
 function getProgram(id: string) {
-  const program = programsData.find((item) => item.id === id) as ProgramDetails | undefined;
-  if (!program) {
-    return undefined;
-  }
-
-  if (program.distributionApprovalSteps?.length) {
-    return program;
-  }
-
-  return {
-    ...program,
-    distributionApprovalSteps: seededDistributionApprovalSteps(),
-  };
-}
-
-function seededDistributionApprovalSteps() {
-  const roleOrder = ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DIRECTOR"] as const;
-  return roleOrder.map((role, index) => {
-    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
-    return {
-      id: `seed_distribution_approval_${role.toLowerCase()}`,
-      order: index + 1,
-      role,
-      assigneeUserId: assignee.id,
-      assigneeName: assignee.name,
-      assigneeEmail: assignee.email,
-    };
-  });
+  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {

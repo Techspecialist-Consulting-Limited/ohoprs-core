@@ -24,6 +24,7 @@ export function DistributionApprovalActions({
   const queryClient = useQueryClient();
   const [action, setAction] = useState<"APPROVE" | "REJECT" | null>(null);
   const [reason, setReason] = useState("");
+  const currentPendingStep = distribution.distributionApprovalSteps.find((step) => step.status === "PENDING") ?? null;
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["distribution", distribution.id] });
@@ -62,6 +63,14 @@ export function DistributionApprovalActions({
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Agency approval actions</p>
       <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Decision controls</h2>
+      {currentPendingStep ? (
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Current step: <span className="font-semibold text-foreground">{currentPendingStep.role.replaceAll("_", " ")}</span>
+          {" "}assigned to <span className="font-semibold text-foreground">{currentPendingStep.assigneeName}</span>.
+        </p>
+      ) : (
+        <p className="mt-2 text-sm leading-6 text-muted">This agency approval workflow has no pending step.</p>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         {canApprove ? (
@@ -137,17 +146,19 @@ export function DistributionApprovalActions({
               <button
                 type="button"
                 onClick={() => approveMutation.mutate()}
+                disabled={approveMutation.isPending}
                 className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
               >
-                Confirm approval
+                {approveMutation.isPending ? "Approving..." : "Confirm approval"}
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => rejectMutation.mutate()}
+                disabled={rejectMutation.isPending}
                 className="inline-flex h-11 items-center justify-center rounded-2xl bg-danger px-5 text-sm font-semibold text-white"
               >
-                Confirm rejection
+                {rejectMutation.isPending ? "Rejecting..." : "Confirm rejection"}
               </button>
             )}
           </div>

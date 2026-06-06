@@ -36,26 +36,6 @@ function normalizeDistributionApprovalSteps(steps?: DistributionApprovalTemplate
   }));
 }
 
-function seededDistributionApprovalSteps(): DistributionApprovalTemplateStep[] {
-  const roleOrder: DistributionApprovalTemplateStep["role"][] = [
-    "ORGANIZATION_MANAGER",
-    "STORE_MANAGER",
-    "DIRECTOR",
-  ];
-
-  return roleOrder.map((role, index) => {
-    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
-    return {
-      id: `seed_distribution_approval_${role.toLowerCase()}`,
-      order: index + 1,
-      role,
-      assigneeUserId: assignee.id,
-      assigneeName: assignee.name,
-      assigneeEmail: assignee.email,
-    };
-  });
-}
-
 function normalizeProgram(program: ProgramDetails): ProgramDetails {
   return {
     ...program,
@@ -70,9 +50,7 @@ function normalizeProgram(program: ProgramDetails): ProgramDetails {
     batch: program.batch ?? null,
     fundingSources: normalizeFundingSources(program.fundingSources),
     approvalSteps: normalizeApprovalSteps(program.approvalSteps),
-    distributionApprovalSteps: normalizeDistributionApprovalSteps(
-      program.distributionApprovalSteps?.length ? program.distributionApprovalSteps : seededDistributionApprovalSteps(),
-    ),
+    distributionApprovalSteps: normalizeDistributionApprovalSteps(program.distributionApprovalSteps),
     rejectionReason: program.rejectionReason ?? null,
     approvalHistory: program.approvalHistory ?? [],
     createdByUserId: program.createdByUserId ?? null,

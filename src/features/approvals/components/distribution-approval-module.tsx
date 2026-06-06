@@ -49,7 +49,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
   }
 
   if (!canView(role, distribution.organizationId, user?.organizationId)) {
-    return <PermissionDeniedState description="Your role cannot review approval workflows outside your organization scope." />;
+    return <PermissionDeniedState description="Your role cannot review approval workflows outside your agency scope." />;
   }
 
   const currentPendingStep = approval.approvalSteps.find((step) => step.status === "PENDING") ?? null;
@@ -81,6 +81,20 @@ export function DistributionApprovalModule({ id }: { id: string }) {
       <ApprovalSummaryCard distribution={distribution} />
       <BeneficiaryValidationSummary summary={approval.validationSummary} isHighRisk={approval.isHighRisk} />
       <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Current agency approval</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <InfoCard label="Progress" value={`${approval.approvalSteps.filter((step) => step.status === "APPROVED").length}/${approval.approvalSteps.length}`} />
+          <InfoCard
+            label="Current Step"
+            value={currentPendingStep ? `Step ${currentPendingStep.order}` : approval.approvalStatus === "APPROVED" ? "Completed" : "Rejected"}
+          />
+          <InfoCard
+            label="Assigned Approver"
+            value={currentPendingStep ? `${currentPendingStep.assigneeName} (${currentPendingStep.role.replaceAll("_", " ")})` : "No pending approver"}
+          />
+        </div>
+      </section>
+      <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Agency approval steps</p>
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {approval.approvalSteps.map((step) => (
@@ -89,7 +103,11 @@ export function DistributionApprovalModule({ id }: { id: string }) {
               <p className="mt-2 text-base font-semibold text-foreground">{step.role.replaceAll("_", " ")}</p>
               <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
               <p className="mt-2 text-sm text-foreground">
-                {step.status === "APPROVED" ? `Approved ${step.approvedAt ? new Date(step.approvedAt).toLocaleString() : ""}` : step.status}
+                {step.status === "APPROVED"
+                  ? `Approved ${step.approvedAt ? new Date(step.approvedAt).toLocaleString() : ""}`
+                  : step.status === "REJECTED"
+                    ? `Rejected${step.rejectionReason ? `: ${step.rejectionReason}` : ""}`
+                    : "Pending approval"}
               </p>
             </div>
           ))}
@@ -109,6 +127,15 @@ export function DistributionApprovalModule({ id }: { id: string }) {
         <ApprovalHistoryTimeline items={approval.approvalHistory} />
       </section>
     </PageContainer>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+    </div>
   );
 }
 

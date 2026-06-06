@@ -131,7 +131,13 @@ function ApprovalProgressCell({ item }: { item: Distribution }) {
     <div>
       <p className="font-medium text-foreground">{`${completed}/${total}`}</p>
       <p className="mt-1 text-xs text-muted">
-        {currentStep ? `${currentStep.role.replaceAll("_", " ")} approval` : total > 0 ? "Fully approved" : "No approval steps"}
+        {item.approvalStatus === "REJECTED"
+          ? "Rejected"
+          : currentStep
+            ? `${currentStep.role.replaceAll("_", " ")} approval`
+            : total > 0
+              ? "Fully approved"
+              : "No approval steps"}
       </p>
     </div>
   );
