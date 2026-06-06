@@ -479,7 +479,7 @@ export const programService = {
           : step,
       );
       const hasPending = nextSteps.some((step) => step.status === "PENDING");
-      const nextStatus: ProgramStatus = hasPending ? "COMPLETED" : "APPROVED";
+      const nextStatus: ProgramStatus = hasPending ? "IN_PROGRESS" : "APPROVED";
       const historyEntry: ProgramApprovalHistoryItem = {
         id: `program_approval_${Date.now()}`,
         actor: actor.name,
