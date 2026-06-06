@@ -17,14 +17,14 @@ export function BeneficiaryGrowthChart({ data }: { data: ChartPoint[] }) {
   const tooltipFormatter = (value: unknown) => {
     const normalized = Array.isArray(value) ? value[0] : value;
     const amount = typeof normalized === "number" ? normalized : Number(normalized ?? 0);
-    return [formatNumber(amount), "Beneficiaries"] as [string, string];
+    return [formatNumber(amount), "Interventions"] as [string, string];
   };
 
   return (
     <div className="min-w-0 rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div>
-        <p className="text-sm font-semibold text-foreground">Beneficiary growth</p>
-        <p className="mt-1 text-sm text-muted">Cumulative beneficiary reach over the last 12 months.</p>
+        <p className="text-sm font-semibold text-foreground">Intervention growth</p>
+        <p className="mt-1 text-sm text-muted">Cumulative intervention growth over the current reporting period.</p>
       </div>
       <div className="mt-6 h-80">
         <ResponsiveContainer width="100%" height="100%">

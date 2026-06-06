@@ -4,6 +4,7 @@ export interface DashboardKpis {
   totalOrganizations: number;
   totalPrograms: number;
   totalBeneficiaries: number;
+  householdImpact: number;
   totalDistributed: number;
   pendingDistributions: number;
   activePrograms: number;

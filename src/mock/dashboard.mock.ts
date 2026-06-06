@@ -1,6 +1,6 @@
 import type { DashboardResponse } from "@/types/dashboard";
 
-const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
 export const nationalDashboardData: DashboardResponse = {
   scope: "NATIONAL",
@@ -9,18 +9,19 @@ export const nationalDashboardData: DashboardResponse = {
   kpis: {
     totalOrganizations: 12,
     totalPrograms: 56,
-    totalBeneficiaries: 245678,
-    totalDistributed: 5600000000,
+    totalBeneficiaries: 3000000,
+    householdImpact: 1000000,
+    totalDistributed: 600000000000,
     pendingDistributions: 150000000,
     activePrograms: 42,
   },
   distributionOverview: monthLabels.map((label, index) => ({
     label,
-    value: [400, 650, 900, 1200, 1450, 1000, 1180, 1260, 1330, 1490, 1620, 1710][index] * 1_000_000,
+    value: [40, 95, 180, 265, 410, 600][index] * 1_000_000_000,
   })),
   beneficiaryGrowth: monthLabels.map((label, index) => ({
     label,
-    value: [75000, 92000, 110000, 126000, 150000, 168000, 184000, 198000, 212000, 225000, 236000, 245678][index],
+    value: [400000, 780000, 1250000, 1820000, 2410000, 3000000][index],
   })),
   benefitTypeBreakdown: [
     { label: "Cash Transfer", value: 58 },
@@ -83,17 +84,18 @@ export const organizationDashboardData: DashboardResponse = {
     totalOrganizations: 1,
     totalPrograms: 14,
     totalBeneficiaries: 68420,
+    householdImpact: 24000,
     totalDistributed: 1320000000,
     pendingDistributions: 42000000,
     activePrograms: 11,
   },
   distributionOverview: monthLabels.map((label, index) => ({
     label,
-    value: [68, 84, 91, 107, 114, 122, 136, 141, 133, 152, 164, 171][index] * 1_000_000,
+    value: [68, 84, 91, 107, 114, 122][index] * 1_000_000,
   })),
   beneficiaryGrowth: monthLabels.map((label, index) => ({
     label,
-    value: [18000, 22400, 25800, 30200, 34800, 38900, 42700, 48900, 52800, 59400, 63700, 68420][index],
+    value: [18000, 22400, 25800, 30200, 34800, 38900][index],
   })),
   benefitTypeBreakdown: [
     { label: "Cash Transfer", value: 46 },
@@ -148,17 +150,18 @@ export const programOfficerDashboardData: DashboardResponse = {
     totalOrganizations: 1,
     totalPrograms: 6,
     totalBeneficiaries: 28460,
+    householdImpact: 12000,
     totalDistributed: 480000000,
     pendingDistributions: 86000000,
     activePrograms: 5,
   },
   distributionOverview: monthLabels.map((label, index) => ({
     label,
-    value: [28, 33, 37, 41, 46, 43, 49, 57, 53, 61, 68, 64][index] * 1_000_000,
+    value: [28, 33, 37, 41, 46, 43][index] * 1_000_000,
   })),
   beneficiaryGrowth: monthLabels.map((label, index) => ({
     label,
-    value: [9200, 10400, 12800, 14900, 16700, 18300, 20100, 21900, 23800, 25200, 26900, 28460][index],
+    value: [9200, 10400, 12800, 14900, 16700, 18300][index],
   })),
   benefitTypeBreakdown: [
     { label: "Cash Transfer", value: 52 },
@@ -211,8 +214,9 @@ export const auditorDashboardData: DashboardResponse = {
   kpis: {
     totalOrganizations: 12,
     totalPrograms: 56,
-    totalBeneficiaries: 245678,
-    totalDistributed: 5600000000,
+    totalBeneficiaries: 3000000,
+    householdImpact: 1000000,
+    totalDistributed: 600000000000,
     pendingDistributions: 150000000,
     activePrograms: 42,
   },

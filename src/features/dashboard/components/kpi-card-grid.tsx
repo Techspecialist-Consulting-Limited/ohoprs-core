@@ -4,6 +4,7 @@ import {
   Clock3,
   FolderKanban,
   HandCoins,
+  House,
   Users,
 } from "lucide-react";
 
@@ -25,6 +26,7 @@ export function KpiCardGrid({ kpis, role }: KpiCardGridProps) {
       ) : null}
       <KpiCard icon={FolderKanban} label="Total Interventions" value={formatNumber(kpis.totalPrograms)} />
       <KpiCard icon={Users} label="Total Beneficiaries" value={formatNumber(kpis.totalBeneficiaries)} />
+      <KpiCard icon={House} label="Beneficiary Household Impact" value={`${formatCompactNumber(kpis.householdImpact)}+`} />
       <KpiCard icon={CircleDollarSign} label="Total Distributed" value={formatCurrency(kpis.totalDistributed)} />
       <KpiCard icon={Clock3} label="Pending Distributions" value={formatCurrency(kpis.pendingDistributions)} />
       <KpiCard icon={HandCoins} label="Active Interventions" value={formatCompactNumber(kpis.activePrograms)} />

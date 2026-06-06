@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeftRight, ChevronDown, GripHorizontal, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, Check, ChevronDown, GripHorizontal, Plus, Trash2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -13,6 +13,7 @@ import { organizationsData } from "@/mock/organizations.mock";
 import { fundingSourceOptions } from "@/mock/programs.mock";
 import { mockUsers } from "@/mock/auth.mock";
 import { getStatesForRegions, nigeriaRegions } from "@/constants/nigeria-regions";
+import { formatCurrency, formatNumber } from "@/lib/formatters";
 import {
   benefitTypes,
   programSchema,
@@ -31,6 +32,13 @@ import type {
 
 type ProgramFormValues = z.input<typeof programSchema>;
 type ProgramSubmitValues = z.output<typeof programSchema>;
+
+type StepConfig = {
+  id: string;
+  title: string;
+  description: string;
+  fields?: string[];
+};
 
 const approvalRoleLabels: Record<SystemApprovalRole, string> = {
   ORGANIZATION_MANAGER: "Organization Manager",
@@ -58,6 +66,50 @@ const systemApprovalUsers = mockUsers.filter((user) =>
     "DIRECTOR",
   ].includes(user.role),
 );
+
+const programSteps: StepConfig[] = [
+  {
+    id: "basic",
+    title: "Basic Information",
+    description: "Intervention identity and ownership.",
+    fields: ["name", "organizationId", "benefitType", "status", "description"],
+  },
+  {
+    id: "schedule",
+    title: "Schedule",
+    description: "Duration and timing setup.",
+    fields: ["duration", "startDate", "endDate"],
+  },
+  {
+    id: "benefit",
+    title: "Benefit Setup",
+    description: "Configure benefit value and structure.",
+    fields: ["amount", "budget", "numberOfTrenches", "batch", "amountPerRecipient"],
+  },
+  {
+    id: "coverage",
+    title: "Coverage",
+    description: "Recipients, regions, and states.",
+    fields: ["recipientCount", "regions", "states"],
+  },
+  {
+    id: "funding",
+    title: "Funding Source",
+    description: "Choose sponsors and funding sources.",
+    fields: ["fundingSources"],
+  },
+  {
+    id: "approval",
+    title: "Approval Flow",
+    description: "Arrange approval steps and assignees.",
+    fields: ["approvalSteps"],
+  },
+  {
+    id: "review",
+    title: "Review",
+    description: "Confirm before saving.",
+  },
+];
 
 function formatDateForInput(date: Date) {
   const year = date.getFullYear();
@@ -123,6 +175,8 @@ export function ProgramForm({
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
   const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
   const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [...fundingSourceOptions]);
   const todayDate = getTodayDateForInput();
 
@@ -166,7 +220,11 @@ export function ProgramForm({
   const selectedStates = useWatch({ control: form.control, name: "states" }) ?? [];
   const selectedFundingSources = useWatch({ control: form.control, name: "fundingSources" });
   const approvalSteps = useWatch({ control: form.control, name: "approvalSteps" });
+  const formSnapshot = useWatch({ control: form.control });
 
+  const activeStep = programSteps[currentStepIndex];
+  const isLastStep = currentStepIndex === programSteps.length - 1;
+  const isFirstStep = currentStepIndex === 0;
   const isCashBenefit = selectedBenefitType === "CASH";
   const isLocked = mode === "edit" && (selectedStatus === "APPROVED" || selectedStatus === "ACTIVE");
   const canEditCustomFunding =
@@ -186,6 +244,14 @@ export function ProgramForm({
       : selectedStates.length <= 3
         ? selectedStates.join(", ")
         : `${selectedStates.length} states selected`;
+  const selectedFundingIds = useMemo(
+    () => new Set(selectedFundingSources.map((source) => source.id)),
+    [selectedFundingSources],
+  );
+  const selectedAssigneeIds = useMemo(
+    () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
+    [approvalSteps],
+  );
 
   useEffect(() => {
     if (!selectedStartDate) {
@@ -272,16 +338,6 @@ export function ProgramForm({
   const inputClassName =
     "focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft disabled:cursor-not-allowed disabled:bg-surface-muted";
 
-  const selectedFundingIds = useMemo(
-    () => new Set(selectedFundingSources.map((source) => source.id)),
-    [selectedFundingSources],
-  );
-
-  const selectedAssigneeIds = useMemo(
-    () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
-    [approvalSteps],
-  );
-
   function onSubmit(values: ProgramFormValues) {
     mutation.mutate({
       name: values.name,
@@ -314,6 +370,39 @@ export function ProgramForm({
       })),
       createdByUserId: values.createdByUserId ?? null,
     });
+  }
+
+  async function goToNextStep() {
+    if (!activeStep.fields?.length) {
+      setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
+      return;
+    }
+
+    const isValid = await form.trigger(activeStep.fields as never[], { shouldFocus: true });
+    if (!isValid) {
+      return;
+    }
+
+    setCompletedStepIds((current) =>
+      current.includes(activeStep.id) ? current : [...current, activeStep.id],
+    );
+    setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
+  }
+
+  function goToPreviousStep() {
+    setCurrentStepIndex((current) => Math.max(current - 1, 0));
+  }
+
+  function goToStep(index: number) {
+    const step = programSteps[index];
+    const canOpen =
+      index <= currentStepIndex ||
+      completedStepIds.includes(step.id) ||
+      completedStepIds.includes(programSteps[index - 1]?.id ?? "");
+
+    if (canOpen) {
+      setCurrentStepIndex(index);
+    }
   }
 
   function toggleFundingSource(option: ProgramFundingSource) {
@@ -443,6 +532,9 @@ export function ProgramForm({
 
     const nextSteps = [...form.getValues("approvalSteps")];
     const [movedStep] = nextSteps.splice(fromIndex, 1);
+    if (!movedStep) {
+      return;
+    }
     nextSteps.splice(toIndex, 0, movedStep);
 
     form.setValue(
@@ -453,461 +545,615 @@ export function ProgramForm({
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="space-y-6 rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8"
-    >
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Intervention Name" error={form.formState.errors.name?.message}>
-          <input {...form.register("name")} className={inputClassName} />
-        </Field>
-
-        <Field label="Organization" error={form.formState.errors.organizationId?.message}>
-          <select
-            {...form.register("organizationId")}
-            className={inputClassName}
-            disabled={!canChooseOrganization || isLocked}
-          >
-            <option value="">Select organization</option>
-            {organizationsData.map((organization) => (
-              <option key={organization.id} value={organization.id}>
-                {organization.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Benefit Type" error={form.formState.errors.benefitType?.message}>
-          <select
-            {...form.register("benefitType")}
-            className={inputClassName}
-            disabled={isLocked}
-          >
-            {benefitTypes.map((benefitType) => (
-              <option key={benefitType} value={benefitType}>
-                {benefitType.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Status" error={form.formState.errors.status?.message}>
-          <select {...form.register("status")} className={inputClassName}>
-            {programStatuses.map((status) => (
-              <option key={status} value={status}>
-                {statusLabels[status]}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
-      <Field label="Description" error={form.formState.errors.description?.message}>
-        <textarea
-          {...form.register("description")}
-          className="focus-ring min-h-32 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground"
-        />
-      </Field>
-
-      <section className="rounded-[28px] border border-border bg-background/50 p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Duration</h2>
-            <p className="mt-1 text-sm text-muted">
-              Leave a field at zero if that unit is not needed. Duration is required for every intervention.
-            </p>
-          </div>
-        </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-4">
-          <Field label="Days" error={form.formState.errors.duration?.days?.message}>
-            <input type="number" min={0} max={27} {...form.register("duration.days")} className={inputClassName} disabled={isLocked} />
-          </Field>
-          <Field label="Weeks" error={form.formState.errors.duration?.weeks?.message}>
-            <input type="number" min={0} max={3} {...form.register("duration.weeks")} className={inputClassName} disabled={isLocked} />
-          </Field>
-          <Field label="Months" error={form.formState.errors.duration?.months?.message}>
-            <input type="number" min={0} max={11} {...form.register("duration.months")} className={inputClassName} disabled={isLocked} />
-          </Field>
-          <Field label="Years" error={form.formState.errors.duration?.years?.message}>
-            <input type="number" min={0} max={20} {...form.register("duration.years")} className={inputClassName} disabled={isLocked} />
-          </Field>
-        </div>
-        {form.formState.errors.duration?.message ? (
-          <p className="mt-3 text-sm text-danger">{form.formState.errors.duration.message}</p>
-        ) : null}
-      </section>
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Start Date" error={form.formState.errors.startDate?.message}>
-          <input type="date" min={todayDate} {...form.register("startDate")} className={inputClassName} />
-        </Field>
-        <Field label="End Date" error={form.formState.errors.endDate?.message}>
-          <input
-            type="date"
-            min={selectedStartDate || todayDate}
-            {...form.register("endDate")}
-            className={inputClassName}
-          />
-        </Field>
-      </div>
-
-      <section>
-        <Field
-          label={isCashBenefit ? "Amount" : "Budget"}
-          error={isCashBenefit ? form.formState.errors.amount?.message : form.formState.errors.budget?.message}
-        >
-          <input
-            type="number"
-            min={0}
-            {...form.register(isCashBenefit ? "amount" : "budget")}
-            className={inputClassName}
-            disabled={isLocked}
-          />
-        </Field>
-      </section>
-
-      <section>
-        <Field
-          label={isCashBenefit ? "Number of Trenches" : "Batch"}
-          error={
-            isCashBenefit
-              ? form.formState.errors.numberOfTrenches?.message
-              : form.formState.errors.batch?.message
-          }
-        >
-          <input
-            type="number"
-            min={0}
-            {...form.register(isCashBenefit ? "numberOfTrenches" : "batch")}
-            className={inputClassName}
-            disabled={isLocked}
-          />
-        </Field>
-      </section>
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field
-          label="Total Number of Beneficiaries/Recipients"
-          error={form.formState.errors.recipientCount?.message}
-        >
-          <input
-            type="number"
-            min={0}
-            {...form.register("recipientCount")}
-            className={inputClassName}
-            disabled={isLocked}
-          />
-        </Field>
-
-        <Field
-          label="Amount to be Received"
-          error={form.formState.errors.amountPerRecipient?.message}
-        >
-          <input
-            type="number"
-            min={0}
-            {...form.register("amountPerRecipient")}
-            className={inputClassName}
-            disabled={isLocked}
-          />
-        </Field>
-      </div>
-
-      <section className="rounded-[28px] border border-border bg-background/50 p-5">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Coverage Area</h2>
-          <p className="mt-1 text-sm text-muted">
-            Select the geopolitical regions and states this intervention will cover.
+    <form onSubmit={form.handleSubmit(onSubmit)} className="rounded-[32px] border border-border bg-surface p-6 shadow-sm sm:p-8">
+      <div className="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">
+            Step {currentStepIndex + 1} of {programSteps.length}
           </p>
-        </div>
+          <h2 className="mt-3 text-2xl font-semibold text-foreground">Intervention Setup</h2>
+          <p className="mt-2 text-sm text-muted">
+            Break the intervention into smaller sections and progress step by step.
+          </p>
+          <div className="mt-6 space-y-2">
+            {programSteps.map((step, index) => {
+              const isActive = index === currentStepIndex;
+              const isComplete = completedStepIds.includes(step.id);
 
-        <div className="mt-5">
-          <Field label="Region" error={form.formState.errors.regions?.message}>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {nigeriaRegions.map((region) => (
-                <label
-                  key={region}
-                  className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => goToStep(index)}
+                  className={[
+                    "flex w-full items-start gap-3 rounded-2xl border px-4 py-4 text-left transition",
+                    isActive
+                      ? "border-accent bg-accent/10"
+                      : isComplete
+                        ? "border-border bg-surface-muted/60"
+                        : "border-transparent bg-transparent hover:border-border hover:bg-surface-muted/40",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                      isActive || isComplete ? "bg-accent text-accent-foreground" : "bg-surface-muted text-muted",
+                    ].join(" ")}
+                  >
+                    {isComplete ? <Check size={14} /> : index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-foreground">{step.title}</span>
+                    <span className="mt-1 block text-xs leading-5 text-muted">{step.description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <div className="space-y-6">
+          <section className="rounded-[28px] border border-border bg-background/40 p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">
+              {activeStep.title}
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold text-foreground">
+              {activeStep.title === "Review" ? "Review Intervention" : `Configure ${activeStep.title}`}
+            </h3>
+            <p className="mt-2 text-sm text-muted">{activeStep.description}</p>
+          </section>
+
+          {activeStep.id === "basic" ? (
+            <>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field label="Intervention Name" error={form.formState.errors.name?.message}>
+                  <input {...form.register("name")} className={inputClassName} />
+                </Field>
+
+                <Field label="Organization" error={form.formState.errors.organizationId?.message}>
+                  <select
+                    {...form.register("organizationId")}
+                    className={inputClassName}
+                    disabled={!canChooseOrganization || isLocked}
+                  >
+                    <option value="">Select organization</option>
+                    {organizationsData.map((organization) => (
+                      <option key={organization.id} value={organization.id}>
+                        {organization.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Benefit Type" error={form.formState.errors.benefitType?.message}>
+                  <select
+                    {...form.register("benefitType")}
+                    className={inputClassName}
+                    disabled={isLocked}
+                  >
+                    {benefitTypes.map((benefitType) => (
+                      <option key={benefitType} value={benefitType}>
+                        {benefitType.replaceAll("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Status" error={form.formState.errors.status?.message}>
+                  <select {...form.register("status")} className={inputClassName}>
+                    {programStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {statusLabels[status]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Description" error={form.formState.errors.description?.message}>
+                <textarea
+                  {...form.register("description")}
+                  className="focus-ring min-h-32 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground"
+                />
+              </Field>
+            </>
+          ) : null}
+
+          {activeStep.id === "schedule" ? (
+            <>
+              <section className="rounded-[28px] border border-border bg-background/50 p-5">
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">Duration</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Leave a field at zero if that unit is not needed. Duration is required for every intervention.
+                  </p>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-4">
+                  <Field label="Days" error={form.formState.errors.duration?.days?.message}>
+                    <input type="number" min={0} max={27} {...form.register("duration.days")} className={inputClassName} disabled={isLocked} />
+                  </Field>
+                  <Field label="Weeks" error={form.formState.errors.duration?.weeks?.message}>
+                    <input type="number" min={0} max={3} {...form.register("duration.weeks")} className={inputClassName} disabled={isLocked} />
+                  </Field>
+                  <Field label="Months" error={form.formState.errors.duration?.months?.message}>
+                    <input type="number" min={0} max={11} {...form.register("duration.months")} className={inputClassName} disabled={isLocked} />
+                  </Field>
+                  <Field label="Years" error={form.formState.errors.duration?.years?.message}>
+                    <input type="number" min={0} max={20} {...form.register("duration.years")} className={inputClassName} disabled={isLocked} />
+                  </Field>
+                </div>
+                {form.formState.errors.duration?.message ? (
+                  <p className="mt-3 text-sm text-danger">{form.formState.errors.duration.message}</p>
+                ) : null}
+              </section>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field label="Start Date" error={form.formState.errors.startDate?.message}>
+                  <input type="date" min={todayDate} {...form.register("startDate")} className={inputClassName} />
+                </Field>
+                <Field label="End Date" error={form.formState.errors.endDate?.message}>
+                  <input
+                    type="date"
+                    min={selectedStartDate || todayDate}
+                    {...form.register("endDate")}
+                    className={inputClassName}
+                  />
+                </Field>
+              </div>
+            </>
+          ) : null}
+
+          {activeStep.id === "benefit" ? (
+            <>
+              <section>
+                <Field
+                  label={isCashBenefit ? "Amount" : "Budget"}
+                  error={isCashBenefit ? form.formState.errors.amount?.message : form.formState.errors.budget?.message}
                 >
                   <input
-                    type="checkbox"
-                    checked={selectedRegions.includes(region)}
-                    onChange={() => toggleRegion(region)}
+                    type="number"
+                    min={0}
+                    {...form.register(isCashBenefit ? "amount" : "budget")}
+                    className={inputClassName}
                     disabled={isLocked}
-                    className="mt-1"
                   />
-                  <span>{region}</span>
-                </label>
-              ))}
-            </div>
-          </Field>
-        </div>
+                </Field>
+              </section>
 
-        <div className="mt-5">
-          <Field label="States" error={form.formState.errors.states?.message}>
-            {availableStates.length > 0 ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsStateSelectorOpen((current) => !current)}
-                  disabled={isLocked}
-                  className="focus-ring flex min-h-12 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm text-foreground disabled:cursor-not-allowed disabled:bg-surface-muted"
+              <section>
+                <Field
+                  label={isCashBenefit ? "Number of Trenches" : "Batch"}
+                  error={
+                    isCashBenefit
+                      ? form.formState.errors.numberOfTrenches?.message
+                      : form.formState.errors.batch?.message
+                  }
                 >
-                  <span className={selectedStates.length === 0 ? "text-muted-soft" : "text-foreground"}>
-                    {selectedStatesLabel}
-                  </span>
-                  <ChevronDown
-                    size={16}
-                    className={isStateSelectorOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                  <input
+                    type="number"
+                    min={0}
+                    {...form.register(isCashBenefit ? "numberOfTrenches" : "batch")}
+                    className={inputClassName}
+                    disabled={isLocked}
                   />
-                </button>
+                </Field>
+              </section>
 
-                {isStateSelectorOpen ? (
-                  <div className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-border bg-surface p-3 shadow-lg">
-                    <label className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-foreground hover:bg-surface-muted">
-                      <input
-                        type="checkbox"
-                        checked={allVisibleStatesSelected}
-                        onChange={toggleAllVisibleStates}
-                        disabled={isLocked}
-                        className="mt-1"
-                      />
-                      <span>Select all available states</span>
-                    </label>
-                    <div className="my-2 border-t border-border" />
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {availableStates.map((state) => (
+              <Field
+                label="Amount to be Received"
+                error={form.formState.errors.amountPerRecipient?.message}
+              >
+                <input
+                  type="number"
+                  min={0}
+                  {...form.register("amountPerRecipient")}
+                  className={inputClassName}
+                  disabled={isLocked}
+                />
+              </Field>
+            </>
+          ) : null}
+
+          {activeStep.id === "coverage" ? (
+            <>
+              <Field
+                label="Total Number of Beneficiaries/Recipients"
+                error={form.formState.errors.recipientCount?.message}
+              >
+                <input
+                  type="number"
+                  min={0}
+                  {...form.register("recipientCount")}
+                  className={inputClassName}
+                  disabled={isLocked}
+                />
+              </Field>
+
+              <section className="rounded-[28px] border border-border bg-background/50 p-5">
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">Coverage Area</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Select the geopolitical regions and states this intervention will cover.
+                  </p>
+                </div>
+
+                <div className="mt-5">
+                  <Field label="Region" error={form.formState.errors.regions?.message}>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {nigeriaRegions.map((region) => (
                         <label
-                          key={state}
-                          className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm text-foreground hover:bg-surface-muted"
+                          key={region}
+                          className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
                         >
                           <input
                             type="checkbox"
-                            checked={selectedStates.includes(state)}
-                            onChange={() => toggleState(state)}
+                            checked={selectedRegions.includes(region)}
+                            onChange={() => toggleRegion(region)}
                             disabled={isLocked}
                             className="mt-1"
                           />
-                          <span>{state}</span>
+                          <span>{region}</span>
                         </label>
                       ))}
                     </div>
-                  </div>
+                  </Field>
+                </div>
+
+                <div className="mt-5">
+                  <Field label="States" error={form.formState.errors.states?.message}>
+                    {availableStates.length > 0 ? (
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsStateSelectorOpen((current) => !current)}
+                          disabled={isLocked}
+                          className="focus-ring flex min-h-12 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm text-foreground disabled:cursor-not-allowed disabled:bg-surface-muted"
+                        >
+                          <span className={selectedStates.length === 0 ? "text-muted-soft" : "text-foreground"}>
+                            {selectedStatesLabel}
+                          </span>
+                          <ChevronDown
+                            size={16}
+                            className={isStateSelectorOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                          />
+                        </button>
+
+                        {isStateSelectorOpen ? (
+                          <div className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-border bg-surface p-3 shadow-lg">
+                            <label className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-foreground hover:bg-surface-muted">
+                              <input
+                                type="checkbox"
+                                checked={allVisibleStatesSelected}
+                                onChange={toggleAllVisibleStates}
+                                disabled={isLocked}
+                                className="mt-1"
+                              />
+                              <span>Select all available states</span>
+                            </label>
+                            <div className="my-2 border-t border-border" />
+                            <div className="grid gap-2 md:grid-cols-2">
+                              {availableStates.map((state) => (
+                                <label
+                                  key={state}
+                                  className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm text-foreground hover:bg-surface-muted"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedStates.includes(state)}
+                                    onChange={() => toggleState(state)}
+                                    disabled={isLocked}
+                                    className="mt-1"
+                                  />
+                                  <span>{state}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-3 text-sm text-muted">
+                        Select one or more regions to choose states.
+                      </div>
+                    )}
+                  </Field>
+                </div>
+              </section>
+            </>
+          ) : null}
+
+          {activeStep.id === "funding" ? (
+            <section className="rounded-[28px] border border-border bg-background/50 p-5">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Funding Source</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Select one or more sponsors backing this intervention. Custom sources become shared mock options.
+                </p>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {fundingOptions.map((option) => (
+                  <label
+                    key={option.id}
+                    className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFundingIds.has(option.id)}
+                      onChange={() => toggleFundingSource(option)}
+                      disabled={isLocked}
+                      className="mt-1"
+                    />
+                    <span>{option.name}</span>
+                  </label>
+                ))}
+              </div>
+
+              {canEditCustomFunding ? (
+                <div className="mt-5 flex flex-col gap-3 md:flex-row">
+                  <input
+                    id={customFundingId}
+                    value={customFundingName}
+                    onChange={(event) => setCustomFundingName(event.target.value)}
+                    className={inputClassName}
+                    placeholder="Add another funding source"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomFundingSource}
+                    className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
+                  >
+                    Add Source
+                  </button>
+                </div>
+              ) : null}
+
+              {form.formState.errors.fundingSources?.message ? (
+                <p className="mt-3 text-sm text-danger">{form.formState.errors.fundingSources.message}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {activeStep.id === "approval" ? (
+            <section className="rounded-[28px] border border-border bg-background/50 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">Approval Steps</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Arrange the approval flow in order. Step 1 must be approved before Step 2, and so on.
+                  </p>
+                </div>
+                {!isLocked ? (
+                  <button
+                    type="button"
+                    onClick={addApprovalStep}
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
+                  >
+                    <Plus size={16} />
+                    Add Step
+                  </button>
                 ) : null}
               </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-3 text-sm text-muted">
-                Select one or more regions to choose states.
-              </div>
-            )}
-          </Field>
-        </div>
-      </section>
 
-      <section className="rounded-[28px] border border-border bg-background/50 p-5">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Funding Source</h2>
-          <p className="mt-1 text-sm text-muted">
-            Select one or more sponsors backing this intervention. Custom sources become shared mock options.
-          </p>
-        </div>
+              <div className="mt-5 flex gap-4 overflow-x-auto pb-2">
+                {approvalSteps.map((step, index) => {
+                  const assignees = systemApprovalUsers.filter((user) => user.role === step.role);
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {fundingOptions.map((option) => (
-            <label
-              key={option.id}
-              className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
-            >
-              <input
-                type="checkbox"
-                checked={selectedFundingIds.has(option.id)}
-                onChange={() => toggleFundingSource(option)}
-                disabled={isLocked}
-                className="mt-1"
-              />
-              <span>{option.name}</span>
-            </label>
-          ))}
-        </div>
+                  return (
+                    <div
+                      key={step.id}
+                      draggable={!isLocked}
+                      onDragStart={() => setDraggedStepId(step.id)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={() => {
+                        if (!draggedStepId) {
+                          return;
+                        }
 
-        {canEditCustomFunding ? (
-          <div className="mt-5 flex flex-col gap-3 md:flex-row">
-            <input
-              id={customFundingId}
-              value={customFundingName}
-              onChange={(event) => setCustomFundingName(event.target.value)}
-              className={inputClassName}
-              placeholder="Add another funding source"
-            />
-            <button
-              type="button"
-              onClick={addCustomFundingSource}
-              className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
-            >
-              Add Source
-            </button>
-          </div>
-        ) : null}
+                        const draggedIndex = approvalSteps.findIndex((item) => item.id === draggedStepId);
+                        if (draggedIndex >= 0) {
+                          moveStep(draggedIndex, index);
+                        }
+                        setDraggedStepId(null);
+                      }}
+                      className="min-w-[320px] rounded-[24px] border border-border bg-surface p-4 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                          <GripHorizontal size={14} />
+                          Step {index + 1}
+                        </div>
+                        {!isLocked ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => index > 0 && moveStep(index, index - 1)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-foreground"
+                            >
+                              <ArrowLeftRight size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeApprovalStep(index)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-danger/20 text-danger"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
 
-        {form.formState.errors.fundingSources?.message ? (
-          <p className="mt-3 text-sm text-danger">{form.formState.errors.fundingSources.message}</p>
-        ) : null}
-      </section>
+                      <div className="mt-4 space-y-4">
+                        <Field label="Approval Role" error={form.formState.errors.approvalSteps?.[index]?.role?.message}>
+                          <select
+                            value={step.role}
+                            onChange={(event) => {
+                              updateApprovalStep(index, {
+                                role: event.target.value as SystemApprovalRole,
+                                assigneeUserId: "",
+                                assigneeName: "",
+                                assigneeEmail: "",
+                              });
+                            }}
+                            className={inputClassName}
+                            disabled={isLocked}
+                          >
+                            {systemApprovalRoles.map((role) => (
+                              <option key={role} value={role}>
+                                {approvalRoleLabels[role]}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
 
-      <section className="rounded-[28px] border border-border bg-background/50 p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Approval Steps</h2>
-            <p className="mt-1 text-sm text-muted">
-              Arrange the approval flow in order. Step 1 must be approved before Step 2, and so on.
-            </p>
-          </div>
-          {!isLocked ? (
-            <button
-              type="button"
-              onClick={addApprovalStep}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-border px-4 text-sm font-semibold text-foreground"
-            >
-              <Plus size={16} />
-              Add Step
-            </button>
-          ) : null}
-        </div>
+                        <Field label="Assignee" error={form.formState.errors.approvalSteps?.[index]?.assigneeUserId?.message}>
+                          <select
+                            value={step.assigneeUserId}
+                            onChange={(event) => {
+                              const assignee = assignees.find((user) => user.id === event.target.value);
+                              updateApprovalStep(index, {
+                                assigneeUserId: assignee?.id ?? "",
+                                assigneeName: assignee?.name ?? "",
+                                assigneeEmail: assignee?.email ?? "",
+                              });
+                            }}
+                            className={inputClassName}
+                            disabled={isLocked}
+                          >
+                            <option value="">Select assignee</option>
+                            {assignees.map((assignee) => {
+                              const alreadyUsed =
+                                selectedAssigneeIds.has(assignee.id) && assignee.id !== step.assigneeUserId;
 
-        <div className="mt-5 flex gap-4 overflow-x-auto pb-2">
-          {approvalSteps.map((step, index) => {
-            const assignees = systemApprovalUsers.filter((user) => user.role === step.role);
+                              return (
+                                <option key={assignee.id} value={assignee.id} disabled={alreadyUsed}>
+                                  {assignee.name}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </Field>
 
-            return (
-              <div
-                key={step.id}
-                draggable={!isLocked}
-                onDragStart={() => setDraggedStepId(step.id)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => {
-                  if (!draggedStepId) {
-                    return;
-                  }
-
-                  const draggedIndex = approvalSteps.findIndex((item) => item.id === draggedStepId);
-                  if (draggedIndex >= 0) {
-                    moveStep(draggedIndex, index);
-                  }
-                  setDraggedStepId(null);
-                }}
-                className="min-w-[320px] rounded-[24px] border border-border bg-surface p-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                    <GripHorizontal size={14} />
-                    Step {index + 1}
-                  </div>
-                  {!isLocked ? (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => index > 0 && moveStep(index, index - 1)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border text-foreground"
-                      >
-                        <ArrowLeftRight size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeApprovalStep(index)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-danger/20 text-danger"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                        <div className="rounded-2xl bg-surface-muted px-4 py-3 text-sm text-muted">
+                          {step.assigneeEmail ? (
+                            <span>
+                              Assigned to <span className="font-semibold text-foreground">{step.assigneeName}</span> ({step.assigneeEmail})
+                            </span>
+                          ) : (
+                            <span>Select a system approver for this step.</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  ) : null}
-                </div>
-
-                <div className="mt-4 space-y-4">
-                  <Field label="Approval Role" error={form.formState.errors.approvalSteps?.[index]?.role?.message}>
-                    <select
-                      value={step.role}
-                      onChange={(event) => {
-                        updateApprovalStep(index, {
-                          role: event.target.value as SystemApprovalRole,
-                          assigneeUserId: "",
-                          assigneeName: "",
-                          assigneeEmail: "",
-                        });
-                      }}
-                      className={inputClassName}
-                      disabled={isLocked}
-                    >
-                      {systemApprovalRoles.map((role) => (
-                        <option key={role} value={role}>
-                          {approvalRoleLabels[role]}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-
-                  <Field label="Assignee" error={form.formState.errors.approvalSteps?.[index]?.assigneeUserId?.message}>
-                    <select
-                      value={step.assigneeUserId}
-                      onChange={(event) => {
-                        const assignee = assignees.find((user) => user.id === event.target.value);
-                        updateApprovalStep(index, {
-                          assigneeUserId: assignee?.id ?? "",
-                          assigneeName: assignee?.name ?? "",
-                          assigneeEmail: assignee?.email ?? "",
-                        });
-                      }}
-                      className={inputClassName}
-                      disabled={isLocked}
-                    >
-                      <option value="">Select assignee</option>
-                      {assignees.map((assignee) => {
-                        const alreadyUsed =
-                          selectedAssigneeIds.has(assignee.id) && assignee.id !== step.assigneeUserId;
-
-                        return (
-                          <option key={assignee.id} value={assignee.id} disabled={alreadyUsed}>
-                            {assignee.name}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </Field>
-
-                  <div className="rounded-2xl bg-surface-muted px-4 py-3 text-sm text-muted">
-                    {step.assigneeEmail ? (
-                      <span>
-                        Assigned to <span className="font-semibold text-foreground">{step.assigneeName}</span> ({step.assigneeEmail})
-                      </span>
-                    ) : (
-                      <span>Select a system approver for this step.</span>
-                    )}
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            );
-          })}
+
+              {form.formState.errors.approvalSteps?.message ? (
+                <p className="mt-3 text-sm text-danger">{form.formState.errors.approvalSteps.message}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {activeStep.id === "review" ? (
+            <div className="space-y-4">
+              <ReviewCard
+                title="Basic Information"
+                items={[
+                  { label: "Intervention Name", value: formSnapshot.name ?? "Not provided" },
+                  {
+                    label: "Organization",
+                    value: organizationsData.find((item) => item.id === formSnapshot.organizationId)?.name ?? "Not selected",
+                  },
+                  { label: "Benefit Type", value: formSnapshot.benefitType?.replaceAll("_", " ") ?? "Not selected" },
+                  { label: "Status", value: formSnapshot.status ? statusLabels[formSnapshot.status as ProgramStatus] : "Not selected" },
+                  { label: "Description", value: formSnapshot.description || "Not provided" },
+                ]}
+              />
+              <ReviewCard
+                title="Schedule"
+                items={[
+                  { label: "Start Date", value: formSnapshot.startDate || "Not set" },
+                  { label: "End Date", value: formSnapshot.endDate || "Not set" },
+                  {
+                    label: "Duration",
+                    value: `${formSnapshot.duration?.years ?? 0}y, ${formSnapshot.duration?.months ?? 0}m, ${formSnapshot.duration?.weeks ?? 0}w, ${formSnapshot.duration?.days ?? 0}d`,
+                  },
+                ]}
+              />
+              <ReviewCard
+                title="Benefit Setup"
+                items={[
+                  { label: isCashBenefit ? "Amount" : "Budget", value: formatCurrency(Number(isCashBenefit ? formSnapshot.amount ?? 0 : formSnapshot.budget ?? 0)) },
+                  { label: isCashBenefit ? "Number of Trenches" : "Batch", value: formatNumber(Number(isCashBenefit ? formSnapshot.numberOfTrenches ?? 0 : formSnapshot.batch ?? 0)) },
+                  { label: "Amount to be Received", value: formatCurrency(Number(formSnapshot.amountPerRecipient ?? 0)) },
+                ]}
+              />
+              <ReviewCard
+                title="Coverage"
+                items={[
+                  { label: "Recipients", value: formatNumber(Number(formSnapshot.recipientCount ?? 0)) },
+                  { label: "Regions", value: (formSnapshot.regions ?? []).join(", ") || "None selected" },
+                  { label: "States", value: (formSnapshot.states ?? []).join(", ") || "None selected" },
+                ]}
+              />
+              <ReviewCard
+                title="Funding & Approval"
+                items={[
+                  {
+                    label: "Funding Sources",
+                    value: (formSnapshot.fundingSources ?? []).map((source) => source.name).join(", ") || "None selected",
+                  },
+                  {
+                    label: "Approval Steps",
+                    value:
+                      (formSnapshot.approvalSteps ?? [])
+                        .map((step, index) => `${index + 1}. ${step.role ? approvalRoleLabels[step.role as SystemApprovalRole] : "Unassigned Role"}${step.assigneeName ? ` - ${step.assigneeName}` : ""}`)
+                        .join(" | ") || "No approval steps",
+                  },
+                ]}
+              />
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
+            >
+              Cancel
+            </button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {!isFirstStep ? (
+                <button
+                  type="button"
+                  onClick={goToPreviousStep}
+                  className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
+                >
+                  Previous Step
+                </button>
+              ) : null}
+              {!isLastStep ? (
+                <button
+                  type="button"
+                  onClick={goToNextStep}
+                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
+                >
+                  Next Step
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
+                >
+                  {mutation.isPending ? "Saving..." : mode === "create" ? "Create Intervention" : "Save Changes"}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-
-        {form.formState.errors.approvalSteps?.message ? (
-          <p className="mt-3 text-sm text-danger">{form.formState.errors.approvalSteps.message}</p>
-        ) : null}
-      </section>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={mutation.isPending}
-          className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
-        >
-          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Intervention" : "Save Changes"}
-        </button>
       </div>
     </form>
   );
@@ -928,5 +1174,27 @@ function Field({
       {children}
       {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
     </label>
+  );
+}
+
+function ReviewCard({
+  title,
+  items,
+}: {
+  title: string;
+  items: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <section className="rounded-[28px] border border-border bg-background/50 p-5">
+      <h4 className="text-base font-semibold text-foreground">{title}</h4>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        {items.map((item) => (
+          <div key={`${title}-${item.label}`} className="rounded-2xl bg-surface px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{item.label}</p>
+            <p className="mt-2 text-sm text-foreground">{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
