@@ -37,7 +37,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Intervention Name", "Organization", "Benefit Type", "Status", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Organization", "Benefit Type", "Status", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -59,6 +59,11 @@ export function ProgramTable({
                 <td className="px-5 py-4 text-sm text-muted">{item.organizationName}</td>
                 <td className="px-5 py-4"><BenefitTypeBadge benefitType={item.benefitType} /></td>
                 <td className="px-5 py-4"><ProgramStatusBadge status={item.status} /></td>
+                <td className="px-5 py-4 text-sm text-foreground">
+                  {item.benefitType === "CASH"
+                    ? formatNumber(item.numberOfTrenches ?? 0)
+                    : formatNumber(item.batch ?? 0)}
+                </td>
                 <td className="px-5 py-4 text-sm text-foreground">{formatCurrency(item.totalDistributed)}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.startDate}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.endDate}</td>

@@ -1,4 +1,5 @@
 import { organizationsData } from "@/mock/organizations.mock";
+import { getRegionForState } from "@/constants/nigeria-regions";
 import type { ProgramDetails, ProgramDuration, ProgramFundingSource } from "@/types/program";
 
 export const defaultProgramDuration: ProgramDuration = {
@@ -469,8 +470,23 @@ const rawProgramsData: (ProgramDetails & { targetBeneficiaries?: number })[] = [
 ];
 
 export const programsData: ProgramDetails[] = rawProgramsData.map((item) => {
-  const program = { ...item };
-  delete program.targetBeneficiaries;
-  return program;
+  const isCashBenefit = item.benefitType === "CASH";
+  const trancheOrBatchCount = item.distributionSummary.totalBatches;
+  const { targetBeneficiaries: _targetBeneficiaries, ...baseProgram } = item;
+  const homeState = organizationsData.find((organization) => organization.id === item.organizationId)?.state ?? "FCT";
+  const region = getRegionForState(homeState);
+  const coverageRegions = region ? [region] : [];
+
+  return {
+    ...baseProgram,
+    recipientCount: item.beneficiaryCount,
+    amountPerRecipient: item.beneficiaryCount > 0 ? Math.round((item.budget ?? 0) / item.beneficiaryCount) : null,
+    regions: coverageRegions,
+    states: [homeState],
+    amount: isCashBenefit ? item.budget ?? null : null,
+    budget: isCashBenefit ? null : item.budget ?? null,
+    numberOfTrenches: isCashBenefit ? trancheOrBatchCount : null,
+    batch: isCashBenefit ? null : trancheOrBatchCount,
+  };
 });
 

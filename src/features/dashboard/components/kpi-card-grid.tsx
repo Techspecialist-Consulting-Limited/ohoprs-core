@@ -8,13 +8,21 @@ import {
 } from "lucide-react";
 
 import { formatCompactNumber, formatCurrency, formatNumber } from "@/lib/formatters";
+import type { UserRole } from "@/types/auth";
 import type { DashboardKpis } from "@/types/dashboard";
 import { KpiCard } from "@/features/dashboard/components/kpi-card";
 
-export function KpiCardGrid({ kpis }: { kpis: DashboardKpis }) {
+type KpiCardGridProps = {
+  kpis: DashboardKpis;
+  role: UserRole;
+};
+
+export function KpiCardGrid({ kpis, role }: KpiCardGridProps) {
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <KpiCard icon={Building2} label="Total Organizations" value={formatNumber(kpis.totalOrganizations)} />
+      {role === "SUPER_ADMIN" ? (
+        <KpiCard icon={Building2} label="Total Organizations" value={formatNumber(kpis.totalOrganizations)} />
+      ) : null}
       <KpiCard icon={FolderKanban} label="Total Interventions" value={formatNumber(kpis.totalPrograms)} />
       <KpiCard icon={Users} label="Total Beneficiaries" value={formatNumber(kpis.totalBeneficiaries)} />
       <KpiCard icon={CircleDollarSign} label="Total Distributed" value={formatCurrency(kpis.totalDistributed)} />

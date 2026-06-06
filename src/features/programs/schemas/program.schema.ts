@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getStatesForRegions } from "@/constants/nigeria-regions";
+
 function getTodayDateForValidation() {
   const now = new Date();
   const year = now.getFullYear();
@@ -71,8 +73,14 @@ export const programSchema = z
     startDate: z.string().optional().default(""),
     endDate: z.string().optional().default(""),
     duration: programDurationSchema,
+    recipientCount: z.coerce.number().int().min(0),
+    amountPerRecipient: z.coerce.number().nullable().optional(),
+    regions: z.array(z.string()).default([]),
+    states: z.array(z.string()).default([]),
     amount: z.coerce.number().nullable().optional(),
     budget: z.coerce.number().nullable().optional(),
+    numberOfTrenches: z.coerce.number().nullable().optional(),
+    batch: z.coerce.number().nullable().optional(),
     fundingSources: z.array(programFundingSourceSchema).min(1, "Select at least one funding source."),
     status: z.enum(programStatuses),
     approvalSteps: z.array(programApprovalStepSchema).min(1, "Add at least one approval step."),
@@ -111,6 +119,52 @@ export const programSchema = z
       });
     }
 
+    if (values.recipientCount <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["recipientCount"],
+        message: "Total number of beneficiaries/recipients is required.",
+      });
+    }
+
+    if (
+      values.amountPerRecipient === null ||
+      values.amountPerRecipient === undefined ||
+      Number.isNaN(values.amountPerRecipient) ||
+      values.amountPerRecipient <= 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["amountPerRecipient"],
+        message: "Amount to be received is required.",
+      });
+    }
+
+    if (values.regions.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["regions"],
+        message: "Select at least one region.",
+      });
+    }
+
+    if (values.states.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["states"],
+        message: "Select at least one state.",
+      });
+    }
+
+    const allowedStates = new Set(getStatesForRegions(values.regions));
+    if (values.states.some((state) => !allowedStates.has(state))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["states"],
+        message: "Selected states must belong to the selected region(s).",
+      });
+    }
+
     if (isCash) {
       if (values.amount === null || values.amount === undefined || Number.isNaN(values.amount) || values.amount <= 0) {
         ctx.addIssue({
@@ -119,11 +173,30 @@ export const programSchema = z
           message: "Amount is required for cash interventions.",
         });
       }
+
+      if (
+        values.numberOfTrenches === null ||
+        values.numberOfTrenches === undefined ||
+        Number.isNaN(values.numberOfTrenches) ||
+        values.numberOfTrenches <= 0
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["numberOfTrenches"],
+          message: "Number of trenches is required for cash interventions.",
+        });
+      }
     } else if (values.budget === null || values.budget === undefined || Number.isNaN(values.budget) || values.budget <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["budget"],
         message: "Budget is required for non-cash interventions.",
+      });
+    } else if (values.batch === null || values.batch === undefined || Number.isNaN(values.batch) || values.batch <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["batch"],
+        message: "Batch is required for non-cash interventions.",
       });
     }
 

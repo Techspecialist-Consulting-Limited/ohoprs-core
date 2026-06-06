@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeftRight, GripHorizontal, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, ChevronDown, GripHorizontal, Plus, Trash2 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -12,6 +12,7 @@ import type { z } from "zod";
 import { organizationsData } from "@/mock/organizations.mock";
 import { fundingSourceOptions } from "@/mock/programs.mock";
 import { mockUsers } from "@/mock/auth.mock";
+import { getStatesForRegions, nigeriaRegions } from "@/constants/nigeria-regions";
 import {
   benefitTypes,
   programSchema,
@@ -121,6 +122,7 @@ export function ProgramForm({
   const customFundingId = useId();
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
+  const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
   const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [...fundingSourceOptions]);
   const todayDate = getTodayDateForInput();
 
@@ -139,8 +141,14 @@ export function ProgramForm({
         months: 0,
         years: 0,
       },
+      recipientCount: initialValues?.recipientCount ?? 0,
+      amountPerRecipient: initialValues?.amountPerRecipient ?? null,
+      regions: initialValues?.regions ?? [],
+      states: initialValues?.states ?? [],
       amount: initialValues?.amount ?? null,
       budget: initialValues?.budget ?? 0,
+      numberOfTrenches: initialValues?.numberOfTrenches ?? null,
+      batch: initialValues?.batch ?? 0,
       fundingSources: initialValues?.fundingSources ?? [fundingSourceOptions[0]],
       status: initialValues?.status ?? "IN_PROGRESS",
       approvalSteps:
@@ -154,6 +162,8 @@ export function ProgramForm({
   const selectedStatus = useWatch({ control: form.control, name: "status" });
   const selectedStartDate = useWatch({ control: form.control, name: "startDate" });
   const duration = useWatch({ control: form.control, name: "duration" });
+  const selectedRegions = useWatch({ control: form.control, name: "regions" }) ?? [];
+  const selectedStates = useWatch({ control: form.control, name: "states" }) ?? [];
   const selectedFundingSources = useWatch({ control: form.control, name: "fundingSources" });
   const approvalSteps = useWatch({ control: form.control, name: "approvalSteps" });
 
@@ -165,6 +175,17 @@ export function ProgramForm({
       selectedFundingSources.some(
         (source) => source.isCustom && source.createdByUserId === currentUser?.id,
       ));
+
+  const availableStates = useMemo(() => getStatesForRegions(selectedRegions), [selectedRegions]);
+  const availableStateSet = useMemo(() => new Set(availableStates), [availableStates]);
+  const allVisibleStatesSelected =
+    availableStates.length > 0 && availableStates.every((state) => selectedStates.includes(state));
+  const selectedStatesLabel =
+    selectedStates.length === 0
+      ? "Select states"
+      : selectedStates.length <= 3
+        ? selectedStates.join(", ")
+        : `${selectedStates.length} states selected`;
 
   useEffect(() => {
     if (!selectedStartDate) {
@@ -178,22 +199,53 @@ export function ProgramForm({
   useEffect(() => {
     if (isCashBenefit) {
       form.setValue("budget", null, { shouldDirty: true });
+      form.setValue("batch", null, { shouldDirty: true });
       if (form.getValues("amount") === null) {
         form.setValue("amount", 0, { shouldDirty: true });
+      }
+      if (form.getValues("numberOfTrenches") === null) {
+        form.setValue("numberOfTrenches", 0, { shouldDirty: true });
       }
       return;
     }
 
     form.setValue("amount", null, { shouldDirty: true });
+    form.setValue("numberOfTrenches", null, { shouldDirty: true });
     if (form.getValues("budget") === null) {
       form.setValue("budget", 0, { shouldDirty: true });
     }
+    if (form.getValues("batch") === null) {
+      form.setValue("batch", 0, { shouldDirty: true });
+    }
   }, [form, isCashBenefit]);
+
+  useEffect(() => {
+    const currentStates = form.getValues("states") ?? [];
+    const nextStates = currentStates.filter((state) => availableStateSet.has(state));
+
+    if (nextStates.length !== currentStates.length) {
+      form.setValue("states", nextStates, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [availableStateSet, form]);
+
+  useEffect(() => {
+    if (availableStates.length === 0) {
+      setIsStateSelectorOpen(false);
+    }
+  }, [availableStates.length]);
 
   const mutation = useMutation({
     mutationFn: async (values: ProgramSubmitValues) => {
       const payload: ProgramPayload = {
         ...values,
+        recipientCount: values.recipientCount,
+        amountPerRecipient: values.amountPerRecipient ?? null,
+        regions: values.regions ?? [],
+        states: values.states ?? [],
+        amount: values.amount ?? null,
+        budget: values.budget ?? null,
+        numberOfTrenches: values.numberOfTrenches ?? null,
+        batch: values.batch ?? null,
         createdByUserId: initialValues?.createdByUserId ?? currentUser?.id ?? null,
       };
 
@@ -232,19 +284,35 @@ export function ProgramForm({
 
   function onSubmit(values: ProgramFormValues) {
     mutation.mutate({
-      ...values,
+      name: values.name,
+      organizationId: values.organizationId,
+      benefitType: values.benefitType,
+      description: values.description,
+      startDate: values.startDate ?? "",
+      endDate: values.endDate ?? "",
       duration: {
         days: Number(values.duration.days),
         weeks: Number(values.duration.weeks),
         months: Number(values.duration.months),
         years: Number(values.duration.years),
       },
+      recipientCount: Number(values.recipientCount ?? 0),
+      amountPerRecipient: Number(values.amountPerRecipient ?? 0),
+      regions: values.regions ?? [],
+      states: values.states ?? [],
       amount: isCashBenefit ? Number(values.amount ?? 0) : null,
       budget: isCashBenefit ? null : Number(values.budget ?? 0),
+      numberOfTrenches: isCashBenefit ? Number(values.numberOfTrenches ?? 0) : null,
+      batch: isCashBenefit ? null : Number(values.batch ?? 0),
+      fundingSources: values.fundingSources,
+      status: values.status,
       approvalSteps: values.approvalSteps.map((step, index) => ({
         ...step,
         order: index + 1,
+        status: step.status ?? "PENDING",
+        approvedAt: step.approvedAt ?? null,
       })),
+      createdByUserId: values.createdByUserId ?? null,
     });
   }
 
@@ -257,6 +325,43 @@ export function ProgramForm({
       : [...current, option];
 
     form.setValue("fundingSources", next, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function toggleRegion(region: string) {
+    const currentRegions = form.getValues("regions") ?? [];
+    const nextRegions = currentRegions.includes(region)
+      ? currentRegions.filter((item) => item !== region)
+      : [...currentRegions, region];
+
+    form.setValue("regions", nextRegions, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function toggleState(state: string) {
+    const currentStates = form.getValues("states") ?? [];
+    const nextStates = currentStates.includes(state)
+      ? currentStates.filter((item) => item !== state)
+      : [...currentStates, state];
+
+    form.setValue("states", nextStates, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function toggleAllVisibleStates() {
+    const currentStates = form.getValues("states") ?? [];
+
+    if (allVisibleStatesSelected) {
+      form.setValue(
+        "states",
+        currentStates.filter((state) => !availableStateSet.has(state)),
+        { shouldDirty: true, shouldValidate: true },
+      );
+      return;
+    }
+
+    form.setValue(
+      "states",
+      Array.from(new Set([...currentStates, ...availableStates])),
+      { shouldDirty: true, shouldValidate: true },
+    );
   }
 
   function addCustomFundingSource() {
@@ -459,6 +564,144 @@ export function ProgramForm({
             disabled={isLocked}
           />
         </Field>
+      </section>
+
+      <section>
+        <Field
+          label={isCashBenefit ? "Number of Trenches" : "Batch"}
+          error={
+            isCashBenefit
+              ? form.formState.errors.numberOfTrenches?.message
+              : form.formState.errors.batch?.message
+          }
+        >
+          <input
+            type="number"
+            min={0}
+            {...form.register(isCashBenefit ? "numberOfTrenches" : "batch")}
+            className={inputClassName}
+            disabled={isLocked}
+          />
+        </Field>
+      </section>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field
+          label="Total Number of Beneficiaries/Recipients"
+          error={form.formState.errors.recipientCount?.message}
+        >
+          <input
+            type="number"
+            min={0}
+            {...form.register("recipientCount")}
+            className={inputClassName}
+            disabled={isLocked}
+          />
+        </Field>
+
+        <Field
+          label="Amount to be Received"
+          error={form.formState.errors.amountPerRecipient?.message}
+        >
+          <input
+            type="number"
+            min={0}
+            {...form.register("amountPerRecipient")}
+            className={inputClassName}
+            disabled={isLocked}
+          />
+        </Field>
+      </div>
+
+      <section className="rounded-[28px] border border-border bg-background/50 p-5">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Coverage Area</h2>
+          <p className="mt-1 text-sm text-muted">
+            Select the geopolitical regions and states this intervention will cover.
+          </p>
+        </div>
+
+        <div className="mt-5">
+          <Field label="Region" error={form.formState.errors.regions?.message}>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {nigeriaRegions.map((region) => (
+                <label
+                  key={region}
+                  className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-foreground"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedRegions.includes(region)}
+                    onChange={() => toggleRegion(region)}
+                    disabled={isLocked}
+                    className="mt-1"
+                  />
+                  <span>{region}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+        </div>
+
+        <div className="mt-5">
+          <Field label="States" error={form.formState.errors.states?.message}>
+            {availableStates.length > 0 ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsStateSelectorOpen((current) => !current)}
+                  disabled={isLocked}
+                  className="focus-ring flex min-h-12 w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm text-foreground disabled:cursor-not-allowed disabled:bg-surface-muted"
+                >
+                  <span className={selectedStates.length === 0 ? "text-muted-soft" : "text-foreground"}>
+                    {selectedStatesLabel}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={isStateSelectorOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                  />
+                </button>
+
+                {isStateSelectorOpen ? (
+                  <div className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-border bg-surface p-3 shadow-lg">
+                    <label className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-foreground hover:bg-surface-muted">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleStatesSelected}
+                        onChange={toggleAllVisibleStates}
+                        disabled={isLocked}
+                        className="mt-1"
+                      />
+                      <span>Select all available states</span>
+                    </label>
+                    <div className="my-2 border-t border-border" />
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {availableStates.map((state) => (
+                        <label
+                          key={state}
+                          className="flex items-start gap-3 rounded-2xl px-3 py-3 text-sm text-foreground hover:bg-surface-muted"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedStates.includes(state)}
+                            onChange={() => toggleState(state)}
+                            disabled={isLocked}
+                            className="mt-1"
+                          />
+                          <span>{state}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-3 text-sm text-muted">
+                Select one or more regions to choose states.
+              </div>
+            )}
+          </Field>
+        </div>
       </section>
 
       <section className="rounded-[28px] border border-border bg-background/50 p-5">

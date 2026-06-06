@@ -135,7 +135,7 @@ export function reportsDashboardData(filters: ReportFiltersState): ReportsDashbo
       .slice(0, 8)
       .map((item) => ({
         label: item.name.length > 18 ? `${item.name.slice(0, 18)}...` : item.name,
-        value: Math.min(99, Math.round((item.totalDistributed / Math.max(item.budget, 1)) * 100)),
+        value: Math.min(99, Math.round((item.totalDistributed / Math.max(item.budget ?? 0, 1)) * 100)),
       })),
     distributionStatusBreakdown: aggregateCounts(distributions, (item) =>
       item.status === "SCHEDULED" || item.status === "PROCESSING" ? "PENDING" : item.status,
@@ -173,7 +173,7 @@ export function programReportRows(filters: ReportFiltersState): ProgramReportRow
     benefitType: titleCase(program.benefitType),
     enrolledBeneficiaries: program.beneficiaryCount,
     totalDistributed: program.totalDistributed,
-    successRate: Math.min(100, Math.round((program.totalDistributed / Math.max(program.budget, 1)) * 100)),
+    successRate: Math.min(100, Math.round((program.totalDistributed / Math.max(program.budget ?? 0, 1)) * 100)),
   }));
 }
 

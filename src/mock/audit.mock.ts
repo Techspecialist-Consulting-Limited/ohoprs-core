@@ -122,8 +122,8 @@ function createEvent(index: number): AuditLogDetails {
     resourceId = program.id;
     resourceName = program.name;
     metadata = {
-      oldBudget: Math.max(program.budget - 150000000, 0),
-      newBudget: program.budget,
+      oldBudget: Math.max((program.budget ?? 0) - 150000000, 0),
+      newBudget: program.budget ?? 0,
       changedBy: user.name,
     };
   } else if (auditModule === "BENEFICIARY") {

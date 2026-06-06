@@ -73,7 +73,7 @@ export function DashboardOverview() {
   return (
     <PageContainer>
       <DashboardHeader dashboard={dashboard} userName={userName} />
-      <KpiCardGrid kpis={dashboard.kpis} />
+      <KpiCardGrid kpis={dashboard.kpis} role={role!} />
       <section className="grid min-w-0 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <DistributionOverviewChart data={dashboard.distributionOverview} />
                 <QuickActions actions={dashboard.quickActions} role={role!} />
