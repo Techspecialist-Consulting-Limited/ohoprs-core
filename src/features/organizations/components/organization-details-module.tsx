@@ -26,8 +26,8 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Organization details unavailable"
-          description="Program Officers do not have permission to access organization profiles."
+          title="Agency details unavailable"
+          description="Program Officers do not have permission to access agency profiles."
         />
       </PageContainer>
     );
@@ -36,7 +36,7 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
   if (organizationQuery.isLoading) {
     return (
       <PageContainer>
-        <LoadingState title="Loading organization profile" lines={5} />
+        <LoadingState title="Loading agency profile" lines={5} />
       </PageContainer>
     );
   }
@@ -47,8 +47,8 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <EmptyState
-          title="Organization not found"
-          description="The requested organization could not be loaded from the mock service layer."
+          title="Agency not found"
+          description="The requested agency could not be loaded from the mock service layer."
         />
       </PageContainer>
     );
@@ -58,8 +58,8 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Restricted organization scope"
-          description="Organization Admins can only view their own organization profile."
+          title="Restricted agency scope"
+          description="Agency Admins can only view their own agency profile."
         />
       </PageContainer>
     );
@@ -71,7 +71,7 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
       <OrganizationKpiCards organization={organization} />
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
-          <p className="text-sm font-semibold text-foreground">Organization profile</p>
+          <p className="text-sm font-semibold text-foreground">Agency profile</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <Info label="Short Name" value={organization.shortName} />
             <Info label="Type" value={organization.type.replaceAll("_", " ")} />

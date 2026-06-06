@@ -61,7 +61,7 @@ export function OrganizationForm({
       router.push(`/organizations/${response.data.id}`);
     },
     onError: () => {
-      toast.error("Unable to save organization.");
+      toast.error("Unable to save agency.");
     },
   });
 
@@ -140,7 +140,7 @@ export function OrganizationForm({
           disabled={mutation.isPending}
           className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
         >
-          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Organization" : "Save Changes"}
+          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Agency" : "Save Changes"}
         </button>
       </div>
     </form>

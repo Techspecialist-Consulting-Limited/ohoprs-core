@@ -33,7 +33,7 @@ export const nationalDashboardData: DashboardResponse = {
     {
       id: "act_001",
       actor: "Amina Bello",
-      action: "created organization",
+      action: "created agency",
       target: "FCT Social Welfare Agency",
       timestamp: "2026-06-02T08:30:00Z",
       type: "ORGANIZATION",
@@ -64,7 +64,7 @@ export const nationalDashboardData: DashboardResponse = {
     },
   ],
   quickActions: [
-    { id: "qa_001", label: "Create Organization", href: "/organizations", permission: "create_organization", variant: "primary" },
+    { id: "qa_001", label: "Create Agency", href: "/organizations", permission: "create_organization", variant: "primary" },
     { id: "qa_002", label: "Create Program", href: "/programs", permission: "create_program", variant: "secondary" },
     { id: "qa_003", label: "Upload Beneficiaries", href: "/beneficiaries", permission: "upload_beneficiaries", variant: "secondary" },
     { id: "qa_004", label: "View Reports", href: "/reports", permission: "view_reports", variant: "secondary" },
@@ -79,7 +79,7 @@ export const nationalDashboardData: DashboardResponse = {
 export const organizationDashboardData: DashboardResponse = {
   scope: "ORGANIZATION",
   title: "Federal Ministry of Humanitarian Affairs Overview",
-  subtitle: "Management-level visibility into organization program coverage, beneficiary performance, and disbursement readiness.",
+  subtitle: "Management-level visibility into agency program coverage, beneficiary performance, and disbursement readiness.",
   kpis: {
     totalOrganizations: 1,
     totalPrograms: 14,
@@ -136,7 +136,7 @@ export const organizationDashboardData: DashboardResponse = {
     { id: "qa_008", label: "Open Distributions", href: "/distributions", permission: "view_distributions", variant: "secondary" },
   ],
   systemStatus: [
-    { label: "Beneficiary Intake", status: "OPERATIONAL", description: "Organization onboarding and beneficiary upload channels are available." },
+    { label: "Beneficiary Intake", status: "OPERATIONAL", description: "Agency onboarding and beneficiary upload channels are available." },
     { label: "Payment Validation", status: "DEGRADED", description: "Mock validation queue shows elevated review volume before distribution." },
     { label: "Program Registry", status: "OPERATIONAL", description: "Program records are synchronized for executive preview reporting." },
   ],
@@ -145,7 +145,7 @@ export const organizationDashboardData: DashboardResponse = {
 export const programOfficerDashboardData: DashboardResponse = {
   scope: "ORGANIZATION",
   title: "FMHA Program Operations Overview",
-  subtitle: "Operational monitoring for active program delivery, intake progress, and pending distributions within the assigned organization.",
+  subtitle: "Operational monitoring for active program delivery, intake progress, and pending distributions within the assigned agency.",
   kpis: {
     totalOrganizations: 1,
     totalPrograms: 6,
@@ -210,7 +210,7 @@ export const programOfficerDashboardData: DashboardResponse = {
 export const auditorDashboardData: DashboardResponse = {
   scope: "NATIONAL",
   title: "National Audit Overview",
-  subtitle: "Read-only oversight across organizations, distributions, and platform activity for compliance review.",
+  subtitle: "Read-only oversight across agencies, distributions, and platform activity for compliance review.",
   kpis: {
     totalOrganizations: 12,
     totalPrograms: 56,

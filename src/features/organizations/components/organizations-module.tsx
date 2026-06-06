@@ -107,7 +107,7 @@ export function OrganizationsModule() {
   return (
     <PageContainer>
       <PageHeader
-        title="Organization management"
+        title="Agency management"
         description="Create, review, and administer participating organizations across the multi-tenant platform."
       />
 
@@ -122,7 +122,7 @@ export function OrganizationsModule() {
             href="/organizations/new"
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground"
           >
-            Create Organization
+            Create Agency
           </Link>
         ) : null}
       </div>

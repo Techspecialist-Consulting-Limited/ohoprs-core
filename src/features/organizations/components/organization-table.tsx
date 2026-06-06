@@ -32,7 +32,7 @@ export function OrganizationTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Organization Name", "Type", "Status", "Interventions", "Beneficiaries", "Total Distributed", "Created Date", "Actions"].map((label) => (
+              {["Agency Name", "Type", "Status", "Interventions", "Beneficiaries", "Total Distributed", "Created Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -65,7 +65,7 @@ export function OrganizationTable({
 
       <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} organizations)
+          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} agencies)
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -133,7 +133,7 @@ function RowActionMenu({
               className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
             >
               <Pencil size={16} />
-              Edit Organization
+              Edit Agency
             </Link>
           ) : null}
 

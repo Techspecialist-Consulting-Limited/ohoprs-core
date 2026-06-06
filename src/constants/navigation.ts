@@ -13,7 +13,7 @@ import {
 
 export const navigationItems = [
   { href: "/dashboard", icon: Gauge, label: "Dashboard" },
-  { href: "/organizations", icon: Building2, label: "Organizations" },
+  { href: "/organizations", icon: Building2, label: "Agencies" },
   { href: "/programs", icon: Files, label: "Interventions" },
   { href: "/beneficiaries", icon: Users, label: "Beneficiaries" },
   { href: "/distributions", icon: HandCoins, label: "Distributions" },

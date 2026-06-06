@@ -15,10 +15,10 @@ import type { TenantContext } from "@/types/tenant";
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
-  ORG_ADMIN: "Organization Admin",
+  ORG_ADMIN: "Agency Admin",
   PROGRAM_OFFICER: "Program Officer",
   AUDITOR: "Auditor",
-  ORGANIZATION_MANAGER: "Organization Manager",
+  ORGANIZATION_MANAGER: "Agency Manager",
   STORE_MANAGER: "Store Manager",
   DISTRIBUTION_MANAGER: "Distribution Manager",
   ACCOUNTANT: "Accountant",
@@ -143,7 +143,7 @@ export function Header({
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">{currentTenant?.name}</p>
               <p className="truncate text-xs text-muted">
-                {isSuperAdmin ? "Switch organization context" : "Assigned organization"}
+                {isSuperAdmin ? "Switch agency context" : "Assigned agency"}
               </p>
             </div>
             {isSuperAdmin ? <ChevronsUpDown size={16} className="text-muted" /> : null}
@@ -152,7 +152,7 @@ export function Header({
           {isSuperAdmin && isTenantMenuOpen ? (
             <div className="absolute left-0 top-14 z-40 w-[360px] rounded-[24px] border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
               <div className="px-3 pb-2 pt-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-soft">Organizations</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-soft">Agencies</p>
                 <p className="mt-1 text-xs text-muted">Select a tenant context for the current session.</p>
               </div>
               <div className="app-scrollbar max-h-80 space-y-1 overflow-y-auto px-1 pb-1">

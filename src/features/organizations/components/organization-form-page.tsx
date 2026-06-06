@@ -18,8 +18,8 @@ export function OrganizationCreateModule() {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Organization creation denied"
-          description="Program Officers cannot create organizations."
+          title="Agency creation denied"
+          description="Program Officers cannot create agencies."
         />
       </PageContainer>
     );
@@ -29,8 +29,8 @@ export function OrganizationCreateModule() {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Organization creation restricted"
-          description="Only Super Admin can create organization records."
+          title="Agency creation restricted"
+          description="Only Super Admin can create agency records."
         />
       </PageContainer>
     );
@@ -39,7 +39,7 @@ export function OrganizationCreateModule() {
   return (
     <PageContainer>
       <PageHeader
-        title="Create organization"
+        title="Create agency"
         description="Register a new ministry, agency, partner, or donor in the multi-tenant platform."
       />
       <OrganizationForm mode="create" />
@@ -58,8 +58,8 @@ export function OrganizationEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Organization edit denied"
-          description="Program Officers cannot edit organization records."
+          title="Agency edit denied"
+          description="Program Officers cannot edit agency records."
         />
       </PageContainer>
     );
@@ -69,8 +69,8 @@ export function OrganizationEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <PermissionDeniedState
-          title="Organization edit restricted"
-          description="Only Super Admin can edit organization records."
+          title="Agency edit restricted"
+          description="Only Super Admin can edit agency records."
         />
       </PageContainer>
     );
@@ -79,7 +79,7 @@ export function OrganizationEditModule({ id }: { id: string }) {
   if (organizationQuery.isLoading) {
     return (
       <PageContainer>
-        <LoadingState title="Loading organization for editing" lines={5} />
+        <LoadingState title="Loading agency for editing" lines={5} />
       </PageContainer>
     );
   }
@@ -90,8 +90,8 @@ export function OrganizationEditModule({ id }: { id: string }) {
     return (
       <PageContainer>
         <EmptyState
-          title="Organization not found"
-          description="The selected organization could not be loaded for editing."
+          title="Agency not found"
+          description="The selected agency could not be loaded for editing."
         />
       </PageContainer>
     );
@@ -101,7 +101,7 @@ export function OrganizationEditModule({ id }: { id: string }) {
     <PageContainer>
       <PageHeader
         title={`Edit ${organization.name}`}
-        description="Update organization profile information, status, and operational contact details."
+        description="Update agency profile information, status, and operational contact details."
       />
       <OrganizationForm
         mode="edit"
