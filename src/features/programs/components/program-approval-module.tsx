@@ -175,7 +175,7 @@ export function ProgramApprovalModule({ id }: { id: string }) {
               href={`/organizations/${program.organizationId}?from=${encodeURIComponent(`/programs/${program.id}/approval`)}`}
               className="text-sm font-medium text-accent hover:underline"
             >
-              View organization details
+              View Agency details
             </Link>
           </div>
         </div>

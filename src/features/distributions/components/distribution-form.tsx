@@ -201,7 +201,7 @@ export function DistributionForm({
           disabled={mutation.isPending}
           className="inline-flex h-11 items-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
         >
-          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Distribution" : "Save Changes"}
+          {mutation.isPending ? "Saving..." : mode === "create" ? "Create Benefit Distribution" : "Save Changes"}
         </button>
       </div>
     </form>

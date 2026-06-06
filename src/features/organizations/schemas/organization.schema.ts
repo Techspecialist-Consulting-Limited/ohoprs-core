@@ -17,8 +17,8 @@ export const organizationStatuses = [
 ] as const;
 
 export const organizationSchema = z.object({
-  name: z.string().min(3, "Organization name is required"),
-  shortName: z.string().min(2, "Short name is required"),
+  name: z.string().min(3, "Agency name is required"),
+  shortName: z.string().min(2, "Acronym is required"),
   type: z.enum(organizationTypes),
   description: z.string().min(10, "Description is required"),
   contactEmail: z.email("Enter a valid email"),

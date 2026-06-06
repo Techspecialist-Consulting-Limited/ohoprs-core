@@ -10,7 +10,7 @@ export function OrganizationSummaryCard({ organization }: { organization: Worksp
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Info label="Organization Name" value={organization.name} />
-        <Info label="Short Name" value={organization.shortName} />
+        <Info label="Acronym" value={organization.shortName} />
         <Info label="Type" value={organization.type.replaceAll("_", " ")} />
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Status</p>

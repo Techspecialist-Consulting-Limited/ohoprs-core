@@ -104,7 +104,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
                   href={`/organizations/${program.organizationId}?from=${encodeURIComponent(`/programs/${program.id}`)}`}
                   className="text-sm font-medium text-accent hover:underline"
                 >
-                  View organization details
+                  View agency details
                 </Link>
               </div>
             </div>

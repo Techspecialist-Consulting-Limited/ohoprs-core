@@ -57,6 +57,8 @@ const statusLabels: Record<ProgramStatus, string> = {
   SUSPENDED: "Suspended",
 };
 
+const manualProgramStatuses: ProgramStatus[] = ["IN_PROGRESS", "SUSPENDED"];
+
 const systemApprovalUsers = mockUsers.filter((user) =>
   [
     "ORGANIZATION_MANAGER",
@@ -75,6 +77,12 @@ const programSteps: StepConfig[] = [
     fields: ["name", "organizationId", "benefitType", "status", "description"],
   },
   {
+    id: "funding",
+    title: "Funding Source",
+    description: "Choose sponsors and funding sources.",
+    fields: ["fundingSources"],
+  },
+  {
     id: "schedule",
     title: "Schedule",
     description: "Duration and timing setup.",
@@ -91,12 +99,6 @@ const programSteps: StepConfig[] = [
     title: "Coverage",
     description: "Recipients, regions, and states.",
     fields: ["recipientCount", "regions", "states"],
-  },
-  {
-    id: "funding",
-    title: "Funding Source",
-    description: "Choose sponsors and funding sources.",
-    fields: ["fundingSources"],
   },
   {
     id: "approval",
@@ -154,6 +156,19 @@ function createApprovalStep(role: SystemApprovalRole): ProgramApprovalStep {
     status: "PENDING",
     approvedAt: null,
   };
+}
+
+function formatNumericInput(value: number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  const normalized = typeof value === "number" ? value : Number(String(value).replaceAll(",", ""));
+  if (Number.isNaN(normalized)) {
+    return "";
+  }
+
+  return formatNumber(normalized);
 }
 
 export function ProgramForm({
@@ -216,6 +231,9 @@ export function ProgramForm({
   const selectedStatus = useWatch({ control: form.control, name: "status" });
   const selectedStartDate = useWatch({ control: form.control, name: "startDate" });
   const duration = useWatch({ control: form.control, name: "duration" });
+  const amountValue = useWatch({ control: form.control, name: "amount" });
+  const budgetValue = useWatch({ control: form.control, name: "budget" });
+  const amountPerRecipientValue = useWatch({ control: form.control, name: "amountPerRecipient" });
   const selectedRegions = useWatch({ control: form.control, name: "regions" }) ?? [];
   const selectedStates = useWatch({ control: form.control, name: "states" }) ?? [];
   const selectedFundingSources = useWatch({ control: form.control, name: "fundingSources" });
@@ -247,6 +265,23 @@ export function ProgramForm({
   const selectedFundingIds = useMemo(
     () => new Set(selectedFundingSources.map((source) => source.id)),
     [selectedFundingSources],
+  );
+  const formattedAmountValue = useMemo(
+    () => formatNumericInput(typeof amountValue === "number" || typeof amountValue === "string" ? amountValue : null),
+    [amountValue],
+  );
+  const formattedBudgetValue = useMemo(
+    () => formatNumericInput(typeof budgetValue === "number" || typeof budgetValue === "string" ? budgetValue : null),
+    [budgetValue],
+  );
+  const formattedAmountPerRecipientValue = useMemo(
+    () =>
+      formatNumericInput(
+        typeof amountPerRecipientValue === "number" || typeof amountPerRecipientValue === "string"
+          ? amountPerRecipientValue
+          : null,
+      ),
+    [amountPerRecipientValue],
   );
   const selectedAssigneeIds = useMemo(
     () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
@@ -373,19 +408,20 @@ export function ProgramForm({
   }
 
   async function goToNextStep() {
-    if (!activeStep.fields?.length) {
-      setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
-      return;
+    if (activeStep.fields?.length) {
+      const isValid = await form.trigger(activeStep.fields as never[], { shouldFocus: true });
+      if (!isValid) {
+        return;
+      }
     }
 
-    const isValid = await form.trigger(activeStep.fields as never[], { shouldFocus: true });
-    if (!isValid) {
-      return;
-    }
+    setCompletedStepIds((current) => {
+      if (current.includes(activeStep.id)) {
+        return current;
+      }
 
-    setCompletedStepIds((current) =>
-      current.includes(activeStep.id) ? current : [...current, activeStep.id],
-    );
+      return [...current, activeStep.id];
+    });
     setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
   }
 
@@ -451,6 +487,17 @@ export function ProgramForm({
       Array.from(new Set([...currentStates, ...availableStates])),
       { shouldDirty: true, shouldValidate: true },
     );
+  }
+
+  function updateFormattedNumberField(
+    field: "amount" | "budget" | "amountPerRecipient",
+    rawValue: string,
+  ) {
+    const digitsOnly = rawValue.replace(/[^\d]/g, "");
+    form.setValue(field, digitsOnly ? Number(digitsOnly) : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   }
 
   function addCustomFundingSource() {
@@ -610,13 +657,13 @@ export function ProgramForm({
                   <input {...form.register("name")} className={inputClassName} />
                 </Field>
 
-                <Field label="Organization" error={form.formState.errors.organizationId?.message}>
+                <Field label="Agency" error={form.formState.errors.organizationId?.message}>
                   <select
                     {...form.register("organizationId")}
                     className={inputClassName}
                     disabled={!canChooseOrganization || isLocked}
                   >
-                    <option value="">Select organization</option>
+                    <option value="">Select an Agency</option>
                     {organizationsData.map((organization) => (
                       <option key={organization.id} value={organization.id}>
                         {organization.name}
@@ -641,7 +688,7 @@ export function ProgramForm({
 
                 <Field label="Status" error={form.formState.errors.status?.message}>
                   <select {...form.register("status")} className={inputClassName}>
-                    {programStatuses.map((status) => (
+                    {manualProgramStatuses.map((status) => (
                       <option key={status} value={status}>
                         {statusLabels[status]}
                       </option>
@@ -710,13 +757,25 @@ export function ProgramForm({
                   label={isCashBenefit ? "Amount" : "Budget"}
                   error={isCashBenefit ? form.formState.errors.amount?.message : form.formState.errors.budget?.message}
                 >
-                  <input
-                    type="number"
-                    min={0}
-                    {...form.register(isCashBenefit ? "amount" : "budget")}
-                    className={inputClassName}
-                    disabled={isLocked}
-                  />
+                  {isCashBenefit ? (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formattedAmountValue}
+                      onChange={(event) => updateFormattedNumberField("amount", event.target.value)}
+                      className={inputClassName}
+                      disabled={isLocked}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formattedBudgetValue}
+                      onChange={(event) => updateFormattedNumberField("budget", event.target.value)}
+                      className={inputClassName}
+                      disabled={isLocked}
+                    />
+                  )}
                 </Field>
               </section>
 
@@ -744,9 +803,10 @@ export function ProgramForm({
                 error={form.formState.errors.amountPerRecipient?.message}
               >
                 <input
-                  type="number"
-                  min={0}
-                  {...form.register("amountPerRecipient")}
+                  type="text"
+                  inputMode="numeric"
+                  value={formattedAmountPerRecipientValue}
+                  onChange={(event) => updateFormattedNumberField("amountPerRecipient", event.target.value)}
                   className={inputClassName}
                   disabled={isLocked}
                 />

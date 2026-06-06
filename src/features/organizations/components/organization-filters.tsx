@@ -20,7 +20,7 @@ export function OrganizationFilters({
         <input
           value={value.search}
           onChange={(event) => onChange({ ...value, search: event.target.value })}
-          placeholder="Search organizations by name, short name, or state"
+          placeholder="Search organizations by name, Acronym, or state"
           className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-soft"
         />
       </label>

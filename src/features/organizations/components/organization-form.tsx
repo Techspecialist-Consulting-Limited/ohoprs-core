@@ -78,7 +78,7 @@ export function OrganizationForm({
         <Field label="Name" error={form.formState.errors.name?.message}>
           <input {...form.register("name")} className={inputClassName} />
         </Field>
-        <Field label="Short Name" error={form.formState.errors.shortName?.message}>
+        <Field label="Acronym" error={form.formState.errors.shortName?.message}>
           <input {...form.register("shortName")} className={inputClassName} />
         </Field>
         <Field label="Type" error={form.formState.errors.type?.message}>

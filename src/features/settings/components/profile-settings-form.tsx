@@ -69,7 +69,7 @@ export function OrganizationProfileSettingsForm({
               href={`/organizations/${organizationId}`}
               className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
             >
-              View organization details
+              View agency details
             </Link>
             <button
               type="button"
@@ -84,7 +84,7 @@ export function OrganizationProfileSettingsForm({
 
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <ReadOnlyField label="Organization Name" value={form.organizationName} />
-          <ReadOnlyField label="Short Name" value={form.shortName} />
+          <ReadOnlyField label="Acronym" value={form.shortName} />
           <ReadOnlyField label="Contact Email" value={form.contactEmail} />
           <ReadOnlyField label="Contact Phone" value={form.contactPhone} />
           <ReadOnlyField label="Website" value={form.website} />
@@ -120,7 +120,7 @@ export function OrganizationProfileSettingsForm({
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Organization Name"><input value={form.organizationName} onChange={(event) => setForm((current) => ({ ...current, organizationName: event.target.value }))} className={inputClassName} /></Field>
-        <Field label="Short Name"><input value={form.shortName} onChange={(event) => setForm((current) => ({ ...current, shortName: event.target.value }))} className={inputClassName} /></Field>
+        <Field label="Acronym"><input value={form.shortName} onChange={(event) => setForm((current) => ({ ...current, shortName: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Contact Email"><input value={form.contactEmail} onChange={(event) => setForm((current) => ({ ...current, contactEmail: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Contact Phone"><input value={form.contactPhone} onChange={(event) => setForm((current) => ({ ...current, contactPhone: event.target.value }))} className={inputClassName} /></Field>
         <Field label="Website"><input value={form.website} onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))} className={inputClassName} /></Field>

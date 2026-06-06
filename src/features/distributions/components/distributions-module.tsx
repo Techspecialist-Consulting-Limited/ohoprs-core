@@ -123,7 +123,7 @@ export function DistributionsModule() {
         <div className="flex justify-end">
           <Link href="/distributions/new" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-accent px-4 text-sm font-semibold text-accent-foreground">
             <Plus size={16} />
-            Create Distribution
+            Create Benefit Distribution
           </Link>
         </div>
       ) : null}

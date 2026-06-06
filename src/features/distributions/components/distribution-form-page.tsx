@@ -27,7 +27,7 @@ export function DistributionCreateModule() {
 
   return (
     <PageContainer>
-      <PageHeader title="Create distribution" description="Create a distribution batch showing how benefits move from program to beneficiary delivery." />
+      <PageHeader title="Create Benefit distribution" description="Create a distribution batch showing how benefits move from program to beneficiary delivery." />
       <DistributionForm mode="create" canChooseOrganization={false} defaultOrganizationId={user?.organizationId ?? undefined} />
     </PageContainer>
   );

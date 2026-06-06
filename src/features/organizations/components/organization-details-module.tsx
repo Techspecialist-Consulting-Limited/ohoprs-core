@@ -73,7 +73,7 @@ export function OrganizationDetailsModule({ id }: { id: string }) {
         <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-sm font-semibold text-foreground">Agency profile</p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <Info label="Short Name" value={organization.shortName} />
+            <Info label="Acronym" value={organization.shortName} />
             <Info label="Type" value={organization.type.replaceAll("_", " ")} />
             <Info label="Contact Email" value={organization.contactEmail} />
             <Info label="Contact Phone" value={organization.contactPhone} />
