@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, GripHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
@@ -11,29 +12,21 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { agencyApprovalRoles } from "@/features/programs/schemas/program.schema";
 import { mockUsers } from "@/mock/auth.mock";
 import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { AgencyApprovalRole, DistributionApprovalTemplateStep } from "@/types/program";
 
-const agencyApprovalRoles: AgencyApprovalRole[] = [
-  "ORGANIZATION_MANAGER",
-  "STORE_MANAGER",
-  "DISTRIBUTION_MANAGER",
-  "ACCOUNTANT",
-  "DIRECTOR",
-];
-
 const agencyApprovalRoleLabels: Record<AgencyApprovalRole, string> = {
   ORGANIZATION_MANAGER: "Agency Manager",
   STORE_MANAGER: "Store Keeper",
   DISTRIBUTION_MANAGER: "Distribution Manager",
-  ACCOUNTANT: "Accountant",
-  DIRECTOR: "Director",
+  AGENCY_ACCOUNTANT: "Agency Accountant",
 };
 
 const agencyApprovalUsers = mockUsers.filter((user) =>
-  ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DISTRIBUTION_MANAGER", "ACCOUNTANT", "DIRECTOR"].includes(user.role),
+  ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DISTRIBUTION_MANAGER", "AGENCY_ACCOUNTANT"].includes(user.role),
 );
 
 function createApprovalStep(role: AgencyApprovalRole): DistributionApprovalTemplateStep {
@@ -47,8 +40,9 @@ function createApprovalStep(role: AgencyApprovalRole): DistributionApprovalTempl
   };
 }
 
-export function ProgramDistributionApprovalModule({ id }: { id: string }) {
+export function ProgramDistributionApprovalModule({ id, from }: { id: string; from?: string | null }) {
   const role = useAuthStore((state) => state.role);
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [steps, setSteps] = useState<DistributionApprovalTemplateStep[]>([]);
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
@@ -68,8 +62,24 @@ export function ProgramDistributionApprovalModule({ id }: { id: string }) {
       toast.success(response.message);
       void queryClient.invalidateQueries({ queryKey: ["program", id] });
       void queryClient.invalidateQueries({ queryKey: ["programs"] });
+      router.push(from || `/programs/${id}`);
     },
   });
+
+  const program = programQuery.data?.data;
+
+  useEffect(() => {
+    if (!program) {
+      return;
+    }
+
+    if (program.distributionApprovalSteps?.length) {
+      setSteps(program.distributionApprovalSteps);
+      return;
+    }
+
+    setSteps([createApprovalStep("ORGANIZATION_MANAGER")]);
+  }, [program]);
 
   if (role !== "ORG_ADMIN") {
     return (
@@ -87,8 +97,6 @@ export function ProgramDistributionApprovalModule({ id }: { id: string }) {
     );
   }
 
-  const program = programQuery.data?.data;
-
   if (!program) {
     return (
       <PageContainer>
@@ -96,12 +104,6 @@ export function ProgramDistributionApprovalModule({ id }: { id: string }) {
       </PageContainer>
     );
   }
-
-  useEffect(() => {
-    if (program.distributionApprovalSteps?.length) {
-      setSteps(program.distributionApprovalSteps);
-    }
-  }, [program.distributionApprovalSteps]);
 
   function sync(next: DistributionApprovalTemplateStep[]) {
     setSteps(next.map((step, index) => ({ ...step, order: index + 1 })));

@@ -36,7 +36,8 @@ function buildDistributionApprovalTemplate(prefix: string): DistributionApproval
   const roleOrder: DistributionApprovalTemplateStep["role"][] = [
     "ORGANIZATION_MANAGER",
     "STORE_MANAGER",
-    "DIRECTOR",
+    "DISTRIBUTION_MANAGER",
+    "AGENCY_ACCOUNTANT",
   ];
 
   return roleOrder.map((role, index) => {

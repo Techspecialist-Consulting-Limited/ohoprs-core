@@ -41,10 +41,7 @@ type StepConfig = {
 };
 
 const approvalRoleLabels: Record<SystemApprovalRole, string> = {
-  ORGANIZATION_MANAGER: "Organization Manager",
-  STORE_MANAGER: "Store Manager",
-  DISTRIBUTION_MANAGER: "Distribution Manager",
-  ACCOUNTANT: "Accountant",
+  SYSTEM_ACCOUNTANT: "System Accountant",
   DIRECTOR: "Director",
 };
 
@@ -61,10 +58,7 @@ const manualProgramStatuses: ProgramStatus[] = ["IN_PROGRESS", "SUSPENDED"];
 
 const systemApprovalUsers = mockUsers.filter((user) =>
   [
-    "ORGANIZATION_MANAGER",
-    "STORE_MANAGER",
-    "DISTRIBUTION_MANAGER",
-    "ACCOUNTANT",
+    "SYSTEM_ACCOUNTANT",
     "DIRECTOR",
   ].includes(user.role),
 );
@@ -223,7 +217,7 @@ export function ProgramForm({
       approvalSteps:
         initialValues?.approvalSteps?.length
           ? initialValues.approvalSteps
-          : [createApprovalStep("ORGANIZATION_MANAGER")],
+          : [createApprovalStep("DIRECTOR")],
       distributionApprovalSteps: initialValues?.distributionApprovalSteps ?? [],
     },
   });
@@ -558,7 +552,7 @@ export function ProgramForm({
   }
 
   function addApprovalStep() {
-    const nextSteps = [...form.getValues("approvalSteps"), createApprovalStep("ORGANIZATION_MANAGER")];
+    const nextSteps = [...form.getValues("approvalSteps"), createApprovalStep("DIRECTOR")];
     form.setValue(
       "approvalSteps",
       nextSteps.map((step, index) => ({ ...step, order: index + 1 })),

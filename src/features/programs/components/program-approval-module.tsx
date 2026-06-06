@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
@@ -18,16 +19,14 @@ import { SYSTEM_BENEFICIARY_TOTAL } from "@/constants/system-metrics";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 
 const approvalRoleLabels: Record<string, string> = {
-  ORGANIZATION_MANAGER: "Organization Manager",
-  STORE_MANAGER: "Store Manager",
-  DISTRIBUTION_MANAGER: "Distribution Manager",
-  ACCOUNTANT: "Accountant",
+  SYSTEM_ACCOUNTANT: "System Accountant",
   DIRECTOR: "Director",
 };
 
 export function ProgramApprovalModule({ id }: { id: string }) {
   const role = useAuthStore((state) => state.role);
   const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
   const [rejectionReason, setRejectionReason] = useState("");
 
   const programQuery = useQuery({
@@ -44,7 +43,8 @@ export function ProgramApprovalModule({ id }: { id: string }) {
       }
 
       toast.success(response.message);
-      programQuery.refetch();
+      void queryClient.invalidateQueries({ queryKey: ["program", id] });
+      void queryClient.invalidateQueries({ queryKey: ["programs"] });
     },
   });
 
@@ -58,7 +58,8 @@ export function ProgramApprovalModule({ id }: { id: string }) {
 
       toast.success(response.message);
       setRejectionReason("");
-      programQuery.refetch();
+      void queryClient.invalidateQueries({ queryKey: ["program", id] });
+      void queryClient.invalidateQueries({ queryKey: ["programs"] });
     },
   });
 

@@ -207,9 +207,13 @@ export const workspaceQuickActionsByRole: Record<UserRole, { id: string; label: 
     { id: "ws_qa_019", label: "Open Dashboard", href: "/dashboard" },
     { id: "ws_qa_020", label: "Review Interventions", href: "/programs" },
   ],
-  ACCOUNTANT: [
+  AGENCY_ACCOUNTANT: [
     { id: "ws_qa_021", label: "Open Dashboard", href: "/dashboard" },
-    { id: "ws_qa_022", label: "Review Interventions", href: "/programs" },
+    { id: "ws_qa_022", label: "Review Distributions", href: "/distributions" },
+  ],
+  SYSTEM_ACCOUNTANT: [
+    { id: "ws_qa_025", label: "Open Dashboard", href: "/dashboard" },
+    { id: "ws_qa_026", label: "Review Interventions", href: "/programs" },
   ],
   DIRECTOR: [
     { id: "ws_qa_023", label: "Open Dashboard", href: "/dashboard" },

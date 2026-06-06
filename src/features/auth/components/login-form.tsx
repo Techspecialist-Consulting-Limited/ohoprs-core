@@ -28,7 +28,8 @@ const roleLabels: Record<UserRole, string> = {
   ORGANIZATION_MANAGER: "Organization Manager",
   STORE_MANAGER: "Store Manager",
   DISTRIBUTION_MANAGER: "Distribution Manager",
-  ACCOUNTANT: "Accountant",
+  AGENCY_ACCOUNTANT: "Agency Accountant",
+  SYSTEM_ACCOUNTANT: "System Accountant",
   DIRECTOR: "Director",
 };
 

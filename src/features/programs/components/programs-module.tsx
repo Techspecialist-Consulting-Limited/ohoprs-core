@@ -20,10 +20,7 @@ import { useAuthStore } from "@/store/auth.store";
 import type { BenefitType, Program, ProgramStatus } from "@/types/program";
 
 const approvalRoles = new Set([
-  "ORGANIZATION_MANAGER",
-  "STORE_MANAGER",
-  "DISTRIBUTION_MANAGER",
-  "ACCOUNTANT",
+  "SYSTEM_ACCOUNTANT",
   "DIRECTOR",
 ]);
 
@@ -58,10 +55,7 @@ export function ProgramsModule() {
   const showOrganizationFilter =
     role === "SUPER_ADMIN" ||
     role === "AUDITOR" ||
-    role === "ORGANIZATION_MANAGER" ||
-    role === "STORE_MANAGER" ||
-    role === "DISTRIBUTION_MANAGER" ||
-    role === "ACCOUNTANT";
+    role === "SYSTEM_ACCOUNTANT";
   const canCreate = role ? hasPermission(role, "create_program") : false;
   const canChangeStatus = role ? hasPermission(role, "change_program_status") : false;
 

@@ -31,11 +31,15 @@ export const programStatuses = [
 ] as const;
 
 export const systemApprovalRoles = [
+  "SYSTEM_ACCOUNTANT",
+  "DIRECTOR",
+] as const;
+
+export const agencyApprovalRoles = [
   "ORGANIZATION_MANAGER",
   "STORE_MANAGER",
   "DISTRIBUTION_MANAGER",
-  "ACCOUNTANT",
-  "DIRECTOR",
+  "AGENCY_ACCOUNTANT",
 ] as const;
 
 export const programDurationSchema = z.object({
@@ -67,7 +71,7 @@ export const programApprovalStepSchema = z.object({
 export const distributionApprovalTemplateStepSchema = z.object({
   id: z.string().min(1),
   order: z.coerce.number().min(1),
-  role: z.enum(systemApprovalRoles),
+  role: z.enum(agencyApprovalRoles),
   assigneeUserId: z.string().min(1),
   assigneeName: z.string().min(1),
   assigneeEmail: z.string().email(),

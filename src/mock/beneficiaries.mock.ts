@@ -358,6 +358,31 @@ export const beneficiariesData: Beneficiary360Details[] = [
   createBeneficiary(48, "org_002", ["program_004", "program_006"], { firstName: "Tobi", lastName: "Oshodi", fullName: "Tobi Oshodi" }),
   createBeneficiary(49, "org_003", ["program_007"], { firstName: "Safiya", lastName: "Adamu", fullName: "Safiya Adamu" }),
   createBeneficiary(50, "org_004", ["program_010"], { firstName: "Jonathan", lastName: "Musa", fullName: "Jonathan Musa" }),
+  ...[
+    { index: 51, state: "FCT", lga: "Abuja Municipal", programIds: ["program_001", "program_002"] },
+    { index: 52, state: "FCT", lga: "Bwari", programIds: ["program_001", "program_002", "program_003"] },
+    { index: 53, state: "Lagos", lga: "Ikeja", programIds: ["program_001", "program_002"] },
+    { index: 54, state: "Lagos", lga: "Alimosho", programIds: ["program_002", "program_003"] },
+    { index: 55, state: "Kano", lga: "Municipal", programIds: ["program_001", "program_002"] },
+    { index: 56, state: "Kano", lga: "Nassarawa", programIds: ["program_002", "program_003"] },
+    { index: 57, state: "Kaduna", lga: "North", programIds: ["program_001", "program_002"] },
+    { index: 58, state: "Kaduna", lga: "South", programIds: ["program_002", "program_003"] },
+    { index: 59, state: "Borno", lga: "Maiduguri", programIds: ["program_001", "program_003"] },
+    { index: 60, state: "Borno", lga: "Jere", programIds: ["program_002", "program_003"] },
+    { index: 61, state: "Osun", lga: "Osogbo", programIds: ["program_001", "program_002"] },
+    { index: 62, state: "Osun", lga: "Ife Central", programIds: ["program_002", "program_003"] },
+  ].map(({ index, state, lga, programIds }) =>
+    createBeneficiary(index, "org_001", programIds, {
+      firstName: `Expanded${index}`,
+      lastName: "Coverage",
+      fullName: `Expanded${index} Coverage`,
+      state,
+      lga,
+      address: `${index} Community Support Road`,
+      verificationStatus: "VERIFIED",
+      benefitStatus: "ACTIVE",
+    }),
+  ),
 ];
 
 export const beneficiaryUploadPreviewRows = [

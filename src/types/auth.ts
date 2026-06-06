@@ -8,7 +8,8 @@ export type UserRole =
   | "ORGANIZATION_MANAGER"
   | "STORE_MANAGER"
   | "DISTRIBUTION_MANAGER"
-  | "ACCOUNTANT"
+  | "AGENCY_ACCOUNTANT"
+  | "SYSTEM_ACCOUNTANT"
   | "DIRECTOR";
 
 export interface AuthUser {

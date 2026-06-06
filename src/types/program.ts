@@ -17,18 +17,14 @@ export type ProgramStatus =
   | "SUSPENDED";
 
 export type SystemApprovalRole =
-  | "ORGANIZATION_MANAGER"
-  | "STORE_MANAGER"
-  | "DISTRIBUTION_MANAGER"
-  | "ACCOUNTANT"
+  | "SYSTEM_ACCOUNTANT"
   | "DIRECTOR";
 
 export type AgencyApprovalRole =
   | "ORGANIZATION_MANAGER"
   | "STORE_MANAGER"
   | "DISTRIBUTION_MANAGER"
-  | "ACCOUNTANT"
-  | "DIRECTOR";
+  | "AGENCY_ACCOUNTANT";
 
 export interface ProgramDuration {
   days: number;

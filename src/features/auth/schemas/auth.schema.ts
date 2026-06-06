@@ -10,7 +10,8 @@ export const userRoles = [
   "ORGANIZATION_MANAGER",
   "STORE_MANAGER",
   "DISTRIBUTION_MANAGER",
-  "ACCOUNTANT",
+  "AGENCY_ACCOUNTANT",
+  "SYSTEM_ACCOUNTANT",
   "DIRECTOR",
 ] as const satisfies readonly UserRole[];
 

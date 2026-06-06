@@ -207,13 +207,26 @@ export const programService = {
   getProgramOptions(params?: {
     organizationId?: string | null;
     eligibleForDistribution?: boolean;
+    onlyFullyApprovedForAgencyScope?: boolean;
   }) {
-    const { organizationId = null, eligibleForDistribution = false } = params ?? {};
+    const {
+      organizationId = null,
+      eligibleForDistribution = false,
+      onlyFullyApprovedForAgencyScope = false,
+    } = params ?? {};
 
     return programStore
       .map(normalizeProgram)
       .filter((program) => (organizationId ? program.organizationId === organizationId : true))
       .filter((program) => (eligibleForDistribution ? isDistributionEligibleProgram(program) : true))
+      .filter((program) => {
+        if (!onlyFullyApprovedForAgencyScope) {
+          return true;
+        }
+
+        const approvalProgress = getProgramApprovalProgress(program);
+        return approvalProgress.isFullyApproved && (program.status === "APPROVED" || program.status === "ACTIVE");
+      })
       .map((program) => ({
         id: program.id,
         name: program.name,
@@ -439,10 +452,7 @@ export const programService = {
     }
 
     if (
-      role === "ORGANIZATION_MANAGER" ||
-      role === "STORE_MANAGER" ||
-      role === "DISTRIBUTION_MANAGER" ||
-      role === "ACCOUNTANT" ||
+      role === "SYSTEM_ACCOUNTANT" ||
       role === "DIRECTOR"
     ) {
       return canUserAccessApproval(program, userId);

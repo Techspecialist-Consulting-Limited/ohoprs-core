@@ -74,21 +74,27 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "view_organizations",
     "view_beneficiaries",
     "view_programs",
-    "approve_program",
+    "view_distributions",
   ],
   STORE_MANAGER: [
     "view_organizations",
     "view_beneficiaries",
     "view_programs",
-    "approve_program",
+    "view_distributions",
   ],
   DISTRIBUTION_MANAGER: [
     "view_organizations",
     "view_beneficiaries",
     "view_programs",
-    "approve_program",
+    "view_distributions",
   ],
-  ACCOUNTANT: [
+  AGENCY_ACCOUNTANT: [
+    "view_organizations",
+    "view_beneficiaries",
+    "view_programs",
+    "view_distributions",
+  ],
+  SYSTEM_ACCOUNTANT: [
     "view_organizations",
     "view_beneficiaries",
     "view_programs",

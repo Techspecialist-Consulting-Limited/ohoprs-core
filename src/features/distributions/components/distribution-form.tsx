@@ -88,8 +88,9 @@ export function DistributionForm({
       programService.getProgramOptions({
         organizationId: defaultOrganizationId ?? user?.organizationId ?? null,
         eligibleForDistribution: true,
+        onlyFullyApprovedForAgencyScope: role === "ORG_ADMIN" || role === "PROGRAM_OFFICER",
       }),
-    [defaultOrganizationId, user?.organizationId],
+    [defaultOrganizationId, role, user?.organizationId],
   );
   const selectedProgram = programId ? programService.getProgramSnapshot(programId) : null;
   const hasDistributionApprovalSteps = Boolean(selectedProgram?.distributionApprovalSteps?.length);
@@ -136,6 +137,16 @@ export function DistributionForm({
       ? selectedBeneficiaryCount * (selectedProgram.amountPerRecipient ?? 0)
       : null;
   const isSuperAdmin = role === "SUPER_ADMIN";
+
+  function resetSelectedIntervention() {
+    setShowApprovalRequiredModal(false);
+    form.setValue("programId", "", { shouldValidate: true, shouldDirty: true });
+    form.setValue("phaseNumber", 0, { shouldValidate: true, shouldDirty: true });
+    form.setValue("states", [], { shouldValidate: true, shouldDirty: true });
+    form.setValue("beneficiaryIds", [], { shouldValidate: true, shouldDirty: true });
+    setBeneficiaryPage(1);
+    setCurrentStep(0);
+  }
 
   const mutation = useMutation({
     mutationFn: async (values: DistributionPayload) => {
@@ -268,12 +279,21 @@ export function DistributionForm({
               <Field label="Intervention" error={form.formState.errors.programId?.message}>
                 <select
                   {...form.register("programId", {
-                    onChange: () => {
+                    onChange: (event) => {
+                      const nextProgramId = event.target.value;
                       form.setValue("phaseNumber", 0);
                       form.setValue("states", []);
                       form.setValue("beneficiaryIds", []);
                       setShowApprovalRequiredModal(false);
                       setBeneficiaryPage(1);
+
+                      if (role === "ORG_ADMIN" && nextProgramId) {
+                        const nextProgram = programService.getProgramSnapshot(nextProgramId);
+
+                        if (nextProgram && !(nextProgram.distributionApprovalSteps?.length ?? 0)) {
+                          setShowApprovalRequiredModal(true);
+                        }
+                      }
                     },
                   })}
                   className={inputClassName}
@@ -520,21 +540,21 @@ export function DistributionForm({
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => {
-                  setShowApprovalRequiredModal(false);
-                  form.setValue("programId", "", { shouldDirty: true });
-                  form.setValue("phaseNumber", 0, { shouldDirty: true });
-                }}
+                onClick={resetSelectedIntervention}
                 className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
               >
-                Choose Another Intervention
+                Select New Intervention
               </button>
               <button
                 type="button"
-                onClick={() => router.push(`/programs/${selectedProgram.id}/distribution-approval`)}
+                onClick={() =>
+                  router.push(
+                    `/programs/${selectedProgram.id}/distribution-approval?from=${encodeURIComponent("/distributions/new")}`,
+                  )
+                }
                 className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
               >
-                Create Approval Steps
+                Add Approval Step
               </button>
             </div>
           </div>

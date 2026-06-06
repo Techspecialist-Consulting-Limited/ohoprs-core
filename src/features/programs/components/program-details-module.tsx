@@ -62,10 +62,7 @@ export function ProgramDetailsModule({ id }: { id: string }) {
     user?.id && program.approvalSteps?.some((step) => step.assigneeUserId === user.id),
   );
   const isApprovalRole =
-    role === "ORGANIZATION_MANAGER" ||
-    role === "STORE_MANAGER" ||
-    role === "DISTRIBUTION_MANAGER" ||
-    role === "ACCOUNTANT" ||
+    role === "SYSTEM_ACCOUNTANT" ||
     role === "DIRECTOR";
 
   return (
