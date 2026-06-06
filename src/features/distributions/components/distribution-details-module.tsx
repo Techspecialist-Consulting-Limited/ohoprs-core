@@ -57,7 +57,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
   if (!canViewDistribution(role, distribution.organizationId, user?.organizationId)) {
     return (
       <PageContainer>
-        <PermissionDeniedState title="Distribution access denied" description="Your role cannot access this batch because it belongs to another organization." />
+        <PermissionDeniedState title="Distribution access denied" description="Your role cannot access this batch because it belongs to another agency." />
       </PageContainer>
     );
   }
@@ -81,7 +81,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
             <div className="flex flex-wrap items-center gap-3">
               {role === "AUDITOR" ? <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Read-only oversight view</span> : null}
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">{distribution.name}</h1>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">{`${distribution.programName} - ${distribution.name}`}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{distribution.description}</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <DistributionStatusBadge status={distribution.status} />
@@ -93,7 +93,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
                 Execution: {distribution.executionStatus.replaceAll("_", " ")}
               </span>
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.programName}</span>
-              <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.organizationName}</span>
+                <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.organizationName}</span>
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Workflow context</p>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">Intervention and organization summary</h2>
+          <h2 className="mt-2 text-xl font-semibold text-foreground">Intervention and agency summary</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <ContextCard
               title="Intervention"
@@ -120,7 +120,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
               href={`/programs/${distribution.programId}`}
             />
             <ContextCard
-              title="Organization"
+              title="Agency"
               subtitle={distribution.organizationName}
               meta={distribution.organizationType.replaceAll("_", " ")}
               href={`/organizations/${distribution.organizationId}`}

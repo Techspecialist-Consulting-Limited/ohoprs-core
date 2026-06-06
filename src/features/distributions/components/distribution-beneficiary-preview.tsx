@@ -6,6 +6,8 @@ import { ArrowRight } from "lucide-react";
 import type { DistributionRecipientPreview } from "@/types/distribution";
 
 export function DistributionBeneficiaryPreview({ recipients }: { recipients: DistributionRecipientPreview[] }) {
+  const isCash = recipients.some((recipient) => recipient.bankName || recipient.accountNumber);
+
   return (
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -26,7 +28,13 @@ export function DistributionBeneficiaryPreview({ recipients }: { recipients: Dis
         <table className="min-w-full">
           <thead className="bg-surface-muted text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
             <tr>
-              {["Beneficiary", "NIN", "State", "Delivery Status"].map((label) => (
+              {[
+                "Beneficiary",
+                "NIN",
+                "State",
+                ...(isCash ? ["Bank Name", "Account Number"] : ["LGA", "Address"]),
+                "Delivery Status",
+              ].map((label) => (
                 <th key={label} className="px-4 py-3">{label}</th>
               ))}
             </tr>
@@ -37,6 +45,17 @@ export function DistributionBeneficiaryPreview({ recipients }: { recipients: Dis
                 <td className="px-4 py-3">{recipient.fullName}</td>
                 <td className="px-4 py-3 text-muted">{recipient.nin}</td>
                 <td className="px-4 py-3 text-muted">{recipient.state}</td>
+                {isCash ? (
+                  <>
+                    <td className="px-4 py-3 text-muted">{recipient.bankName ?? "-"}</td>
+                    <td className="px-4 py-3 text-muted">{recipient.accountNumber ?? "-"}</td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-4 py-3 text-muted">{recipient.lga ?? "-"}</td>
+                    <td className="px-4 py-3 text-muted">{recipient.address ?? "-"}</td>
+                  </>
+                )}
                 <td className="px-4 py-3">
                   <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted">
                     {recipient.deliveryStatus.replaceAll("_", " ")}

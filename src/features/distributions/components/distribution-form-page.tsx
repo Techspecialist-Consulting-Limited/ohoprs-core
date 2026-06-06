@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,8 +28,9 @@ export function DistributionCreateModule() {
 
   return (
     <PageContainer>
-      <PageHeader title="Create benefit distribution" description="Create a distribution batch showing how benefits move from program to beneficiary delivery." />
-      <DistributionForm mode="create" canChooseOrganization={false} defaultOrganizationId={user?.organizationId ?? undefined} />
+      <Breadcrumbs current="Create" />
+      <PageHeader title="Create benefit distribution" description="Create a distribution batch by selecting an intervention, states, and beneficiaries in sequence." />
+      <DistributionForm mode="create" defaultOrganizationId={user?.organizationId ?? undefined} />
     </PageContainer>
   );
 }
@@ -84,25 +86,31 @@ export function DistributionEditModule({ id }: { id: string }) {
 
   return (
     <PageContainer>
-      <PageHeader title={`Edit ${distribution.name}`} description="Update distribution setup, method, scheduling, and execution status." />
+      <Breadcrumbs current="Edit" />
+      <PageHeader title={`Edit ${distribution.name}`} description="Update the selected intervention tranche or batch, coverage states, and beneficiary selection." />
       <DistributionForm
         mode="edit"
         distributionId={distribution.id}
-        canChooseOrganization={false}
         defaultOrganizationId={distribution.organizationId}
         initialValues={{
-          name: distribution.name,
-          organizationId: distribution.organizationId,
           programId: distribution.programId,
-          method: distribution.method,
-          description: distribution.description,
-          beneficiaryCount: distribution.beneficiaryCount,
-          amount: distribution.amount,
-          quantity: distribution.quantity,
-          scheduledDate: distribution.scheduledDate.slice(0, 16),
-          status: distribution.status,
+          phaseNumber: distribution.phaseNumber,
+          states: distribution.states,
+          beneficiaryIds: distribution.selectedBeneficiaryIds,
         }}
       />
     </PageContainer>
+  );
+}
+
+function Breadcrumbs({ current }: { current: string }) {
+  return (
+    <div className="mb-4 flex items-center gap-2 text-sm text-muted">
+      <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
+      <span>/</span>
+      <Link href="/distributions" className="hover:text-foreground">Benefit distributions</Link>
+      <span>/</span>
+      <span className="text-foreground">{current}</span>
+    </div>
   );
 }

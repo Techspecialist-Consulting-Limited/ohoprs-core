@@ -9,6 +9,8 @@ export type DistributionMethod =
   | "EDUCATION_SUPPORT"
   | "AGRICULTURE_SUPPORT";
 
+export type DistributionPhaseType = "TRENCH" | "BATCH";
+
 export type DistributionStatus =
   | "DRAFT"
   | "SCHEDULED"
@@ -40,6 +42,10 @@ export interface Distribution {
   programId: string;
   programName: string;
   name: string;
+  phaseType: DistributionPhaseType;
+  phaseNumber: number;
+  states: string[];
+  selectedBeneficiaryIds: string[];
   benefitType: BenefitType;
   method: DistributionMethod;
   description: string;
@@ -62,6 +68,10 @@ export interface DistributionRecipientPreview {
   fullName: string;
   nin: string;
   state: string;
+  lga?: string;
+  address?: string;
+  bankName?: string;
+  accountNumber?: string;
   deliveryStatus: DeliveryStatus;
 }
 
@@ -146,16 +156,10 @@ export interface DistributionListParams {
 }
 
 export interface DistributionFormValues {
-  name: string;
-  organizationId: string;
   programId: string;
-  method: DistributionMethod;
-  description: string;
-  beneficiaryCount: number;
-  amount?: number | undefined;
-  quantity?: number | undefined;
-  scheduledDate: string;
-  status: DistributionStatus;
+  phaseNumber: number;
+  states: string[];
+  beneficiaryIds: string[];
 }
 
 export type DistributionPayload = DistributionFormValues;

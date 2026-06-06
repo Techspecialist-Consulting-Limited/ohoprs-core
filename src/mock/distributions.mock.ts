@@ -1,14 +1,16 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { programsData } from "@/mock/programs.mock";
 import type {
-  DistributionDetails,
   DistributionApprovalStatus,
+  DistributionDetails,
   DistributionExecutionStatus,
   DistributionMethod,
+  DistributionPhaseType,
   DistributionRecipientPreview,
   DistributionStatus,
   DistributionTimelineItem,
 } from "@/types/distribution";
+import type { ProgramDetails } from "@/types/program";
 
 const creatorDirectory = {
   user_001: "Amina Bello",
@@ -17,12 +19,70 @@ const creatorDirectory = {
   user_004: "David Audu",
 } as const;
 
-function isCashMethod(method: DistributionMethod) {
-  return method === "BANK_TRANSFER" || method === "MOBILE_MONEY" || method === "CASH";
+function getProgram(id: string) {
+  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+}
+
+function getPhaseType(program: ProgramDetails): DistributionPhaseType {
+  return program.benefitType === "CASH" ? "TRENCH" : "BATCH";
+}
+
+function getPhaseLabel(phaseType: DistributionPhaseType, phaseNumber: number) {
+  return `${phaseType === "TRENCH" ? "Trench" : "Batch"} ${phaseNumber}`;
+}
+
+function getMethod(program: ProgramDetails): DistributionMethod {
+  if (program.benefitType === "CASH") {
+    return "BANK_TRANSFER";
+  }
+
+  if (program.benefitType === "MEDICAL") {
+    return "MEDICAL_SUPPORT";
+  }
+
+  if (program.benefitType === "EDUCATION") {
+    return "EDUCATION_SUPPORT";
+  }
+
+  if (program.benefitType === "AGRICULTURE") {
+    return "AGRICULTURE_SUPPORT";
+  }
+
+  return "FOOD_PACKAGE";
 }
 
 function maskNin(value: string) {
   return `${value.slice(0, 3)}******${value.slice(-2)}`;
+}
+
+function accountNumberForIndex(index: number) {
+  return `01${String(10000000 + index).slice(-8)}`;
+}
+
+function bankNameForIndex(index: number) {
+  return ["Access Bank", "UBA", "Zenith Bank", "First Bank", "Moniepoint"][index % 5];
+}
+
+function buildRecipients(program: ProgramDetails, states: string[], count = 5): DistributionRecipientPreview[] {
+  const isCash = program.benefitType === "CASH";
+
+  return beneficiariesData
+    .filter((item) => item.organizationId === program.organizationId)
+    .filter((item) => item.programIds.includes(program.id))
+    .filter((item) => states.length === 0 || states.includes(item.state))
+    .slice(0, count)
+    .map((item, index) => ({
+      id: `${program.id}_recipient_${index + 1}`,
+      beneficiaryId: item.id,
+      fullName: item.fullName,
+      nin: maskNin(item.nin),
+      state: item.state,
+      lga: isCash ? undefined : item.lga,
+      address: isCash ? undefined : item.address,
+      bankName: isCash ? bankNameForIndex(index) : undefined,
+      accountNumber: isCash ? accountNumberForIndex(index) : undefined,
+      deliveryStatus: index === 3 ? "PENDING" : index === 4 ? "FAILED" : "DELIVERED",
+    }));
 }
 
 function buildTimeline(
@@ -58,7 +118,7 @@ function buildTimeline(
     },
   ];
 
-  if (status !== "DRAFT") {
+  if (status !== "DRAFT" && status !== "SCHEDULED") {
     timeline.push({
       id: `${id}_processing`,
       label: "Processing Started",
@@ -105,20 +165,6 @@ function buildTimeline(
   return timeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-function buildRecipients(organizationId: string, programId: string, count = 5): DistributionRecipientPreview[] {
-  return beneficiariesData
-    .filter((item) => item.organizationId === organizationId && item.programIds.includes(programId))
-    .slice(0, count)
-    .map((item, index) => ({
-      id: `${programId}_recipient_${index + 1}`,
-      beneficiaryId: item.id,
-      fullName: item.fullName,
-      nin: maskNin(item.nin),
-      state: item.state,
-      deliveryStatus: index === 3 ? "PENDING" : index === 4 ? "FAILED" : "DELIVERED",
-    }));
-}
-
 function createValidationSummary(beneficiaryCount: number, estimatedTotalAmount: number, flaggedBeneficiaries: number) {
   const pendingVerification = Math.min(Math.round(beneficiaryCount * 0.04), 600);
   const failedVerification = Math.min(Math.round(beneficiaryCount * 0.01), 120);
@@ -138,11 +184,7 @@ function createValidationSummary(beneficiaryCount: number, estimatedTotalAmount:
 }
 
 function isHighRisk(summary: { estimatedTotalAmount: number; flaggedBeneficiaries: number }, beneficiaryCount: number) {
-  return (
-    summary.estimatedTotalAmount >= 500000000 ||
-    beneficiaryCount >= 10000 ||
-    summary.flaggedBeneficiaries > 0
-  );
+  return summary.estimatedTotalAmount >= 500000000 || beneficiaryCount >= 10000 || summary.flaggedBeneficiaries > 0;
 }
 
 function buildApprovalHistory(
@@ -205,8 +247,7 @@ function buildApprovalHistory(
 function createDistribution(input: {
   id: string;
   programId: string;
-  name: string;
-  method: DistributionMethod;
+  phaseNumber: number;
   status: DistributionStatus;
   approvalStatus?: DistributionApprovalStatus;
   executionStatus?: DistributionExecutionStatus;
@@ -215,12 +256,17 @@ function createDistribution(input: {
   quantity?: number;
   scheduledDate: string;
   createdByUserId: keyof typeof creatorDirectory;
-  description: string;
+  description?: string;
   flaggedBeneficiaries?: number;
   rejectionReason?: string;
+  states?: string[];
 }): DistributionDetails {
-  const program = programsData.find((item) => item.id === input.programId)!;
-  const recipients = buildRecipients(program.organizationId, program.id);
+  const program = getProgram(input.programId)!;
+  const phaseType = getPhaseType(program);
+  const method = getMethod(program);
+  const states = input.states?.length ? input.states : (program.states ?? []).slice(0, Math.min(3, program.states?.length ?? 0));
+  const recipients = buildRecipients(program, states);
+  const selectedBeneficiaryIds = recipients.map((item) => item.beneficiaryId);
   const createdBy = creatorDirectory[input.createdByUserId];
   const failedDeliveries = recipients.filter((item) => item.deliveryStatus === "FAILED").length;
   const successful = recipients.filter((item) => item.deliveryStatus === "DELIVERED").length;
@@ -237,8 +283,8 @@ function createDistribution(input: {
             ? 24
             : input.status === "CANCELLED"
               ? 0
-          : 10;
-  const estimatedTotalAmount = isCashMethod(input.method) ? input.amount ?? 0 : input.beneficiaryCount * 15000;
+              : 10;
+  const estimatedTotalAmount = program.benefitType === "CASH" ? input.amount ?? 0 : input.beneficiaryCount * 15000;
   const validationSummary = createValidationSummary(
     input.beneficiaryCount,
     estimatedTotalAmount,
@@ -263,13 +309,19 @@ function createDistribution(input: {
     organizationName: program.organizationName,
     programId: program.id,
     programName: program.name,
-    name: input.name,
+    name: getPhaseLabel(phaseType, input.phaseNumber),
+    phaseType,
+    phaseNumber: input.phaseNumber,
+    states,
+    selectedBeneficiaryIds,
     benefitType: program.benefitType,
-    method: input.method,
-    description: input.description,
+    method,
+    description:
+      input.description ??
+      `${getPhaseLabel(phaseType, input.phaseNumber)} prepared for ${input.beneficiaryCount.toLocaleString()} selected beneficiaries.`,
     beneficiaryCount: input.beneficiaryCount,
-    amount: isCashMethod(input.method) ? input.amount ?? 0 : undefined,
-    quantity: isCashMethod(input.method) ? undefined : input.quantity ?? 0,
+    amount: program.benefitType === "CASH" ? input.amount ?? 0 : undefined,
+    quantity: program.benefitType === "CASH" ? undefined : input.quantity ?? input.beneficiaryCount,
     status: input.status,
     approvalStatus,
     executionStatus,
@@ -284,7 +336,7 @@ function createDistribution(input: {
     recipients,
     statistics: {
       beneficiaries: input.beneficiaryCount,
-      amountDistributed: isCashMethod(input.method) ? input.amount ?? 0 : 0,
+      amountDistributed: program.benefitType === "CASH" ? input.amount ?? 0 : 0,
       successRate,
       failedDeliveries,
       completionRate,
@@ -295,7 +347,7 @@ function createDistribution(input: {
       {
         id: `${input.id}_activity_1`,
         actor: createdBy,
-        action: "Created distribution batch",
+        action: `Created ${getPhaseLabel(phaseType, input.phaseNumber).toLowerCase()}`,
         timestamp: new Date(new Date(input.scheduledDate).setDate(new Date(input.scheduledDate).getDate() - 8)).toISOString(),
       },
       {
@@ -319,24 +371,24 @@ function createDistribution(input: {
 }
 
 export const distributionsData: DistributionDetails[] = [
-  createDistribution({ id: "distribution_001", programId: "program_002", name: "June Youth Grant Batch", method: "BANK_TRANSFER", status: "COMPLETED", approvalStatus: "APPROVED", executionStatus: "COMPLETED", beneficiaryCount: 25000, amount: 500000000, scheduledDate: "2026-06-01T09:00:00Z", createdByUserId: "user_002", description: "Monthly youth enterprise cash support batch for verified participants." }),
-  createDistribution({ id: "distribution_002", programId: "program_001", name: "Food Relief Batch 12", method: "FOOD_PACKAGE", status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 15000, quantity: 15000, scheduledDate: "2026-06-03T08:00:00Z", createdByUserId: "user_003", description: "Rice and beans package distribution for vulnerable households." }),
-  createDistribution({ id: "distribution_003", programId: "program_003", name: "Emergency Nutrition Wave 4", method: "MEDICAL_SUPPORT", status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 8000, quantity: 8000, scheduledDate: "2026-06-04T10:00:00Z", createdByUserId: "user_003", description: "Nutrition support distribution for children and at-risk mothers." }),
-  createDistribution({ id: "distribution_004", programId: "program_004", name: "Urban Family Relief - Ikeja Batch", method: "MOBILE_MONEY", status: "COMPLETED", beneficiaryCount: 12000, amount: 180000000, scheduledDate: "2026-05-29T09:30:00Z", createdByUserId: "user_002", description: "Urban family relief disbursement targeting verified Lagos households." }),
-  createDistribution({ id: "distribution_005", programId: "program_005", name: "School Feeding Distribution - Cluster A", method: "FOOD_PACKAGE", status: "COMPLETED", beneficiaryCount: 17000, quantity: 17000, scheduledDate: "2026-05-28T07:45:00Z", createdByUserId: "user_003", description: "School meal distribution covering public primary school beneficiaries." }),
-  createDistribution({ id: "distribution_006", programId: "program_006", name: "Health Access Starter Batch", method: "MEDICAL_SUPPORT", status: "FAILED", approvalStatus: "APPROVED", executionStatus: "FAILED", beneficiaryCount: 4500, quantity: 4500, scheduledDate: "2026-05-26T11:00:00Z", createdByUserId: "user_002", description: "Pilot medical assistance batch with unresolved provider validation issues.", flaggedBeneficiaries: 11 }),
-  createDistribution({ id: "distribution_007", programId: "program_007", name: "Rural Nutrition Outreach - May Wave", method: "FOOD_PACKAGE", status: "PROCESSING", beneficiaryCount: 9000, quantity: 9000, scheduledDate: "2026-06-05T08:30:00Z", createdByUserId: "user_003", description: "Nutrition package delivery across rural household clusters." }),
-  createDistribution({ id: "distribution_008", programId: "program_008", name: "Farm Family Stabilization Batch 2", method: "CASH", status: "CANCELLED", approvalStatus: "REJECTED", executionStatus: "FAILED", beneficiaryCount: 6000, amount: 96000000, scheduledDate: "2026-05-21T09:00:00Z", createdByUserId: "user_003", description: "Farm household stabilization payout batch cancelled after compliance review.", rejectionReason: "Approval rejected pending duplicate household remediation." }),
-  createDistribution({ id: "distribution_009", programId: "program_009", name: "Community Relief Window - South Zone", method: "CASH", status: "SCHEDULED", beneficiaryCount: 5200, amount: 78000000, scheduledDate: "2026-06-06T10:00:00Z", createdByUserId: "user_002", description: "Community relief payments for low-income households in Kaduna South." }),
-  createDistribution({ id: "distribution_010", programId: "program_010", name: "Learner Support Kit Batch", method: "EDUCATION_SUPPORT", status: "COMPLETED", beneficiaryCount: 8400, quantity: 8400, scheduledDate: "2026-05-25T08:15:00Z", createdByUserId: "user_002", description: "Education kits for learners enrolled in continuity support cohorts." }),
-  createDistribution({ id: "distribution_011", programId: "program_011", name: "Women Enterprise Grant", method: "BANK_TRANSFER", status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 7100, amount: 142000000, scheduledDate: "2026-06-02T09:45:00Z", createdByUserId: "user_001", description: "Cash grants for women-led micro-enterprise stabilization." }),
-  createDistribution({ id: "distribution_012", programId: "program_012", name: "Shelter Recovery Materials Batch", method: "AGRICULTURE_SUPPORT", status: "SCHEDULED", beneficiaryCount: 4500, quantity: 4500, scheduledDate: "2026-06-07T12:00:00Z", createdByUserId: "user_001", description: "Support package covering reconstruction inputs and household recovery materials." }),
-  createDistribution({ id: "distribution_013", programId: "program_013", name: "Digital Enablement Stipend", method: "MOBILE_MONEY", status: "DRAFT", approvalStatus: "DRAFT", executionStatus: "NOT_STARTED", beneficiaryCount: 1800, amount: 18000000, scheduledDate: "2026-06-10T10:30:00Z", createdByUserId: "user_001", description: "Draft stipend batch for digital payout enablement pilots." }),
-  createDistribution({ id: "distribution_014", programId: "program_014", name: "Osun Family Support Batch 6", method: "FOOD_PACKAGE", status: "COMPLETED", beneficiaryCount: 9800, quantity: 9800, scheduledDate: "2026-05-23T08:00:00Z", createdByUserId: "user_001", description: "Household food basket distribution for Osun family support beneficiaries." }),
-  createDistribution({ id: "distribution_015", programId: "program_015", name: "Farm Relief Input Batch", method: "AGRICULTURE_SUPPORT", status: "FAILED", approvalStatus: "APPROVED", executionStatus: "FAILED", beneficiaryCount: 4300, quantity: 4300, scheduledDate: "2026-05-20T11:30:00Z", createdByUserId: "user_001", description: "Seed and farm input support batch affected by logistics exceptions.", flaggedBeneficiaries: 6 }),
-  createDistribution({ id: "distribution_016", programId: "program_016", name: "Maternal Nutrition Pack Cycle", method: "MEDICAL_SUPPORT", status: "COMPLETED", beneficiaryCount: 6200, quantity: 6200, scheduledDate: "2026-05-24T09:20:00Z", createdByUserId: "user_001", description: "Maternal wellness packs delivered to verified health support recipients." }),
-  createDistribution({ id: "distribution_017", programId: "program_017", name: "Livelihood Restart Wave 3", method: "BANK_TRANSFER", status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 11500, amount: 230000000, scheduledDate: "2026-06-08T09:40:00Z", createdByUserId: "user_001", description: "Livelihood restart grants for verified post-crisis recovery households." }),
-  createDistribution({ id: "distribution_018", programId: "program_018", name: "Household Stabilization Batch 4", method: "CASH", status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 5400, amount: 70200000, scheduledDate: "2026-06-09T13:00:00Z", createdByUserId: "user_001", description: "Household stabilization cash support scheduled for field release." }),
-  createDistribution({ id: "distribution_019", programId: "program_019", name: "Community Enterprise Input Batch", method: "AGRICULTURE_SUPPORT", status: "COMPLETED", beneficiaryCount: 3900, quantity: 3900, scheduledDate: "2026-05-27T10:10:00Z", createdByUserId: "user_001", description: "Agricultural support kits delivered to enterprise bridge participants." }),
-  createDistribution({ id: "distribution_020", programId: "program_020", name: "School Feeding Distribution - National Wave", method: "FOOD_PACKAGE", status: "COMPLETED", beneficiaryCount: 30000, quantity: 30000, scheduledDate: "2026-05-31T07:30:00Z", createdByUserId: "user_001", description: "National school feeding rollout for the current monthly cycle." }),
+  createDistribution({ id: "distribution_001", programId: "program_002", phaseNumber: 1, status: "COMPLETED", approvalStatus: "APPROVED", executionStatus: "COMPLETED", beneficiaryCount: 25000, amount: 500000000, scheduledDate: "2026-06-01T09:00:00Z", createdByUserId: "user_002", states: ["FCT", "Lagos"] }),
+  createDistribution({ id: "distribution_002", programId: "program_001", phaseNumber: 1, status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 15000, quantity: 15000, scheduledDate: "2026-06-03T08:00:00Z", createdByUserId: "user_003", states: ["FCT", "Kaduna"] }),
+  createDistribution({ id: "distribution_003", programId: "program_003", phaseNumber: 1, status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 8000, quantity: 8000, scheduledDate: "2026-06-04T10:00:00Z", createdByUserId: "user_003", states: ["FCT", "Borno"] }),
+  createDistribution({ id: "distribution_004", programId: "program_004", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 12000, amount: 180000000, scheduledDate: "2026-05-29T09:30:00Z", createdByUserId: "user_002", states: ["Lagos"] }),
+  createDistribution({ id: "distribution_005", programId: "program_005", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 17000, quantity: 17000, scheduledDate: "2026-05-28T07:45:00Z", createdByUserId: "user_003", states: ["Lagos"] }),
+  createDistribution({ id: "distribution_006", programId: "program_006", phaseNumber: 1, status: "FAILED", approvalStatus: "APPROVED", executionStatus: "FAILED", beneficiaryCount: 4500, quantity: 4500, scheduledDate: "2026-05-26T11:00:00Z", createdByUserId: "user_002", flaggedBeneficiaries: 11, states: ["Lagos"] }),
+  createDistribution({ id: "distribution_007", programId: "program_007", phaseNumber: 1, status: "PROCESSING", beneficiaryCount: 9000, quantity: 9000, scheduledDate: "2026-06-05T08:30:00Z", createdByUserId: "user_003", states: ["Kano"] }),
+  createDistribution({ id: "distribution_008", programId: "program_008", phaseNumber: 1, status: "CANCELLED", approvalStatus: "REJECTED", executionStatus: "FAILED", beneficiaryCount: 6000, amount: 96000000, scheduledDate: "2026-05-21T09:00:00Z", createdByUserId: "user_003", rejectionReason: "Approval rejected pending duplicate household remediation.", states: ["Kano"] }),
+  createDistribution({ id: "distribution_009", programId: "program_009", phaseNumber: 1, status: "SCHEDULED", beneficiaryCount: 5200, amount: 78000000, scheduledDate: "2026-06-06T10:00:00Z", createdByUserId: "user_002", states: ["Kaduna"] }),
+  createDistribution({ id: "distribution_010", programId: "program_010", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 8400, quantity: 8400, scheduledDate: "2026-05-25T08:15:00Z", createdByUserId: "user_002", states: ["Kaduna"] }),
+  createDistribution({ id: "distribution_011", programId: "program_011", phaseNumber: 1, status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 7100, amount: 142000000, scheduledDate: "2026-06-02T09:45:00Z", createdByUserId: "user_001", states: ["Plateau"] }),
+  createDistribution({ id: "distribution_012", programId: "program_012", phaseNumber: 1, status: "SCHEDULED", beneficiaryCount: 4500, quantity: 4500, scheduledDate: "2026-06-07T12:00:00Z", createdByUserId: "user_001", states: ["Borno"] }),
+  createDistribution({ id: "distribution_013", programId: "program_013", phaseNumber: 1, status: "DRAFT", approvalStatus: "DRAFT", executionStatus: "NOT_STARTED", beneficiaryCount: 1800, amount: 18000000, scheduledDate: "2026-06-10T10:30:00Z", createdByUserId: "user_001", states: ["Abia"] }),
+  createDistribution({ id: "distribution_014", programId: "program_014", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 9800, quantity: 9800, scheduledDate: "2026-05-23T08:00:00Z", createdByUserId: "user_001", states: ["Osun"] }),
+  createDistribution({ id: "distribution_015", programId: "program_015", phaseNumber: 1, status: "FAILED", approvalStatus: "APPROVED", executionStatus: "FAILED", beneficiaryCount: 4300, quantity: 4300, scheduledDate: "2026-05-20T11:30:00Z", createdByUserId: "user_001", flaggedBeneficiaries: 6, states: ["Benue"] }),
+  createDistribution({ id: "distribution_016", programId: "program_016", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 6200, quantity: 6200, scheduledDate: "2026-05-24T09:20:00Z", createdByUserId: "user_001", states: ["Ekiti"] }),
+  createDistribution({ id: "distribution_017", programId: "program_017", phaseNumber: 1, status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 11500, amount: 230000000, scheduledDate: "2026-06-08T09:40:00Z", createdByUserId: "user_001", states: ["Rivers"] }),
+  createDistribution({ id: "distribution_018", programId: "program_018", phaseNumber: 1, status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 5400, amount: 70200000, scheduledDate: "2026-06-09T13:00:00Z", createdByUserId: "user_001", states: ["Bauchi"] }),
+  createDistribution({ id: "distribution_019", programId: "program_019", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 3900, quantity: 3900, scheduledDate: "2026-05-27T10:10:00Z", createdByUserId: "user_001", states: ["Cross River"] }),
+  createDistribution({ id: "distribution_020", programId: "program_020", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 30000, quantity: 30000, scheduledDate: "2026-05-31T07:30:00Z", createdByUserId: "user_001", states: ["FCT"] }),
 ];

@@ -10,7 +10,7 @@ export function DistributionStatistics({ statistics }: { statistics: Distributio
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <MetricCard label="Beneficiaries" value={formatNumber(statistics.beneficiaries)} change="Batch coverage" icon={Users} tone="neutral" />
-      <MetricCard label="Amount Distributed" value={formatCurrency(statistics.amountDistributed)} change="Cash-equivalent view" icon={Wallet} />
+      <MetricCard label="Estimated Amount" value={formatCurrency(statistics.amountDistributed)} change="Cash-equivalent view" icon={Wallet} />
       <MetricCard label="Success Rate" value={`${statistics.successRate}%`} change="Delivered successfully" icon={Gauge} />
       <MetricCard label="Failed Deliveries" value={formatNumber(statistics.failedDeliveries)} change="Exceptions captured" icon={TriangleAlert} tone="warning" />
       <MetricCard label="Completion Rate" value={`${statistics.completionRate}%`} change="Workflow progress" icon={Gauge} />
