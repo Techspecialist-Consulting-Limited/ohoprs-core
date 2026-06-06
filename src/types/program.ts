@@ -151,6 +151,7 @@ export interface ProgramListParams {
   status?: ProgramStatus | "ALL";
   scopeOrganizationId?: string | null;
   assignedApproverUserId?: string | null;
+  onlyFullyApprovedForAgencyScope?: boolean;
 }
 
 export interface ProgramPayload {

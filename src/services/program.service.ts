@@ -61,6 +61,23 @@ function getCurrentPendingStep(steps: ProgramApprovalStep[]) {
   return steps.find((step) => step.status === "PENDING") ?? null;
 }
 
+function getProgramApprovalProgress(program: Pick<ProgramDetails, "approvalSteps" | "status">) {
+  const steps = normalizeApprovalSteps(program.approvalSteps);
+  const approvedCount = steps.filter((step) => step.status === "APPROVED").length;
+  const rejectedStep = steps.find((step) => step.status === "REJECTED") ?? null;
+  const currentPendingStep = getCurrentPendingStep(steps);
+  const total = steps.length;
+  const isFullyApproved = total > 0 && approvedCount === total && !rejectedStep;
+
+  return {
+    approvedCount,
+    total,
+    rejectedStep,
+    currentPendingStep,
+    isFullyApproved,
+  };
+}
+
 function canUserAccessApproval(program: ProgramDetails, userId?: string | null) {
   if (!userId) {
     return false;
@@ -97,12 +114,20 @@ export const programService = {
       assignedApproverUserId = null,
       search = "",
       status = "ALL",
+      onlyFullyApprovedForAgencyScope = false,
     } = params;
 
     let filtered = [...programStore].map(normalizeProgram);
 
     if (scopeOrganizationId) {
       filtered = filtered.filter((item) => item.organizationId === scopeOrganizationId);
+    }
+
+    if (onlyFullyApprovedForAgencyScope) {
+      filtered = filtered.filter((item) => {
+        const approvalProgress = getProgramApprovalProgress(item);
+        return approvalProgress.isFullyApproved && (item.status === "APPROVED" || item.status === "ACTIVE");
+      });
     }
 
     if (assignedApproverUserId) {

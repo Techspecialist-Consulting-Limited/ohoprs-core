@@ -11,6 +11,21 @@ import type { UserRole } from "@/types/auth";
 import { BenefitTypeBadge } from "@/features/programs/components/benefit-type-badge";
 import { ProgramStatusBadge } from "@/features/programs/components/program-status-badge";
 
+function getInterventionApprovalSummary(item: Program) {
+  const approvalSteps = item.approvalSteps ?? [];
+  const total = approvalSteps.length;
+  const completed = approvalSteps.filter((step) => step.status === "APPROVED").length;
+  const rejectedStep = approvalSteps.find((step) => step.status === "REJECTED") ?? null;
+  const currentStep = approvalSteps.find((step) => step.status === "PENDING") ?? null;
+
+  return {
+    total,
+    completed,
+    rejectedStep,
+    currentStep,
+  };
+}
+
 export function ProgramTable({
   items,
   meta,
@@ -38,7 +53,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Intervention Name", "Agency", "Benefit Type", "Status", "Distribution Approval", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Agency", "Benefit Type", "Status", "Intervention Approval", "Distribution Approval", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -60,6 +75,9 @@ export function ProgramTable({
                 <td className="px-5 py-4 text-sm text-muted">{item.organizationName}</td>
                 <td className="px-5 py-4"><BenefitTypeBadge benefitType={item.benefitType} /></td>
                 <td className="px-5 py-4"><ProgramStatusBadge status={item.status} /></td>
+                <td className="px-5 py-4 text-sm text-foreground">
+                  <InterventionApprovalStatus item={item} />
+                </td>
                 <td className="px-5 py-4 text-sm text-foreground">
                   <div>
                     <p className="font-medium">
@@ -138,6 +156,34 @@ export function ProgramTable({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InterventionApprovalStatus({ item }: { item: Program }) {
+  const { completed, total, rejectedStep, currentStep } = getInterventionApprovalSummary(item);
+
+  if (!total) {
+    return (
+      <div>
+        <p className="font-medium">No approval steps</p>
+        <p className="mt-1 text-xs text-muted">System approval is not configured.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="font-medium">
+        {completed}/{total}
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        {rejectedStep
+          ? `Rejected at ${rejectedStep.role.replaceAll("_", " ")}`
+          : currentStep
+            ? `Awaiting ${currentStep.role.replaceAll("_", " ")}`
+            : "Fully approved"}
+      </p>
     </div>
   );
 }

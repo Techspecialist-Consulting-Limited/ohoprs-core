@@ -48,6 +48,7 @@ export function ProgramsModule() {
   const [nextStatus, setNextStatus] = useState<ProgramStatus>("IN_PROGRESS");
   const debouncedSearch = useDebouncedValue(filters.search);
   const isApprovalRole = role ? approvalRoles.has(role) : false;
+  const showOnlyFullyApprovedForAgencyScope = !isApprovalRole && (role === "ORG_ADMIN" || role === "PROGRAM_OFFICER");
 
   const scopeOrganizationId =
     role === "ORG_ADMIN" || role === "PROGRAM_OFFICER"
@@ -83,6 +84,7 @@ export function ProgramsModule() {
         status: filters.status,
         scopeOrganizationId,
         assignedApproverUserId: isApprovalRole ? user?.id ?? null : null,
+        onlyFullyApprovedForAgencyScope: showOnlyFullyApprovedForAgencyScope,
       }),
     placeholderData: (previousData) => previousData,
   });
