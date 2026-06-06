@@ -528,8 +528,12 @@ export const paymentService = {
       return Promise.resolve({ success: false, message: "Distribution not found", data: null });
     }
 
-    if (distribution.approvalStatus !== "APPROVED") {
-      return Promise.resolve({ success: false, message: "Only approved distributions can be processed", data: null });
+    if (distribution.approvalStatus !== "APPROVED" || distribution.finalApprovalStatus !== "APPROVED") {
+      return Promise.resolve({ success: false, message: "Final super admin approval is required before payment can start", data: null });
+    }
+
+    if (actor.role !== "AGENCY_ACCOUNTANT") {
+      return Promise.resolve({ success: false, message: "Only agency accountant can start distribution payment", data: null });
     }
 
     const payments = ensurePaymentsForDistribution(distributionId);

@@ -7,6 +7,7 @@ import { PermissionDeniedState } from "@/components/shared/permission-denied-sta
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { getRoleLabel } from "@/lib/role-labels";
 import { approvalService } from "@/services/approval.service";
 import { distributionService } from "@/services/distribution.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -60,6 +61,11 @@ export function DistributionApprovalModule({ id }: { id: string }) {
     currentPendingStep?.assigneeUserId === user?.id;
 
   const canReject = canApprove;
+  const canFinalApprove =
+    role === "SUPER_ADMIN" &&
+    approval.approvalStatus === "APPROVED" &&
+    approval.finalApprovalStatus === "PENDING";
+  const canFinalReject = canFinalApprove;
 
   return (
     <PageContainer>
@@ -71,6 +77,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
 
       <div className="flex flex-wrap gap-3">
         <StatusPill label="Approval status" value={approval.approvalStatus} />
+        <StatusPill label="Final approval" value={approval.finalApprovalStatus} />
         <StatusPill label="Execution status" value={approval.executionStatus} />
         {role === "AUDITOR" ? <StatusPill label="Mode" value="Read-only oversight view" tone="warning" /> : null}
         <Link href={`/distributions/${id}/payments`} className="inline-flex h-10 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground">
@@ -90,8 +97,9 @@ export function DistributionApprovalModule({ id }: { id: string }) {
           />
           <InfoCard
             label="Assigned Approver"
-            value={currentPendingStep ? `${currentPendingStep.assigneeName} (${currentPendingStep.role.replaceAll("_", " ")})` : "No pending approver"}
+            value={currentPendingStep ? `${currentPendingStep.assigneeName} (${getRoleLabel(currentPendingStep.role)})` : "No pending approver"}
           />
+          <InfoCard label="Final Approval" value={approval.finalApprovalStatus.replaceAll("_", " ")} />
         </div>
       </section>
       <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
@@ -100,7 +108,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
           {approval.approvalSteps.map((step) => (
             <div key={step.id} className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Step {step.order}</p>
-              <p className="mt-2 text-base font-semibold text-foreground">{step.role.replaceAll("_", " ")}</p>
+              <p className="mt-2 text-base font-semibold text-foreground">{getRoleLabel(step.role)}</p>
               <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
               <p className="mt-2 text-sm text-foreground">
                 {step.status === "APPROVED"
@@ -122,6 +130,8 @@ export function DistributionApprovalModule({ id }: { id: string }) {
             canSubmit={canSubmit}
             canApprove={canApprove}
             canReject={canReject}
+            canFinalApprove={canFinalApprove}
+            canFinalReject={canFinalReject}
           />
         ) : null}
         <ApprovalHistoryTimeline items={approval.approvalHistory} />

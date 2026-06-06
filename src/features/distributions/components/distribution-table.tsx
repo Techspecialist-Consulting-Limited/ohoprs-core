@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide
 
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/formatters";
+import { getRoleLabel } from "@/lib/role-labels";
 import { cn } from "@/lib/utils";
 import type { Distribution, DistributionListMeta } from "@/types/distribution";
 import { DistributionMethodBadge } from "@/features/distributions/components/distribution-method-badge";
@@ -23,15 +24,21 @@ export function DistributionTable({
   meta,
   onPageChange,
   onStatusAction,
+  onPaymentAction,
   canManage,
   canEditItem,
+  canOpenApprovalReview,
+  canInitiatePayment,
 }: {
   items: Distribution[];
   meta: DistributionListMeta;
   onPageChange: (page: number) => void;
   onStatusAction: (item: Distribution) => void;
+  onPaymentAction: (item: Distribution) => void;
   canManage: boolean;
   canEditItem: (item: Distribution) => boolean;
+  canOpenApprovalReview: (item: Distribution) => boolean;
+  canInitiatePayment: (item: Distribution) => boolean;
 }) {
   const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
@@ -70,8 +77,11 @@ export function DistributionTable({
                   <RowActionMenu
                     item={item}
                     onStatusAction={onStatusAction}
+                    onPaymentAction={onPaymentAction}
                     canManage={canManage}
                     canEditItem={canEditItem(item)}
+                    canOpenApprovalReview={canOpenApprovalReview(item)}
+                    canInitiatePayment={canInitiatePayment(item)}
                   />
                 </td>
               </tr>
@@ -133,8 +143,14 @@ function ApprovalProgressCell({ item }: { item: Distribution }) {
       <p className="mt-1 text-xs text-muted">
         {item.approvalStatus === "REJECTED"
           ? "Rejected"
+          : item.finalApprovalStatus === "REJECTED"
+            ? "Final approval rejected"
+            : item.approvalStatus === "APPROVED" && item.finalApprovalStatus === "PENDING"
+              ? "Awaiting final approval"
+              : item.finalApprovalStatus === "APPROVED"
+                ? "Final approval completed"
           : currentStep
-            ? `${currentStep.role.replaceAll("_", " ")} approval`
+            ? `${getRoleLabel(currentStep.role)} approval`
             : total > 0
               ? "Fully approved"
               : "No approval steps"}
@@ -146,13 +162,19 @@ function ApprovalProgressCell({ item }: { item: Distribution }) {
 function RowActionMenu({
   item,
   onStatusAction,
+  onPaymentAction,
   canManage,
   canEditItem,
+  canOpenApprovalReview,
+  canInitiatePayment,
 }: {
   item: Distribution;
   onStatusAction: (item: Distribution) => void;
+  onPaymentAction: (item: Distribution) => void;
   canManage: boolean;
   canEditItem: boolean;
+  canOpenApprovalReview: boolean;
+  canInitiatePayment: boolean;
 }) {
   return (
     <RowActionPopover>
@@ -162,11 +184,30 @@ function RowActionMenu({
             <SquareArrowOutUpRight size={16} />
             View Details
           </Link>
+          {canOpenApprovalReview ? (
+            <Link href={`/distributions/${item.id}/approval`} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted">
+              <SquareArrowOutUpRight size={16} />
+              Open Approval Review
+            </Link>
+          ) : null}
           {canEditItem ? (
             <Link href={`/distributions/${item.id}/edit`} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted">
               <Pencil size={16} />
               Edit Distribution
             </Link>
+          ) : null}
+          {canInitiatePayment ? (
+            <button
+              type="button"
+              onClick={() => {
+                onPaymentAction(item);
+                close();
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-foreground hover:bg-surface-muted"
+            >
+              <Pencil size={16} />
+              Make Payment
+            </button>
           ) : null}
           {canManage && canEditItem ? (
             <button

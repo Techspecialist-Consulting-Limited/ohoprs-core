@@ -92,6 +92,10 @@ export function DistributionForm({
       }),
     [defaultOrganizationId, role, user?.organizationId],
   );
+  const selectedProgramOption = useMemo(
+    () => availablePrograms.find((program) => program.id === programId) ?? null,
+    [availablePrograms, programId],
+  );
   const selectedProgram = programId ? programService.getProgramSnapshot(programId) : null;
   const hasDistributionApprovalSteps = Boolean(selectedProgram?.distributionApprovalSteps?.length);
   const phaseTypeLabel = selectedProgram?.benefitType === "CASH" ? "Trench" : "Batch";
@@ -443,9 +447,12 @@ export function DistributionForm({
             </div>
 
             <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted">
-                Showing page {beneficiaryPage} of {totalBeneficiaryPages}
-              </p>
+              <div className="flex flex-col gap-1 text-sm text-muted sm:flex-row sm:items-center sm:gap-4">
+                <p>Showing page {beneficiaryPage} of {totalBeneficiaryPages}</p>
+                <p>
+                  Selected: {formatNumber(selectedBeneficiaryCount)} / {formatNumber(eligibleBeneficiaries.length)} beneficiaries
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -477,7 +484,7 @@ export function DistributionForm({
             <p className="mt-2 text-sm text-muted">Review the generated distribution details before creating the record.</p>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <SummaryCard label="Intervention" value={selectedProgram?.name ?? "-"} />
+              <SummaryCard label="Intervention" value={selectedProgramOption?.name ?? selectedProgram?.name ?? "-"} />
               <SummaryCard label="Trench / Batch" value={phaseNumber > 0 ? `${phaseTypeLabel} ${phaseNumber}` : "-"} />
               <SummaryCard label="States" value={selectedStates.join(", ") || "-"} />
               <SummaryCard label="Beneficiaries" value={formatNumber(selectedBeneficiaryCount)} />

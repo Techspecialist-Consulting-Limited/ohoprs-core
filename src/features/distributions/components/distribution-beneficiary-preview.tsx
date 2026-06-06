@@ -7,6 +7,7 @@ import type { DistributionRecipientPreview } from "@/types/distribution";
 
 export function DistributionBeneficiaryPreview({ recipients }: { recipients: DistributionRecipientPreview[] }) {
   const isCash = recipients.some((recipient) => recipient.bankName || recipient.accountNumber);
+  const previewRecipients = recipients.slice(0, 15);
 
   return (
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
@@ -40,7 +41,7 @@ export function DistributionBeneficiaryPreview({ recipients }: { recipients: Dis
             </tr>
           </thead>
           <tbody>
-            {recipients.map((recipient) => (
+            {previewRecipients.map((recipient) => (
               <tr key={recipient.id} className="border-t border-border text-sm text-foreground">
                 <td className="px-4 py-3">{recipient.fullName}</td>
                 <td className="px-4 py-3 text-muted">{recipient.nin}</td>
@@ -66,6 +67,11 @@ export function DistributionBeneficiaryPreview({ recipients }: { recipients: Dis
           </tbody>
         </table>
       </div>
+      {recipients.length > 15 ? (
+        <p className="mt-4 text-sm text-muted">
+          Showing 15 of {recipients.length.toLocaleString()} beneficiaries. Use <span className="font-medium text-foreground">View All Beneficiaries</span> to inspect the full list.
+        </p>
+      ) : null}
     </section>
   );
 }

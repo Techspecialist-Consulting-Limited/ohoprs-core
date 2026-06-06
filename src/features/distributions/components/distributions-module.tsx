@@ -12,7 +12,11 @@ import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { hasPermission } from "@/lib/rbac";
-import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
+import {
+  canEditDistributionRecord,
+  canInitiateDistributionPayment,
+  canOpenDistributionApprovalReview,
+} from "@/features/distributions/lib/distribution-permissions";
 import { organizationsData } from "@/mock/organizations.mock";
 import { DistributionFilters } from "@/features/distributions/components/distribution-filters";
 import { DistributionStatusDialog } from "@/features/distributions/components/distribution-status-dialog";
@@ -36,6 +40,8 @@ export function DistributionsModule() {
   });
   const [statusTarget, setStatusTarget] = useState<Distribution | null>(null);
   const [nextStatus, setNextStatus] = useState<DistributionStatus>("COMPLETED");
+  const [paymentTarget, setPaymentTarget] = useState<Distribution | null>(null);
+  const [paymentSuccessTarget, setPaymentSuccessTarget] = useState<Distribution | null>(null);
   const debouncedSearch = useDebouncedValue(filters.search);
 
   const scopeOrganizationId = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER" ? user?.organizationId ?? null : null;
@@ -69,6 +75,21 @@ export function DistributionsModule() {
     },
   });
 
+  const paymentMutation = useMutation<Distribution | null, Error, Distribution>({
+    mutationFn: async (item: Distribution) =>
+      distributionService.initiateDistributionPayment(item.id, user?.name ?? "Agency Accountant"),
+    onSuccess: (response) => {
+      if (!response) {
+        toast.error("Unable to start payment for this distribution.");
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: ["distributions"] });
+      void queryClient.invalidateQueries({ queryKey: ["distribution", response.id] });
+      setPaymentTarget(null);
+      setPaymentSuccessTarget(response);
+    },
+  });
+
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
   const availablePrograms = useMemo(() => {
     if (showOrganizationFilter && filters.organizationId !== "ALL") {
@@ -99,6 +120,14 @@ export function DistributionsModule() {
     }
 
     return canEditDistributionRecord(role, item, user?.organizationId, user?.id);
+  }
+
+  function canOpenApprovalAction(item: Distribution) {
+    return canOpenDistributionApprovalReview(role, item, user?.organizationId, user?.id);
+  }
+
+  function canPayItem(item: Distribution) {
+    return canInitiateDistributionPayment(role, item, user?.organizationId);
   }
 
   if (distributionsQuery.isLoading && !distributionsQuery.data) {
@@ -147,8 +176,11 @@ export function DistributionsModule() {
             setStatusTarget(item);
             setNextStatus(item.status === "COMPLETED" ? "FAILED" : "COMPLETED");
           }}
+          onPaymentAction={(item) => setPaymentTarget(item)}
           canManage={canChangeStatus}
           canEditItem={canEditItem}
+          canOpenApprovalReview={canOpenApprovalAction}
+          canInitiatePayment={canPayItem}
         />
       )}
 
@@ -161,6 +193,77 @@ export function DistributionsModule() {
           onConfirm={() => statusMutation.mutate({ id: statusTarget.id, status: nextStatus })}
         />
       ) : null}
+
+      {paymentTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-[28px] border border-border bg-surface p-6 shadow-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Batch payment</p>
+            <h2 className="mt-2 text-2xl font-semibold text-foreground">Proceed with payment</h2>
+            <p className="mt-2 text-sm text-muted">
+              Confirm the batch details before starting payment for this distribution.
+            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <SummaryCard label="Intervention" value={paymentTarget.programName} />
+              <SummaryCard label="Trench / Batch" value={paymentTarget.name} />
+              <SummaryCard label="Beneficiaries" value={paymentTarget.beneficiaryCount.toLocaleString()} />
+              <SummaryCard label="Amount" value={paymentTarget.amount ? `₦${Intl.NumberFormat("en-NG").format(paymentTarget.amount)}` : `${paymentTarget.quantity?.toLocaleString() ?? 0} packages`} />
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentTarget(null)}
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => paymentMutation.mutate(paymentTarget)}
+                disabled={paymentMutation.isPending}
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
+              >
+                {paymentMutation.isPending ? "Starting payment..." : "Proceed with Payment"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {paymentSuccessTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-[28px] border border-success/20 bg-surface p-6 shadow-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-success">Payment successful</p>
+            <h2 className="mt-2 text-2xl font-semibold text-foreground">Batch payment started successfully</h2>
+            <p className="mt-2 text-sm text-muted">
+              {paymentSuccessTarget.name} has been sent for batch processing and the distribution status is now processing.
+            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <SummaryCard label="Intervention" value={paymentSuccessTarget.programName} />
+              <SummaryCard label="Trench / Batch" value={paymentSuccessTarget.name} />
+              <SummaryCard label="Beneficiaries" value={paymentSuccessTarget.beneficiaryCount.toLocaleString()} />
+              <SummaryCard label="Status" value={paymentSuccessTarget.status.replaceAll("_", " ")} />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentSuccessTarget(null)}
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </PageContainer>
+  );
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+    </div>
   );
 }

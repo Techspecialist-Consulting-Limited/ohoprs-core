@@ -25,6 +25,8 @@ export type DistributionApprovalStatus =
   | "APPROVED"
   | "REJECTED";
 
+export type DistributionFinalApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type DistributionExecutionStatus =
   | "NOT_STARTED"
   | "PROCESSING"
@@ -54,6 +56,7 @@ export interface Distribution {
   quantity?: number;
   status: DistributionStatus;
   approvalStatus: DistributionApprovalStatus;
+  finalApprovalStatus: DistributionFinalApprovalStatus;
   executionStatus: DistributionExecutionStatus;
   distributionApprovalSteps: DistributionApprovalStep[];
   scheduledDate: string;
@@ -61,6 +64,10 @@ export interface Distribution {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  finalApprovedAt?: string | null;
+  finalApprovedBy?: string | null;
+  paymentInitiatedAt?: string | null;
+  paymentInitiatedBy?: string | null;
 }
 
 export interface DistributionRecipientPreview {

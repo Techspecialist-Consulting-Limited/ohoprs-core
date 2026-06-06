@@ -4,6 +4,7 @@ import type { DistributionApprovalDetails } from "@/types/approval";
 export const approvalDetailsData: DistributionApprovalDetails[] = distributionsData.map((distribution) => ({
   distributionId: distribution.id,
   approvalStatus: distribution.approvalStatus,
+  finalApprovalStatus: distribution.finalApprovalStatus,
   executionStatus: distribution.executionStatus,
   validationSummary: distribution.validationSummary,
   approvalSteps: distribution.distributionApprovalSteps,

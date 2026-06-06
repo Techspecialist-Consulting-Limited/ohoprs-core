@@ -2,6 +2,7 @@ import type {
   DistributionApprovalHistoryItem,
   DistributionApprovalStep,
   DistributionApprovalStatus,
+  DistributionFinalApprovalStatus,
   DistributionExecutionStatus,
   DistributionValidationSummary,
 } from "@/types/distribution";
@@ -9,6 +10,7 @@ import type {
 export interface DistributionApprovalDetails {
   distributionId: string;
   approvalStatus: DistributionApprovalStatus;
+  finalApprovalStatus: DistributionFinalApprovalStatus;
   executionStatus: DistributionExecutionStatus;
   validationSummary: DistributionValidationSummary;
   approvalSteps: DistributionApprovalStep[];

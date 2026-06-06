@@ -4,6 +4,7 @@ import type {
   DistributionApprovalStatus,
   DistributionDetails,
   DistributionExecutionStatus,
+  DistributionFinalApprovalStatus,
   DistributionMethod,
   DistributionPhaseType,
   DistributionRecipientPreview,
@@ -254,10 +255,10 @@ function buildApprovalHistory(
   if (approvalStatus === "APPROVED") {
     history.push({
       id: `${id}_approval_approved`,
-      label: "Approved",
+      label: "Agency approved",
       actor: "Amina Bello",
       timestamp: decidedAt.toISOString(),
-      note: "Approval gate cleared for payment execution.",
+      note: "Agency approval workflow completed.",
     });
   }
 
@@ -280,6 +281,7 @@ function createDistribution(input: {
   phaseNumber: number;
   status: DistributionStatus;
   approvalStatus?: DistributionApprovalStatus;
+  finalApprovalStatus?: DistributionFinalApprovalStatus;
   executionStatus?: DistributionExecutionStatus;
   beneficiaryCount: number;
   amount?: number;
@@ -333,6 +335,10 @@ function createDistribution(input: {
           ? "FAILED"
           : "NOT_STARTED");
 
+  const finalApprovalStatus =
+    input.finalApprovalStatus ??
+    (approvalStatus === "APPROVED" && executionStatus !== "NOT_STARTED" ? "APPROVED" : "PENDING");
+
   return {
     id: input.id,
     organizationId: program.organizationId,
@@ -354,6 +360,7 @@ function createDistribution(input: {
     quantity: program.benefitType === "CASH" ? undefined : input.quantity ?? input.beneficiaryCount,
     status: input.status,
     approvalStatus,
+    finalApprovalStatus,
     executionStatus,
     distributionApprovalSteps: buildDistributionApprovalSteps(program, approvalStatus),
     scheduledDate: input.scheduledDate,
@@ -361,6 +368,10 @@ function createDistribution(input: {
     createdBy,
     createdAt: new Date(new Date(input.scheduledDate).setDate(new Date(input.scheduledDate).getDate() - 8)).toISOString(),
     updatedAt: new Date(new Date(input.scheduledDate).setDate(new Date(input.scheduledDate).getDate() - 1)).toISOString(),
+    finalApprovedAt: finalApprovalStatus === "APPROVED" ? new Date(new Date(input.scheduledDate).setDate(new Date(input.scheduledDate).getDate() - 2)).toISOString() : null,
+    finalApprovedBy: finalApprovalStatus === "APPROVED" ? "Amina Bello" : null,
+    paymentInitiatedAt: executionStatus === "PROCESSING" || executionStatus === "COMPLETED" ? new Date(new Date(input.scheduledDate).setDate(new Date(input.scheduledDate).getDate() - 1)).toISOString() : null,
+    paymentInitiatedBy: executionStatus === "PROCESSING" || executionStatus === "COMPLETED" ? "Tunde Afolabi" : null,
     programStatus: program.status,
     organizationType: program.organizationType,
     organizationStatus: program.organizationStatus,

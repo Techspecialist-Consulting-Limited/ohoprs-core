@@ -1,12 +1,13 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { distributionsData } from "@/mock/distributions.mock";
-import { programsData } from "@/mock/programs.mock";
+import { programService } from "@/services/program.service";
 import type { ApiResponse } from "@/types/api";
 import type {
   Distribution,
   DistributionApprovalStatus,
   DistributionDetails,
   DistributionExecutionStatus,
+  DistributionFinalApprovalStatus,
   DistributionListParams,
   DistributionListResponse,
   DistributionMethod,
@@ -22,7 +23,7 @@ import type { ProgramDetails } from "@/types/program";
 let distributionStore = [...distributionsData];
 
 function getProgram(id: string) {
-  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+  return programService.getProgramSnapshot(id) ?? undefined;
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
@@ -204,10 +205,10 @@ function buildApprovalHistory(
   if (approvalStatus === "APPROVED") {
     history.push({
       id: `${id}_approval_approved`,
-      label: "Approved",
+      label: "Agency approved",
       actor: "Amina Bello",
       timestamp: decidedAt.toISOString(),
-      note: "Approval gate cleared for payment execution.",
+      note: "Agency approval workflow completed.",
     });
   }
 
@@ -283,11 +284,16 @@ function toDistributionDetails(input: {
   createdBy: string;
   status: DistributionStatus;
   approvalStatus: DistributionApprovalStatus;
+  finalApprovalStatus: DistributionFinalApprovalStatus;
   executionStatus: DistributionExecutionStatus;
   scheduledDate: string;
   createdAt: string;
   updatedAt: string;
   rejectionReason?: string;
+  finalApprovedAt?: string | null;
+  finalApprovedBy?: string | null;
+  paymentInitiatedAt?: string | null;
+  paymentInitiatedBy?: string | null;
 }): DistributionDetails {
   const { program } = input;
   const phaseType = getPhaseType(program);
@@ -340,6 +346,7 @@ function toDistributionDetails(input: {
     quantity,
     status: input.status,
     approvalStatus: derivedApprovalStatus ?? input.approvalStatus,
+    finalApprovalStatus: input.finalApprovalStatus,
     executionStatus: input.executionStatus,
     distributionApprovalSteps,
     scheduledDate: input.scheduledDate,
@@ -347,6 +354,10 @@ function toDistributionDetails(input: {
     createdBy: input.createdBy,
     createdAt: input.createdAt,
     updatedAt: input.updatedAt,
+    finalApprovedAt: input.finalApprovedAt ?? null,
+    finalApprovedBy: input.finalApprovedBy ?? null,
+    paymentInitiatedAt: input.paymentInitiatedAt ?? null,
+    paymentInitiatedBy: input.paymentInitiatedBy ?? null,
     programStatus: program.status,
     organizationType: program.organizationType,
     organizationStatus: program.organizationStatus,
@@ -541,6 +552,7 @@ export const distributionService = {
       createdBy,
       status: "SCHEDULED",
       approvalStatus: "SUBMITTED",
+      finalApprovalStatus: "PENDING",
       executionStatus: "NOT_STARTED",
       scheduledDate: timestamp,
       createdAt: timestamp,
@@ -608,11 +620,16 @@ export const distributionService = {
         createdBy: item.createdBy,
         status: item.status,
         approvalStatus: item.approvalStatus,
+        finalApprovalStatus: item.finalApprovalStatus,
         executionStatus: item.executionStatus,
         scheduledDate: item.scheduledDate,
         createdAt: item.createdAt,
         updatedAt: new Date().toISOString(),
         rejectionReason: item.rejectionReason,
+        finalApprovedAt: item.finalApprovedAt,
+        finalApprovedBy: item.finalApprovedBy,
+        paymentInitiatedAt: item.paymentInitiatedAt,
+        paymentInitiatedBy: item.paymentInitiatedBy,
       });
 
       return updated;
@@ -777,13 +794,16 @@ export const distributionService = {
         ...item,
         distributionApprovalSteps: nextSteps,
         approvalStatus,
+        finalApprovalStatus: params.approve ? item.finalApprovalStatus : "REJECTED",
         executionStatus: params.approve ? item.executionStatus : "NOT_STARTED",
         rejectionReason: params.approve ? undefined : params.reason,
         updatedAt: timestamp,
+        finalApprovedAt: params.approve ? item.finalApprovedAt : null,
+        finalApprovedBy: params.approve ? item.finalApprovedBy : null,
         approvalHistory: [
           {
             id: `${id}_${params.approve ? "approved" : "rejected"}_${Date.now()}`,
-            label: params.approve ? "Approved" : "Rejected",
+            label: params.approve ? "Agency approved" : "Agency rejected",
             actor: params.actorName,
             timestamp,
             note: params.approve
@@ -793,6 +813,128 @@ export const distributionService = {
           ...item.approvalHistory,
         ],
       };
+
+      return updated ?? item;
+    });
+
+    return updated;
+  },
+
+  approveDistributionFinalReview(id: string, actorName: string) {
+    let updated: DistributionDetails | null = null;
+
+    distributionStore = distributionStore.map((item) => {
+      if (item.id !== id || item.approvalStatus !== "APPROVED" || item.finalApprovalStatus !== "PENDING") {
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      updated = {
+        ...item,
+        finalApprovalStatus: "APPROVED",
+        finalApprovedAt: timestamp,
+        finalApprovedBy: actorName,
+        updatedAt: timestamp,
+        approvalHistory: [
+          {
+            id: `${id}_final_approved_${Date.now()}`,
+            label: "Final super admin approval",
+            actor: actorName,
+            timestamp,
+            note: "Final governance approval completed. Distribution is ready for agency payment initiation.",
+          },
+          ...item.approvalHistory,
+        ],
+        recentActivities: [
+          {
+            id: `${id}_activity_final_approval_${Date.now()}`,
+            actor: actorName,
+            action: "Completed final super admin approval",
+            timestamp,
+          },
+          ...item.recentActivities,
+        ],
+      };
+
+      return updated ?? item;
+    });
+
+    return updated;
+  },
+
+  rejectDistributionFinalReview(id: string, actorName: string, reason: string) {
+    let updated: DistributionDetails | null = null;
+
+    distributionStore = distributionStore.map((item) => {
+      if (item.id !== id || item.approvalStatus !== "APPROVED" || item.finalApprovalStatus !== "PENDING") {
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      updated = {
+        ...item,
+        finalApprovalStatus: "REJECTED",
+        rejectionReason: reason,
+        updatedAt: timestamp,
+        approvalHistory: [
+          {
+            id: `${id}_final_rejected_${Date.now()}`,
+            label: "Final super admin rejection",
+            actor: actorName,
+            timestamp,
+            note: reason,
+          },
+          ...item.approvalHistory,
+        ],
+        recentActivities: [
+          {
+            id: `${id}_activity_final_rejection_${Date.now()}`,
+            actor: actorName,
+            action: "Rejected final super admin approval",
+            timestamp,
+          },
+          ...item.recentActivities,
+        ],
+      };
+
+      return updated ?? item;
+    });
+
+    return updated;
+  },
+
+  initiateDistributionPayment(id: string, actorName: string) {
+    let updated: DistributionDetails | null = null;
+
+    distributionStore = distributionStore.map((item) => {
+      if (
+        item.id !== id ||
+        item.approvalStatus !== "APPROVED" ||
+        item.finalApprovalStatus !== "APPROVED" ||
+        item.executionStatus !== "NOT_STARTED"
+      ) {
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      updated = {
+        ...item,
+        status: "PROCESSING",
+        executionStatus: "PROCESSING",
+        paymentInitiatedAt: timestamp,
+        paymentInitiatedBy: actorName,
+        updatedAt: timestamp,
+        recentActivities: [
+          {
+            id: `${id}_activity_payment_${Date.now()}`,
+            actor: actorName,
+            action: "Initiated batch payment",
+            timestamp,
+          },
+          ...item.recentActivities,
+        ],
+      };
+      updated.timeline = buildTimeline(updated.id, updated.status, updated.scheduledDate, updated.createdBy);
 
       return updated ?? item;
     });

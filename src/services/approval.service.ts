@@ -15,6 +15,7 @@ function approvalDetailsForDistribution(distributionId: string): DistributionApp
   return {
     distributionId: distribution.id,
     approvalStatus: distribution.approvalStatus,
+    finalApprovalStatus: distribution.finalApprovalStatus,
     executionStatus: distribution.executionStatus,
     validationSummary: distribution.validationSummary,
     approvalSteps: distribution.distributionApprovalSteps,
@@ -189,6 +190,90 @@ export const approvalService = {
     return Promise.resolve({
       success: true,
       message: `Distribution rejected at Step ${currentStep.order}.`,
+      data: syncApprovalCache(distributionId),
+    });
+  },
+
+  async approveDistributionFinalReview(distributionId: string, actor: AuthUser): Promise<ApiResponse<DistributionApprovalDetails | null>> {
+    const distribution = distributionService.getDistributionSnapshot(distributionId);
+
+    if (!distribution) {
+      return Promise.resolve({ success: false, message: "Distribution not found", data: null });
+    }
+
+    if (actor.role !== "SUPER_ADMIN") {
+      return Promise.resolve({ success: false, message: "Only super admin can complete final distribution approval.", data: null });
+    }
+
+    if (distribution.approvalStatus !== "APPROVED" || distribution.finalApprovalStatus !== "PENDING") {
+      return Promise.resolve({ success: false, message: "This distribution is not awaiting final approval.", data: null });
+    }
+
+    distributionService.approveDistributionFinalReview(distributionId, actor.name);
+
+    appendWorkflowAudit({
+      actor,
+      action: "APPROVE",
+      description: "Final distribution approval completed",
+      distributionId,
+      distributionName: distribution.name,
+      organizationId: distribution.organizationId,
+      organizationName: distribution.organizationName,
+      metadata: {
+        finalApprovalStatus: "APPROVED",
+        approvalStatus: distribution.approvalStatus,
+      },
+    });
+
+    return Promise.resolve({
+      success: true,
+      message: "Final super admin approval completed. Agency accountant can now proceed with payment.",
+      data: syncApprovalCache(distributionId),
+    });
+  },
+
+  async rejectDistributionFinalReview(
+    distributionId: string,
+    reason: string,
+    actor: AuthUser,
+  ): Promise<ApiResponse<DistributionApprovalDetails | null>> {
+    const distribution = distributionService.getDistributionSnapshot(distributionId);
+
+    if (!distribution) {
+      return Promise.resolve({ success: false, message: "Distribution not found", data: null });
+    }
+
+    if (actor.role !== "SUPER_ADMIN") {
+      return Promise.resolve({ success: false, message: "Only super admin can reject final distribution approval.", data: null });
+    }
+
+    if (!reason.trim()) {
+      return Promise.resolve({ success: false, message: "Rejection reason is required", data: null });
+    }
+
+    if (distribution.approvalStatus !== "APPROVED" || distribution.finalApprovalStatus !== "PENDING") {
+      return Promise.resolve({ success: false, message: "This distribution is not awaiting final approval.", data: null });
+    }
+
+    distributionService.rejectDistributionFinalReview(distributionId, actor.name, reason.trim());
+
+    appendWorkflowAudit({
+      actor,
+      action: "CANCEL",
+      description: "Final distribution approval rejected",
+      distributionId,
+      distributionName: distribution.name,
+      organizationId: distribution.organizationId,
+      organizationName: distribution.organizationName,
+      metadata: {
+        finalApprovalStatus: "REJECTED",
+        rejectionReason: reason.trim(),
+      },
+    });
+
+    return Promise.resolve({
+      success: true,
+      message: "Final super admin approval rejected.",
       data: syncApprovalCache(distributionId),
     });
   },

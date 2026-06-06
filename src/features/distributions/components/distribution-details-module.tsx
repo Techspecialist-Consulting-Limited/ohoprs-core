@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { formatCurrency, formatDateTime, formatNumber } from "@/lib/formatters";
+import { getRoleLabel } from "@/lib/role-labels";
 import { distributionService } from "@/services/distribution.service";
 import { useAuthStore } from "@/store/auth.store";
 import { DistributionActivityFeed } from "@/features/distributions/components/distribution-activity-feed";
@@ -90,6 +91,9 @@ export function DistributionDetailsModule({ id }: { id: string }) {
                 Approval: {distribution.approvalStatus.replaceAll("_", " ")}
               </span>
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">
+                Final approval: {distribution.finalApprovalStatus.replaceAll("_", " ")}
+              </span>
+              <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">
                 Execution: {distribution.executionStatus.replaceAll("_", " ")}
               </span>
               <span className="rounded-full border border-border px-3 py-1 text-sm text-muted">{distribution.programName}</span>
@@ -157,7 +161,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
           {distribution.distributionApprovalSteps.map((step) => (
             <div key={step.id} className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Step {step.order}</p>
-              <p className="mt-2 text-base font-semibold text-foreground">{step.role.replaceAll("_", " ")}</p>
+              <p className="mt-2 text-base font-semibold text-foreground">{getRoleLabel(step.role)}</p>
               <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
               <p className="mt-2 text-sm text-foreground">
                 {step.status === "APPROVED"
@@ -168,6 +172,15 @@ export function DistributionDetailsModule({ id }: { id: string }) {
               </p>
             </div>
           ))}
+        </div>
+        <div className="mt-5 rounded-3xl border border-border bg-surface-muted px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Final Super Admin Approval</p>
+          <p className="mt-2 text-base font-semibold text-foreground">{distribution.finalApprovalStatus.replaceAll("_", " ")}</p>
+          <p className="mt-1 text-sm text-muted">
+            {distribution.finalApprovedBy
+              ? `${distribution.finalApprovedBy} • ${formatDateTime(distribution.finalApprovedAt ?? "")}`
+              : "Awaiting final governance approval."}
+          </p>
         </div>
         <div className="mt-5 space-y-4">
           {distribution.approvalHistory.map((entry) => (
