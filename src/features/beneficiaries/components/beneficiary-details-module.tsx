@@ -6,8 +6,10 @@ import { PermissionDeniedState } from "@/components/shared/permission-denied-sta
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
+import { hasPermission } from "@/lib/rbac";
 import { beneficiaryService } from "@/services/beneficiary.service";
 import { useAuthStore } from "@/store/auth.store";
+import type { UserRole } from "@/types/auth";
 import { BenefitTimeline } from "@/features/beneficiaries/components/benefit-timeline";
 import { Beneficiary360Header } from "@/features/beneficiaries/components/beneficiary-360-header";
 import { BeneficiaryAuditPreview } from "@/features/beneficiaries/components/beneficiary-audit-preview";
@@ -19,17 +21,12 @@ import { BeneficiaryProgramEnrollmentPreview } from "@/features/beneficiaries/co
 import { ProgramBenefitBreakdown } from "@/features/beneficiaries/components/program-benefit-breakdown";
 import { VerificationRiskSummary } from "@/features/beneficiaries/components/verification-risk-summary";
 
-function canAccessBeneficiary(role: string | null, organizationId: string, userOrganizationId: string | null | undefined) {
-  if (role === "SUPER_ADMIN" || role === "AUDITOR") {
-    return true;
-  }
-
-  return userOrganizationId === organizationId;
+function canAccessBeneficiary(role: UserRole | null) {
+  return role ? hasPermission(role, "view_beneficiaries") : false;
 }
 
 export function BeneficiaryDetailsModule({ id }: { id: string }) {
   const role = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
 
   const beneficiaryQuery = useQuery({
     queryKey: ["beneficiary", id],
@@ -57,18 +54,18 @@ export function BeneficiaryDetailsModule({ id }: { id: string }) {
     );
   }
 
-  if (!canAccessBeneficiary(role, beneficiary.organizationId, user?.organizationId)) {
+  if (!canAccessBeneficiary(role)) {
     return (
       <PageContainer>
         <PermissionDeniedState
           title="Beneficiary access denied"
-          description="Your role cannot access this beneficiary because the record belongs to another organization."
+          description="Your role cannot access the central beneficiary registry."
         />
       </PageContainer>
     );
   }
 
-  const canEdit = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER";
+  const canEdit = role ? hasPermission(role, "edit_beneficiaries") : false;
 
   return (
     <PageContainer>

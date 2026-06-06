@@ -66,7 +66,7 @@ export function BeneficiaryForm({
   });
 
   const scopedPrograms = programsData.filter((program) =>
-    selectedOrganizationId ? program.organizationId === selectedOrganizationId : true,
+    selectedOrganizationId ? program.organizationId === selectedOrganizationId : false,
   );
 
   const mutation = useMutation({
@@ -162,10 +162,10 @@ export function BeneficiaryForm({
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
-        <Field label="Organization" error={form.formState.errors.organizationId?.message}>
+        <Field label="Agency Benefited From" error={form.formState.errors.organizationId?.message}>
           {canChooseOrganization ? (
             <select {...form.register("organizationId")} className={inputClassName} disabled={Boolean(isProgramOfficerEditing)}>
-              <option value="">Select organization</option>
+              <option value="">Select agency</option>
               {organizationsData.map((organization) => (
                 <option key={organization.id} value={organization.id}>
                   {organization.name}
@@ -174,7 +174,7 @@ export function BeneficiaryForm({
             </select>
           ) : (
             <div className="flex h-12 items-center rounded-2xl border border-border bg-surface-muted px-4 text-sm text-foreground">
-              {organizationsData.find((organization) => organization.id === selectedOrganizationId)?.name ?? "Assigned organization"}
+              {organizationsData.find((organization) => organization.id === selectedOrganizationId)?.name ?? "System-managed beneficiary"}
             </div>
           )}
         </Field>
@@ -203,6 +203,7 @@ export function BeneficiaryForm({
           className="focus-ring min-h-40 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground"
           disabled={Boolean(isProgramOfficerEditing)}
         >
+          {!selectedOrganizationId ? <option value="" disabled>Select an agency first</option> : null}
           {scopedPrograms.map((program) => (
             <option key={program.id} value={program.id}>
               {program.name}

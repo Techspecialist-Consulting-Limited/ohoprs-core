@@ -15,7 +15,7 @@ export function ProgramBenefitBreakdown({ items }: { items: ProgramBenefitBreakd
               <div>
                 <p className="text-base font-semibold text-foreground">{item.programName}</p>
                 <p className="mt-1 text-sm text-muted">
-                  {item.benefitType} • {item.organizationName}
+                  {item.benefitType} • {item.organizationName} agency record
                 </p>
               </div>
               <span className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted">

@@ -42,9 +42,6 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
   ORG_ADMIN: [
     "view_organizations",
     "view_programs",
-    "create_beneficiaries",
-    "edit_beneficiaries",
-    "upload_beneficiaries",
     "view_beneficiaries",
     "create_distribution",
     "edit_distribution",
@@ -55,8 +52,6 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
   ],
   PROGRAM_OFFICER: [
     "view_programs",
-    "edit_beneficiaries",
-    "upload_beneficiaries",
     "view_beneficiaries",
     "create_distribution",
     "edit_distribution",

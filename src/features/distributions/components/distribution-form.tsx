@@ -112,7 +112,6 @@ export function DistributionForm({
 
     return beneficiariesData
       .filter((item) => item.organizationId === selectedProgram.organizationId)
-      .filter((item) => item.programIds.includes(selectedProgram.id))
       .filter((item) => selectedStates.includes(item.state))
       .map((item, index) => ({
         id: item.id,

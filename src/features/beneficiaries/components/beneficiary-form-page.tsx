@@ -14,7 +14,6 @@ import { BeneficiaryForm } from "@/features/beneficiaries/components/beneficiary
 
 export function BeneficiaryCreateModule() {
   const role = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
 
   if (!role || !hasPermission(role, "create_beneficiaries")) {
     return (
@@ -31,12 +30,11 @@ export function BeneficiaryCreateModule() {
     <PageContainer>
       <PageHeader
         title="Create beneficiary"
-        description="Register a beneficiary record within the correct organization and intervention scope."
+        description="Register a beneficiary in the central system pool and tag the agency currently benefiting from the record."
       />
       <BeneficiaryForm
         mode="create"
-        canChooseOrganization={false}
-        defaultOrganizationId={user?.organizationId ?? undefined}
+        canChooseOrganization
       />
     </PageContainer>
   );
@@ -82,29 +80,17 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
     );
   }
 
-  if ((role === "ORG_ADMIN" || role === "PROGRAM_OFFICER") && user?.organizationId !== beneficiary.organizationId) {
-    return (
-      <PageContainer>
-        <PermissionDeniedState
-          title="Beneficiary edit denied"
-          description="You can only edit beneficiaries within your own organization."
-        />
-      </PageContainer>
-    );
-  }
-
   return (
     <PageContainer>
       <PageHeader
         title={`Edit ${beneficiary.fullName}`}
-        description="Update beneficiary contact, location, verification, and benefit status information."
+        description="Update a central beneficiary record and its current agency benefit context."
       />
       <BeneficiaryForm
         mode="edit"
         beneficiaryId={beneficiary.id}
-        canChooseOrganization={false}
+        canChooseOrganization
         defaultOrganizationId={beneficiary.organizationId}
-        isProgramOfficerEditing={role === "PROGRAM_OFFICER"}
         initialValues={{
           firstName: beneficiary.firstName,
           lastName: beneficiary.lastName,

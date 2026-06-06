@@ -38,17 +38,12 @@ export const beneficiaryService = {
       organizationId = "ALL",
       page = 1,
       programId = "ALL",
-      scopeOrganizationId = null,
       search = "",
       state = "ALL",
       verificationStatus = "ALL",
     } = params;
 
     let filtered = [...beneficiaryStore];
-
-    if (scopeOrganizationId) {
-      filtered = filtered.filter((item) => item.organizationId === scopeOrganizationId);
-    }
 
     if (organizationId !== "ALL") {
       filtered = filtered.filter((item) => item.organizationId === organizationId);
@@ -129,7 +124,7 @@ export const beneficiaryService = {
     if (!organization) {
       return Promise.resolve({
         success: false,
-        message: "Organization not found",
+        message: "Agency not found",
         data: null,
       });
     }
@@ -223,7 +218,7 @@ export const beneficiaryService = {
     if (!organization) {
       return Promise.resolve({
         success: false,
-        message: "Organization not found",
+        message: "Agency not found",
         data: null,
       });
     }

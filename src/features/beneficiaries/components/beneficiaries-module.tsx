@@ -19,9 +19,7 @@ import { BeneficiaryFilters } from "@/features/beneficiaries/components/benefici
 import { BeneficiaryTable } from "@/features/beneficiaries/components/beneficiary-table";
 
 export function BeneficiariesModule() {
-  const currentTenant = useAuthStore((state) => state.currentTenant);
   const role = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
   const [filters, setFilters] = useState<{
     search: string;
     organizationId: string | "ALL";
@@ -40,21 +38,14 @@ export function BeneficiariesModule() {
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(filters.search);
 
-  const scopeOrganizationId =
-    role === "ORG_ADMIN" || role === "PROGRAM_OFFICER"
-      ? user?.organizationId ?? organizationsData.find((organization) => organization.shortName === currentTenant?.shortCode)?.id ?? null
-      : null;
-
-  const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
+  const showOrganizationFilter = true;
   const canCreate = role ? hasPermission(role, "create_beneficiaries") : false;
   const canUpload = role ? hasPermission(role, "upload_beneficiaries") : false;
   const canEdit = role ? hasPermission(role, "edit_beneficiaries") : false;
-  const scopedPrograms = showOrganizationFilter
-    ? programsData
-    : programsData.filter((program) => program.organizationId === scopeOrganizationId);
+  const scopedPrograms = programsData;
 
   const beneficiaryQuery = useQuery({
-    queryKey: ["beneficiaries", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
+    queryKey: ["beneficiaries", page, { ...filters, search: debouncedSearch }, role],
     queryFn: () =>
       beneficiaryService.getBeneficiaries({
         page,
@@ -65,7 +56,6 @@ export function BeneficiariesModule() {
         state: filters.state,
         verificationStatus: filters.verificationStatus,
         benefitStatus: filters.benefitStatus,
-        scopeOrganizationId,
       }),
     placeholderData: (previousData) => previousData,
   });
@@ -96,15 +86,12 @@ export function BeneficiariesModule() {
     <PageContainer>
       <PageHeader
         title="Beneficiary management"
-        description="Manage beneficiary records, enrollment previews, verification state, and upload preparation across organization scopes."
+        description="Manage the central beneficiary pool, enrollment previews, verification state, and agency benefit context."
       />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl text-sm text-muted">
-          {showOrganizationFilter
-            ? "Review beneficiaries across organizations, interventions, and verification states."
-            : "You are viewing beneficiaries scoped to your organization."
-          }
+          Review system-owned beneficiaries across agencies, interventions, and verification states.
         </div>
         {canCreate || canUpload ? (
           <div className="flex flex-wrap gap-3">
@@ -150,7 +137,7 @@ export function BeneficiariesModule() {
       ) : (
         <EmptyState
           title="No beneficiaries match your filters"
-          description="Adjust the filters or create a beneficiary to populate this module."
+          description="Adjust the filters or upload a beneficiary record to populate this module."
         />
       )}
     </PageContainer>

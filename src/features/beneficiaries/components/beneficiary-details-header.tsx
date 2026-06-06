@@ -29,7 +29,7 @@ export function BeneficiaryDetailsHeader({
               </span>
             ) : null}
           </div>
-          <p className="mt-3 text-sm text-muted">Beneficiary details, organization links, enrollment preview, and basic benefit summary.</p>
+          <p className="mt-3 text-sm text-muted">Beneficiary details, agency benefit history, enrollment preview, and basic benefit summary.</p>
         </div>
 
         {canEdit ? (

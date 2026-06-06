@@ -232,8 +232,6 @@ function buildRecipients(
   const isCash = program.benefitType === "CASH";
 
   return beneficiariesData
-    .filter((item) => item.organizationId === program.organizationId)
-    .filter((item) => item.programIds.includes(program.id))
     .filter((item) => states.includes(item.state))
     .filter((item) => beneficiaryIds.includes(item.id))
     .map((item, index) => ({
@@ -521,8 +519,6 @@ export const distributionService = {
     }
 
     const eligibleBeneficiaries = beneficiariesData
-      .filter((item) => item.organizationId === program.organizationId)
-      .filter((item) => item.programIds.includes(program.id))
       .filter((item) => payload.states.includes(item.state))
       .filter((item) => payload.beneficiaryIds.includes(item.id));
 
@@ -592,8 +588,6 @@ export const distributionService = {
     }
 
     const eligibleBeneficiaries = beneficiariesData
-      .filter((item) => item.organizationId === program.organizationId)
-      .filter((item) => item.programIds.includes(program.id))
       .filter((item) => payload.states.includes(item.state))
       .filter((item) => payload.beneficiaryIds.includes(item.id));
 

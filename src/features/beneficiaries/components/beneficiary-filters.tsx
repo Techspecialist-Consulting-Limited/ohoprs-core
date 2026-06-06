@@ -38,7 +38,7 @@ export function BeneficiaryFilters({
         <input
           value={value.search}
           onChange={(event) => onChange({ ...value, search: event.target.value })}
-          placeholder="Search by name, NIN, phone, or organization"
+          placeholder="Search by name, NIN, phone, or agency"
           className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-soft"
         />
       </label>
@@ -50,7 +50,7 @@ export function BeneficiaryFilters({
             onChange={(event) => onChange({ ...value, organizationId: event.target.value })}
             className="w-full bg-transparent text-sm text-foreground outline-none"
           >
-            <option value="ALL">All organizations</option>
+            <option value="ALL">All agencies</option>
             {organizations.map((organization) => (
               <option key={organization.id} value={organization.id}>
                 {organization.name}

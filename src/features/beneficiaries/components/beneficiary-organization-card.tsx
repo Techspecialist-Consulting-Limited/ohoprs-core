@@ -5,9 +5,9 @@ import type { Beneficiary360Details } from "@/types/beneficiary";
 export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Beneficiary360Details }) {
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
-      <p className="text-sm font-semibold text-foreground">Organization and enrollment</p>
+      <p className="text-sm font-semibold text-foreground">Agency usage and enrollment</p>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <Info label="Organization" value={beneficiary.organizationName} />
+        <Info label="Agency Benefited From" value={beneficiary.organizationName} />
         <Info label="State" value={beneficiary.state} />
         <Info label="LGA" value={beneficiary.lga} />
         <Info label="Address" value={beneficiary.address} />
@@ -24,10 +24,10 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
         <Link href={`/organizations/${beneficiary.organizationId}`} className="text-sm font-medium text-accent hover:underline">
-          View Organization
+          View Agency
         </Link>
         <Link href={`/organizations/${beneficiary.organizationId}/workspace`} className="text-sm font-medium text-accent hover:underline">
-          Open Workspace
+          Open Agency Workspace
         </Link>
       </div>
     </div>

@@ -24,7 +24,7 @@ export const beneficiarySchema = z.object({
   state: z.string().min(2, "State is required"),
   lga: z.string().min(2, "LGA is required"),
   address: z.string().min(5, "Address is required"),
-  organizationId: z.string().min(1, "Organization is required"),
+  organizationId: z.string().min(1, "Agency is required"),
   programIds: z.array(z.string()).min(1, "Select at least one program"),
   verificationStatus: z.enum(verificationStatuses),
   benefitStatus: z.enum(benefitStatuses),

@@ -29,7 +29,7 @@ export function BeneficiaryTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Full Name", "NIN", "Phone", "Gender", "State", "LGA", "Organization", "Interventions", "Verification Status", "Benefit Status", "Created Date", "Actions"].map((label) => (
+              {["Full Name", "NIN", "Phone", "Gender", "State", "LGA", "Agency Benefited From", "Interventions", "Verification Status", "Benefit Status", "Created Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
