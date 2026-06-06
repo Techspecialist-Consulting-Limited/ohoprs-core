@@ -182,12 +182,12 @@ export const workspaceQuickActionsByRole: Record<UserRole, { id: string; label: 
   ORG_ADMIN: [
     { id: "ws_qa_005", label: "Create Program", href: "/programs" },
     { id: "ws_qa_006", label: "Upload Beneficiaries", href: "/beneficiaries" },
-    { id: "ws_qa_007", label: "Create Benefit Distribution", href: "/distributions" },
+    { id: "ws_qa_007", label: "Create benefit distribution", href: "/distributions" },
     { id: "ws_qa_008", label: "View Reports", href: "/reports" },
   ],
   PROGRAM_OFFICER: [
     { id: "ws_qa_009", label: "Upload Beneficiaries", href: "/beneficiaries" },
-    { id: "ws_qa_010", label: "Create Benefit Distribution", href: "/distributions" },
+    { id: "ws_qa_010", label: "Create benefit distribution", href: "/distributions" },
     { id: "ws_qa_011", label: "View Distribution History", href: "/distributions" },
   ],
   AUDITOR: [
