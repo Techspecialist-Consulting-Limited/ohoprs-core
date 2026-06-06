@@ -40,10 +40,6 @@ export function SettingsDashboardModule() {
     queryFn: () => settingsService.getSettingsCards(role!),
   });
 
-  if (role === "PROGRAM_OFFICER") {
-    return deny("Settings access denied", "Program Officers do not have access to platform settings.");
-  }
-
   if (cardsQuery.isLoading) {
     return <PageContainer><LoadingState title="Loading settings dashboard" lines={6} /></PageContainer>;
   }
@@ -60,32 +56,45 @@ export function SettingsDashboardModule() {
 export function SettingsProfileModule() {
   const role = useAuthStore((state) => state.role);
   const organizationId = useAuthStore((state) => state.organizationId);
+  const user = useAuthStore((state) => state.user);
+  const currentTenant = useAuthStore((state) => state.currentTenant);
   const profileQuery = useQuery({
     queryKey: ["settings-profile", role, organizationId],
     queryFn: () => settingsService.getProfileSettings(role!, organizationId),
     enabled: role === "SUPER_ADMIN" || role === "ORG_ADMIN",
   });
 
-  if (role === "PROGRAM_OFFICER" || role === "AUDITOR") {
-    return deny("Profile settings denied", "Your role cannot access profile settings.");
+  if (!role || !user) {
+    return deny("Profile settings unavailable", "Your current session could not load profile settings.");
   }
 
-  if (profileQuery.isLoading) {
+  if ((role === "SUPER_ADMIN" || role === "ORG_ADMIN") && profileQuery.isLoading) {
     return <PageContainer><LoadingState title="Loading profile settings" lines={5} /></PageContainer>;
   }
 
   const data = profileQuery.data?.data;
-  if (!data) {
+  if ((role === "SUPER_ADMIN" || role === "ORG_ADMIN") && !data) {
     return <PageContainer><EmptyState title="Profile settings unavailable" description="Profile settings could not be loaded." /></PageContainer>;
   }
 
   return (
     <PageContainer>
-      <PageHeader title="Profile Settings" description={role === "SUPER_ADMIN" ? "Manage the platform profile and support configuration." : "Manage your organization profile and contact details."} />
+      <PageHeader title="Profile Settings" description={role === "SUPER_ADMIN" ? "Manage the platform profile and support configuration." : role === "ORG_ADMIN" ? "Manage your agency profile and contact details." : "Review your account profile and assigned access context."} />
       {role === "SUPER_ADMIN" ? (
         <PlatformProfileSettingsForm initialData={data as import("@/types/settings").PlatformProfileSettings} />
-      ) : (
+      ) : role === "ORG_ADMIN" ? (
         <OrganizationProfileSettingsForm organizationId={organizationId!} initialData={data as import("@/types/settings").OrganizationProfileSettings} />
+      ) : (
+        <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+          <div className="grid gap-5 md:grid-cols-2">
+            <ReadOnlyField label="Full Name" value={user.name} />
+            <ReadOnlyField label="Email" value={user.email} />
+            <ReadOnlyField label="Role" value={user.role.replaceAll("_", " ")} />
+            <ReadOnlyField label="Scope" value={user.organizationId ? "Agency User" : "System User"} />
+            <ReadOnlyField label="Agency" value={user.organizationName ?? currentTenant?.name ?? "System-wide access"} />
+            <ReadOnlyField label="Tenant" value={currentTenant?.name ?? "Central deployment"} />
+          </div>
+        </section>
       )}
     </PageContainer>
   );
@@ -213,15 +222,26 @@ export function SettingsUsersModule() {
 export function SettingsRolesModule() {
   const role = useAuthStore((state) => state.role);
 
-  if (role === "PROGRAM_OFFICER" || role === "ORG_ADMIN") {
+  if (role !== "SUPER_ADMIN" && role !== "ORG_ADMIN") {
     return deny("Role settings denied", "Your role cannot access role and permission settings.");
   }
 
   return (
     <PageContainer>
-      <PageHeader title="Roles & Permissions" description="View all system roles, inspect permissions, and add custom roles for system or agency users." />
+      <PageHeader title="Roles & Permissions" description={role === "SUPER_ADMIN" ? "View all system roles, inspect permissions, and add custom roles for system or agency users." : "View agency roles, inspect permissions, and add custom roles for your agency scope."} />
       <RolePermissionMatrix />
     </PageContainer>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">{label}</p>
+      <div className="mt-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground">
+        {value?.trim() ? value : "Not provided"}
+      </div>
+    </div>
   );
 }
 

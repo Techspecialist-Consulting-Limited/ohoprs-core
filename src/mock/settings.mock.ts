@@ -170,6 +170,7 @@ export const superAdminSettingsCards: SettingsCardItem[] = [
 export const orgAdminSettingsCards: SettingsCardItem[] = [
   { id: "profile", title: "Agency Profile", description: "Manage agency identity, contact details, and address.", href: "/settings/profile" },
   { id: "users", title: "Users", description: "View and manage users within your agency.", href: "/settings/users" },
+  { id: "roles", title: "Roles & Permissions", description: "Inspect role permissions and create custom agency roles.", href: "/settings/roles" },
 ];
 
 export const auditorSettingsCards: SettingsCardItem[] = [

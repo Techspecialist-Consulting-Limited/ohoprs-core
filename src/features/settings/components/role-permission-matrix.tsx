@@ -26,6 +26,7 @@ const permissionLabels: Record<Permission, string> = {
   edit_distribution: "Edit Benefit Distributions",
   change_distribution_status: "Change Distribution Status",
   view_distributions: "View Benefit Distributions",
+  initiate_distribution_payment: "Initiate Distribution Payment",
   reverse_payment: "Reverse Payments",
   view_reports: "View Reports",
   view_audit_logs: "View Audit Logs",

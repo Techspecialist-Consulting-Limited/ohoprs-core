@@ -35,9 +35,7 @@ export const settingsService = {
         ? superAdminSettingsCards
         : role === "ORG_ADMIN"
           ? orgAdminSettingsCards
-          : role === "AUDITOR"
-            ? auditorSettingsCards
-            : [];
+          : [{ id: "profile", title: "Profile", description: "Review your account profile and assigned access context.", href: "/settings/profile" }];
 
     return Promise.resolve({
       success: true,

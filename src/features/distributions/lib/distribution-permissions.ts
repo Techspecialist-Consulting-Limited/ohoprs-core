@@ -4,6 +4,8 @@ import type {
   DistributionFinalApprovalStatus,
   DistributionExecutionStatus,
 } from "@/types/distribution";
+import { hasPermission } from "@/lib/rbac";
+import type { UserRole } from "@/types/auth";
 
 export function isDistributionEditLocked(
   approvalStatus: DistributionApprovalStatus,
@@ -58,7 +60,7 @@ export function canInitiateDistributionPayment(
   userOrganizationId: string | null | undefined,
 ) {
   return (
-    role === "AGENCY_ACCOUNTANT" &&
+    Boolean(role && hasPermission(role as UserRole, "initiate_distribution_payment")) &&
     userOrganizationId === distribution.organizationId &&
     distribution.approvalStatus === "APPROVED" &&
     distribution.finalApprovalStatus === "APPROVED" &&

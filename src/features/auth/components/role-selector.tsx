@@ -6,10 +6,10 @@ import type { UserRole } from "@/types/auth";
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
-  ORG_ADMIN: "Organization Admin",
+  ORG_ADMIN: "Agency Admin",
   PROGRAM_OFFICER: "Program Officer",
   AUDITOR: "Auditor",
-  ORGANIZATION_MANAGER: "Organization Manager",
+  ORGANIZATION_MANAGER: "Agency Manager",
   STORE_MANAGER: "Store Manager",
   DISTRIBUTION_MANAGER: "Distribution Manager",
   AGENCY_ACCOUNTANT: "Agency Accountant",

@@ -25,18 +25,7 @@ export function Sidebar({
   const pathname = usePathname();
   const currentTenant = useAuthStore((state) => state.currentTenant);
   const role = useAuthStore((state) => state.role);
-  const sidebarItems = navigationItems.flatMap((item) => {
-    if (role === "ORG_ADMIN" && item.href === "/organizations") {
-      return [{ ...item, href: "/settings/profile", label: "Profile" }];
-    }
-
-
-    if (role === "ORG_ADMIN" && item.href === "/settings") {
-      return [];
-    }
-
-    return [item];
-  });
+  const sidebarItems = navigationItems;
 
   return (
     <div className="flex h-full flex-col">

@@ -16,6 +16,7 @@ export const permissions = [
   "edit_distribution",
   "change_distribution_status",
   "view_distributions",
+  "initiate_distribution_payment",
   "reverse_payment",
   "view_reports",
   "view_audit_logs",
@@ -50,6 +51,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "edit_distribution",
     "change_distribution_status",
     "view_distributions",
+    "manage_settings",
     "reverse_payment",
     "view_reports",
   ],
@@ -91,6 +93,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "view_beneficiaries",
     "view_programs",
     "view_distributions",
+    "initiate_distribution_payment",
   ],
   SYSTEM_ACCOUNTANT: [
     "view_organizations",

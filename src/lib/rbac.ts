@@ -21,7 +21,10 @@ const routePermissionMap: Record<string, Permission | null> = {
   "/reports": "view_reports",
   "/audit-logs": "view_audit_logs",
   "/notifications": null,
-  "/settings": "manage_settings",
+  "/settings": null,
+  "/settings/profile": null,
+  "/settings/users": "manage_settings",
+  "/settings/roles": "manage_settings",
 };
 
 export function hasPermission(role: UserRole, permission: Permission) {
@@ -108,6 +111,22 @@ export function getRoutePermissionForPath(pathname: string) {
   }
 
   if (pathname.startsWith("/notifications/history")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/settings/profile")) {
+    return null;
+  }
+
+  if (pathname.startsWith("/settings/users")) {
+    return "manage_settings";
+  }
+
+  if (pathname.startsWith("/settings/roles")) {
+    return "manage_settings";
+  }
+
+  if (pathname.startsWith("/settings/")) {
     return null;
   }
 

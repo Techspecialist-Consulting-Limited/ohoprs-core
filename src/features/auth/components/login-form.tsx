@@ -22,10 +22,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const defaultRole: UserRole = "SUPER_ADMIN";
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
-  ORG_ADMIN: "Org Admin",
-  PROGRAM_OFFICER: "Program Admin",
+  ORG_ADMIN: "Agency Admin",
+  PROGRAM_OFFICER: "Program Officer",
   AUDITOR: "Auditor",
-  ORGANIZATION_MANAGER: "Organization Manager",
+  ORGANIZATION_MANAGER: "Agency Manager",
   STORE_MANAGER: "Store Manager",
   DISTRIBUTION_MANAGER: "Distribution Manager",
   AGENCY_ACCOUNTANT: "Agency Accountant",
