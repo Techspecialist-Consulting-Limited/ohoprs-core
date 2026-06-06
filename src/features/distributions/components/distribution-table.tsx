@@ -41,7 +41,7 @@ export function DistributionTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Trench / Batch", "Intervention", "Agency", "Benefit Type", "Beneficiaries", "Amount / Quantity", "Status", "Created By", "Created Date", "Actions"].map((label) => (
+              {["Trench / Batch", "Intervention", "Agency", "Benefit Type", "Approval", "Beneficiaries", "Amount / Quantity", "Status", "Created By", "Created Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -58,6 +58,9 @@ export function DistributionTable({
                 <td className="px-5 py-4 text-sm text-foreground">{item.programName}</td>
                 <td className="px-5 py-4 text-sm text-muted">{item.organizationName}</td>
                 <td className="px-5 py-4"><DistributionMethodBadge method={item.method} /></td>
+                <td className="px-5 py-4 text-sm text-foreground">
+                  <ApprovalProgressCell item={item} />
+                </td>
                 <td className="px-5 py-4 text-sm text-foreground">{formatNumber(item.beneficiaryCount)}</td>
                 <td className="px-5 py-4 text-sm text-foreground">{displayValue(item)}</td>
                 <td className="px-5 py-4"><DistributionStatusBadge status={item.status} /></td>
@@ -115,6 +118,21 @@ export function DistributionTable({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ApprovalProgressCell({ item }: { item: Distribution }) {
+  const completed = item.distributionApprovalSteps.filter((step) => step.status === "APPROVED").length;
+  const total = item.distributionApprovalSteps.length;
+  const currentStep = item.distributionApprovalSteps.find((step) => step.status === "PENDING") ?? null;
+
+  return (
+    <div>
+      <p className="font-medium text-foreground">{`${completed}/${total}`}</p>
+      <p className="mt-1 text-xs text-muted">
+        {currentStep ? `${currentStep.role.replaceAll("_", " ")} approval` : total > 0 ? "Fully approved" : "No approval steps"}
+      </p>
     </div>
   );
 }

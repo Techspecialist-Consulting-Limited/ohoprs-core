@@ -6,6 +6,7 @@ export const approvalDetailsData: DistributionApprovalDetails[] = distributionsD
   approvalStatus: distribution.approvalStatus,
   executionStatus: distribution.executionStatus,
   validationSummary: distribution.validationSummary,
+  approvalSteps: distribution.distributionApprovalSteps,
   approvalHistory: distribution.approvalHistory,
   rejectionReason: distribution.rejectionReason,
   isHighRisk: distribution.isHighRisk,

@@ -64,6 +64,15 @@ export const programApprovalStepSchema = z.object({
   rejectionReason: z.string().nullable().optional(),
 });
 
+export const distributionApprovalTemplateStepSchema = z.object({
+  id: z.string().min(1),
+  order: z.coerce.number().min(1),
+  role: z.enum(systemApprovalRoles),
+  assigneeUserId: z.string().min(1),
+  assigneeName: z.string().min(1),
+  assigneeEmail: z.string().email(),
+});
+
 export const programSchema = z
   .object({
     name: z.string().min(3, "Intervention name is required"),
@@ -84,6 +93,7 @@ export const programSchema = z
     fundingSources: z.array(programFundingSourceSchema).min(1, "Select at least one funding source."),
     status: z.enum(programStatuses),
     approvalSteps: z.array(programApprovalStepSchema).min(1, "Add at least one approval step."),
+    distributionApprovalSteps: z.array(distributionApprovalTemplateStepSchema).optional().default([]),
     createdByUserId: z.string().nullable().optional(),
   })
   .superRefine((values, ctx) => {

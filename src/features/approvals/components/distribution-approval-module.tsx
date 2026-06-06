@@ -52,16 +52,12 @@ export function DistributionApprovalModule({ id }: { id: string }) {
     return <PermissionDeniedState description="Your role cannot review approval workflows outside your organization scope." />;
   }
 
-  const canSubmit =
-    role === "PROGRAM_OFFICER" &&
-    user?.id === distribution.createdByUserId &&
-    approval.approvalStatus === "DRAFT";
-
+  const currentPendingStep = approval.approvalSteps.find((step) => step.status === "PENDING") ?? null;
+  const canSubmit = false;
   const canApprove =
-    approval.approvalStatus === "SUBMITTED" &&
-    role === "ORG_ADMIN" &&
-    user?.organizationId === distribution.organizationId &&
-    user.id !== distribution.createdByUserId;
+    approval.approvalStatus !== "APPROVED" &&
+    approval.approvalStatus !== "REJECTED" &&
+    currentPendingStep?.assigneeUserId === user?.id;
 
   const canReject = canApprove;
 
@@ -84,6 +80,21 @@ export function DistributionApprovalModule({ id }: { id: string }) {
 
       <ApprovalSummaryCard distribution={distribution} />
       <BeneficiaryValidationSummary summary={approval.validationSummary} isHighRisk={approval.isHighRisk} />
+      <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Agency approval steps</p>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {approval.approvalSteps.map((step) => (
+            <div key={step.id} className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Step {step.order}</p>
+              <p className="mt-2 text-base font-semibold text-foreground">{step.role.replaceAll("_", " ")}</p>
+              <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
+              <p className="mt-2 text-sm text-foreground">
+                {step.status === "APPROVED" ? `Approved ${step.approvedAt ? new Date(step.approvedAt).toLocaleString() : ""}` : step.status}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         {user ? (

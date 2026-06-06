@@ -17,6 +17,7 @@ function approvalDetailsForDistribution(distributionId: string): DistributionApp
     approvalStatus: distribution.approvalStatus,
     executionStatus: distribution.executionStatus,
     validationSummary: distribution.validationSummary,
+    approvalSteps: distribution.distributionApprovalSteps,
     approvalHistory: distribution.approvalHistory,
     rejectionReason: distribution.rejectionReason,
     isHighRisk: distribution.isHighRisk,
@@ -92,50 +93,9 @@ export const approvalService = {
   },
 
   async submitForApproval(distributionId: string, actor: AuthUser): Promise<ApiResponse<DistributionApprovalDetails | null>> {
-    const distribution = distributionService.getDistributionSnapshot(distributionId);
-
-    if (!distribution) {
-      return Promise.resolve({ success: false, message: "Distribution not found", data: null });
-    }
-
-    if (actor.role === "PROGRAM_OFFICER" && distribution.createdByUserId !== actor.id) {
-      return Promise.resolve({
-        success: false,
-        message: "You can only submit distributions you created.",
-        data: null,
-      });
-    }
-
-    const timestamp = new Date().toISOString();
-    distributionService.updateApprovalState(distributionId, {
-      approvalStatus: "SUBMITTED",
-      historyEntry: {
-        id: `${distributionId}_submitted_${Date.now()}`,
-        label: "Submitted for approval",
-        actor: actor.name,
-        timestamp,
-        note: "Distribution submitted for approval review.",
-      },
-    });
-
-    appendWorkflowAudit({
-      actor,
-      action: "UPDATE",
-      description: "Distribution submitted for approval",
-      distributionId,
-      distributionName: distribution.name,
-      organizationId: distribution.organizationId,
-      organizationName: distribution.organizationName,
-      metadata: {
-        approvalStatus: "SUBMITTED",
-        beneficiaryCount: distribution.beneficiaryCount,
-        estimatedTotalAmount: distribution.validationSummary.estimatedTotalAmount,
-      },
-    });
-
     return Promise.resolve({
-      success: true,
-      message: "Distribution submitted for approval",
+      success: false,
+      message: "Agency approval starts automatically when a distribution is created.",
       data: syncApprovalCache(distributionId),
     });
   },
@@ -147,32 +107,16 @@ export const approvalService = {
       return Promise.resolve({ success: false, message: "Distribution not found", data: null });
     }
 
-    if (actor.role !== "ORG_ADMIN") {
-      return Promise.resolve({ success: false, message: "Only Organization Admin can approve distributions", data: null });
-    }
-
     if (distribution.organizationId !== actor.organizationId) {
       return Promise.resolve({ success: false, message: "Approval access denied", data: null });
     }
-
-    if (distribution.createdByUserId === actor.id) {
-      return Promise.resolve({
-        success: false,
-        message: "You cannot approve a distribution you created.",
-        data: null,
-      });
+    const currentStep = distribution.distributionApprovalSteps.find((step) => step.status === "PENDING");
+    if (!currentStep || currentStep.assigneeUserId !== actor.id) {
+      return Promise.resolve({ success: false, message: "This approval step is assigned to another agency approver.", data: null });
     }
-
-    const timestamp = new Date().toISOString();
-    distributionService.updateApprovalState(distributionId, {
-      approvalStatus: "APPROVED",
-      historyEntry: {
-        id: `${distributionId}_approved_${Date.now()}`,
-        label: "Approved",
-        actor: actor.name,
-        timestamp,
-        note: distribution.isHighRisk ? "Approved as high-risk batch under supervisory review." : "Approved for payment execution.",
-      },
+    distributionService.updateDistributionApprovalDecision(distributionId, {
+      actorName: actor.name,
+      approve: true,
     });
 
     appendWorkflowAudit({
@@ -212,34 +156,17 @@ export const approvalService = {
       return Promise.resolve({ success: false, message: "Rejection reason is required", data: null });
     }
 
-    if (actor.role !== "ORG_ADMIN") {
-      return Promise.resolve({ success: false, message: "Only Organization Admin can reject distributions", data: null });
-    }
-
     if (distribution.organizationId !== actor.organizationId) {
       return Promise.resolve({ success: false, message: "Approval access denied", data: null });
     }
-
-    if (distribution.createdByUserId === actor.id) {
-      return Promise.resolve({
-        success: false,
-        message: "You cannot reject a distribution you created.",
-        data: null,
-      });
+    const currentStep = distribution.distributionApprovalSteps.find((step) => step.status === "PENDING");
+    if (!currentStep || currentStep.assigneeUserId !== actor.id) {
+      return Promise.resolve({ success: false, message: "This approval step is assigned to another agency approver.", data: null });
     }
-
-    const timestamp = new Date().toISOString();
-    distributionService.updateApprovalState(distributionId, {
-      approvalStatus: "REJECTED",
-      executionStatus: "NOT_STARTED",
-      rejectionReason: reason.trim(),
-      historyEntry: {
-        id: `${distributionId}_rejected_${Date.now()}`,
-        label: "Rejected",
-        actor: actor.name,
-        timestamp,
-        note: reason.trim(),
-      },
+    distributionService.updateDistributionApprovalDecision(distributionId, {
+      actorName: actor.name,
+      approve: false,
+      reason: reason.trim(),
     });
 
     appendWorkflowAudit({

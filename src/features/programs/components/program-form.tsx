@@ -224,6 +224,7 @@ export function ProgramForm({
         initialValues?.approvalSteps?.length
           ? initialValues.approvalSteps
           : [createApprovalStep("ORGANIZATION_MANAGER")],
+      distributionApprovalSteps: initialValues?.distributionApprovalSteps ?? [],
     },
   });
 
@@ -407,6 +408,10 @@ export function ProgramForm({
         order: index + 1,
         status: step.status ?? "PENDING",
         approvedAt: step.approvedAt ?? null,
+      })),
+      distributionApprovalSteps: (values.distributionApprovalSteps ?? []).map((step, index) => ({
+        ...step,
+        order: Number(step.order ?? index + 1),
       })),
       createdByUserId: values.createdByUserId ?? null,
     });

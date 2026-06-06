@@ -1,5 +1,6 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { programsData } from "@/mock/programs.mock";
+import { mockUsers } from "@/mock/auth.mock";
 import type {
   DistributionApprovalStatus,
   DistributionDetails,
@@ -20,7 +21,34 @@ const creatorDirectory = {
 } as const;
 
 function getProgram(id: string) {
-  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+  const program = programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+  if (!program) {
+    return undefined;
+  }
+
+  if (program.distributionApprovalSteps?.length) {
+    return program;
+  }
+
+  return {
+    ...program,
+    distributionApprovalSteps: seededDistributionApprovalSteps(),
+  };
+}
+
+function seededDistributionApprovalSteps() {
+  const roleOrder = ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DIRECTOR"] as const;
+  return roleOrder.map((role, index) => {
+    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
+    return {
+      id: `seed_distribution_approval_${role.toLowerCase()}`,
+      order: index + 1,
+      role,
+      assigneeUserId: assignee.id,
+      assigneeName: assignee.name,
+      assigneeEmail: assignee.email,
+    };
+  });
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
@@ -83,6 +111,36 @@ function buildRecipients(program: ProgramDetails, states: string[], count = 5): 
       accountNumber: isCash ? accountNumberForIndex(index) : undefined,
       deliveryStatus: index === 3 ? "PENDING" : index === 4 ? "FAILED" : "DELIVERED",
     }));
+}
+
+function buildDistributionApprovalSteps(program: ProgramDetails, approvalStatus: DistributionApprovalStatus) {
+  const template = program.distributionApprovalSteps ?? [];
+
+  if (approvalStatus === "APPROVED") {
+    return template.map((step, index) => ({
+      ...step,
+      id: `distribution_approval_${step.id}`,
+      status: "APPROVED" as const,
+      approvedAt: new Date(Date.now() - (template.length - index) * 3_600_000).toISOString(),
+    }));
+  }
+
+  if (approvalStatus === "REJECTED") {
+    return template.map((step, index) => ({
+      ...step,
+      id: `distribution_approval_${step.id}`,
+      status: index === 0 ? ("REJECTED" as const) : ("PENDING" as const),
+      approvedAt: null,
+      rejectionReason: index === 0 ? "Rejected during agency approval review." : undefined,
+    }));
+  }
+
+  return template.map((step, index) => ({
+    ...step,
+    id: `distribution_approval_${step.id}`,
+    status: index === 0 && approvalStatus === "SUBMITTED" ? ("PENDING" as const) : ("PENDING" as const),
+    approvedAt: null,
+  }));
 }
 
 function buildTimeline(
@@ -325,6 +383,7 @@ function createDistribution(input: {
     status: input.status,
     approvalStatus,
     executionStatus,
+    distributionApprovalSteps: buildDistributionApprovalSteps(program, approvalStatus),
     scheduledDate: input.scheduledDate,
     createdByUserId: input.createdByUserId,
     createdBy,

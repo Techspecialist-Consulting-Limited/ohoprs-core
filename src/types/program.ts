@@ -23,6 +23,13 @@ export type SystemApprovalRole =
   | "ACCOUNTANT"
   | "DIRECTOR";
 
+export type AgencyApprovalRole =
+  | "ORGANIZATION_MANAGER"
+  | "STORE_MANAGER"
+  | "DISTRIBUTION_MANAGER"
+  | "ACCOUNTANT"
+  | "DIRECTOR";
+
 export interface ProgramDuration {
   days: number;
   weeks: number;
@@ -47,6 +54,15 @@ export interface ProgramApprovalStep {
   status: "PENDING" | "APPROVED" | "REJECTED";
   approvedAt: string | null;
   rejectionReason?: string | null;
+}
+
+export interface DistributionApprovalTemplateStep {
+  id: string;
+  order: number;
+  role: AgencyApprovalRole;
+  assigneeUserId: string;
+  assigneeName: string;
+  assigneeEmail: string;
 }
 
 export interface ProgramApprovalHistoryItem {
@@ -81,6 +97,7 @@ export interface Program {
   batch?: number | null;
   fundingSources?: ProgramFundingSource[];
   approvalSteps?: ProgramApprovalStep[];
+  distributionApprovalSteps?: DistributionApprovalTemplateStep[];
   rejectionReason?: string | null;
   approvalHistory?: ProgramApprovalHistoryItem[];
   createdByUserId?: string | null;
@@ -154,6 +171,7 @@ export interface ProgramPayload {
   batch: number | null;
   fundingSources: ProgramFundingSource[];
   approvalSteps: ProgramApprovalStep[];
+  distributionApprovalSteps: DistributionApprovalTemplateStep[];
   status: ProgramStatus;
   createdByUserId?: string | null;
 }

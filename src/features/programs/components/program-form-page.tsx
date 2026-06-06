@@ -109,6 +109,7 @@ export function ProgramEditModule({ id }: { id: string }) {
           fundingSources: program.fundingSources,
           status: program.status,
           approvalSteps: program.approvalSteps,
+          distributionApprovalSteps: program.distributionApprovalSteps,
           createdByUserId: program.createdByUserId,
         }}
       />

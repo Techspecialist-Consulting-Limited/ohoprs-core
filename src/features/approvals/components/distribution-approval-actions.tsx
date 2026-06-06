@@ -31,18 +31,6 @@ export function DistributionApprovalActions({
     queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
   };
 
-  const submitMutation = useMutation({
-    mutationFn: () => approvalService.submitForApproval(distribution.id, user),
-    onSuccess: (response) => {
-      if (!response.success) {
-        toast.error(response.message);
-        return;
-      }
-      toast.success(response.message);
-      refresh();
-    },
-  });
-
   const approveMutation = useMutation({
     mutationFn: () => approvalService.approveDistribution(distribution.id, user),
     onSuccess: (response) => {
@@ -72,20 +60,10 @@ export function DistributionApprovalActions({
 
   return (
     <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Approval actions</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Agency approval actions</p>
       <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">Decision controls</h2>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {canSubmit ? (
-          <button
-            type="button"
-            onClick={() => submitMutation.mutate()}
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
-          >
-            Submit for approval
-          </button>
-        ) : null}
-
         {canApprove ? (
           <button
             type="button"

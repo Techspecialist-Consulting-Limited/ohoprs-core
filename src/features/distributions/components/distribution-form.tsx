@@ -65,6 +65,7 @@ export function DistributionForm({
   const role = useAuthStore((state) => state.role);
   const [currentStep, setCurrentStep] = useState(0);
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
+  const [showApprovalRequiredModal, setShowApprovalRequiredModal] = useState(false);
   type DistributionFormInput = z.input<typeof distributionSchema>;
   type DistributionFormOutput = z.output<typeof distributionSchema>;
 
@@ -91,6 +92,7 @@ export function DistributionForm({
     [defaultOrganizationId, user?.organizationId],
   );
   const selectedProgram = programId ? programService.getProgramSnapshot(programId) : null;
+  const hasDistributionApprovalSteps = Boolean(selectedProgram?.distributionApprovalSteps?.length);
   const phaseTypeLabel = selectedProgram?.benefitType === "CASH" ? "Trench" : "Batch";
   const phaseCount = selectedProgram
     ? selectedProgram.benefitType === "CASH"
@@ -200,6 +202,11 @@ export function DistributionForm({
       return;
     }
 
+    if (stepId === "intervention" && selectedProgram && !hasDistributionApprovalSteps) {
+      setShowApprovalRequiredModal(true);
+      return;
+    }
+
     setCurrentStep((value) => Math.min(value + 1, steps.length - 1));
   }
 
@@ -265,6 +272,7 @@ export function DistributionForm({
                       form.setValue("phaseNumber", 0);
                       form.setValue("states", []);
                       form.setValue("beneficiaryIds", []);
+                      setShowApprovalRequiredModal(false);
                       setBeneficiaryPage(1);
                     },
                   })}
@@ -302,6 +310,14 @@ export function DistributionForm({
                     selectedProgram.benefitType === "CASH"
                       ? formatCurrency(selectedProgram.amountPerRecipient ?? 0)
                       : formatNumber(selectedProgram.recipientCount ?? 0)
+                  }
+                />
+                <SummaryCard
+                  label="Agency Approval Steps"
+                  value={
+                    selectedProgram.distributionApprovalSteps?.length
+                      ? `${selectedProgram.distributionApprovalSteps.length} configured`
+                      : "Not configured"
                   }
                 />
               </div>
@@ -492,6 +508,38 @@ export function DistributionForm({
           </div>
         </div>
       </section>
+
+      {showApprovalRequiredModal && selectedProgram ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-[28px] border border-border bg-surface p-6 shadow-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Approval steps required</p>
+            <h3 className="mt-2 text-2xl font-semibold text-foreground">This intervention needs agency approval steps</h3>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Set up agency approval steps for <span className="font-semibold text-foreground">{selectedProgram.name}</span> before creating a benefit distribution.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowApprovalRequiredModal(false);
+                  form.setValue("programId", "", { shouldDirty: true });
+                  form.setValue("phaseNumber", 0, { shouldDirty: true });
+                }}
+                className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
+              >
+                Choose Another Intervention
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(`/programs/${selectedProgram.id}/distribution-approval`)}
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground"
+              >
+                Create Approval Steps
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }

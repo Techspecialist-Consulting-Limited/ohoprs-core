@@ -1,5 +1,6 @@
 import type {
   DistributionApprovalHistoryItem,
+  DistributionApprovalStep,
   DistributionApprovalStatus,
   DistributionExecutionStatus,
   DistributionValidationSummary,
@@ -10,6 +11,7 @@ export interface DistributionApprovalDetails {
   approvalStatus: DistributionApprovalStatus;
   executionStatus: DistributionExecutionStatus;
   validationSummary: DistributionValidationSummary;
+  approvalSteps: DistributionApprovalStep[];
   approvalHistory: DistributionApprovalHistoryItem[];
   rejectionReason?: string;
   isHighRisk: boolean;

@@ -37,7 +37,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Intervention Name", "Organization", "Benefit Type", "Status", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Agency", "Benefit Type", "Status", "Distribution Approval", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -59,6 +59,20 @@ export function ProgramTable({
                 <td className="px-5 py-4 text-sm text-muted">{item.organizationName}</td>
                 <td className="px-5 py-4"><BenefitTypeBadge benefitType={item.benefitType} /></td>
                 <td className="px-5 py-4"><ProgramStatusBadge status={item.status} /></td>
+                <td className="px-5 py-4 text-sm text-foreground">
+                  <div>
+                    <p className="font-medium">
+                      {item.distributionApprovalSteps?.length
+                        ? `${formatNumber(item.distributionApprovalSteps.length)} steps configured`
+                        : "No approval steps"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted">
+                      {item.distributionApprovalSteps?.[0]?.role
+                        ? `${item.distributionApprovalSteps[0].role.replaceAll("_", " ")} approval starts first`
+                        : "Required before creating distribution"}
+                    </p>
+                  </div>
+                </td>
                 <td className="px-5 py-4 text-sm text-foreground">
                   {item.benefitType === "CASH"
                     ? formatNumber(item.numberOfTrenches ?? 0)
@@ -161,6 +175,15 @@ function RowActionMenu({
             >
               <SquareArrowOutUpRight size={16} />
               Open Approval Review
+            </Link>
+          ) : null}
+          {canEdit ? (
+            <Link
+              href={`/programs/${item.id}/distribution-approval`}
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
+            >
+              <Pencil size={16} />
+              Add Approval Steps
             </Link>
           ) : null}
           {canEdit ? (

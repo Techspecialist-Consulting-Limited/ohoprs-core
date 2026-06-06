@@ -3,6 +3,7 @@ import { defaultProgramDuration, fundingSourceOptions, programsData } from "@/mo
 import { mockUsers } from "@/mock/auth.mock";
 import type { ApiResponse } from "@/types/api";
 import type {
+  DistributionApprovalTemplateStep,
   Program,
   ProgramApprovalStep,
   ProgramApprovalHistoryItem,
@@ -28,6 +29,33 @@ function normalizeApprovalSteps(steps?: ProgramApprovalStep[]) {
   }));
 }
 
+function normalizeDistributionApprovalSteps(steps?: DistributionApprovalTemplateStep[]) {
+  return (steps ?? []).map((step, index) => ({
+    ...step,
+    order: index + 1,
+  }));
+}
+
+function seededDistributionApprovalSteps(): DistributionApprovalTemplateStep[] {
+  const roleOrder: DistributionApprovalTemplateStep["role"][] = [
+    "ORGANIZATION_MANAGER",
+    "STORE_MANAGER",
+    "DIRECTOR",
+  ];
+
+  return roleOrder.map((role, index) => {
+    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
+    return {
+      id: `seed_distribution_approval_${role.toLowerCase()}`,
+      order: index + 1,
+      role,
+      assigneeUserId: assignee.id,
+      assigneeName: assignee.name,
+      assigneeEmail: assignee.email,
+    };
+  });
+}
+
 function normalizeProgram(program: ProgramDetails): ProgramDetails {
   return {
     ...program,
@@ -42,6 +70,9 @@ function normalizeProgram(program: ProgramDetails): ProgramDetails {
     batch: program.batch ?? null,
     fundingSources: normalizeFundingSources(program.fundingSources),
     approvalSteps: normalizeApprovalSteps(program.approvalSteps),
+    distributionApprovalSteps: normalizeDistributionApprovalSteps(
+      program.distributionApprovalSteps?.length ? program.distributionApprovalSteps : seededDistributionApprovalSteps(),
+    ),
     rejectionReason: program.rejectionReason ?? null,
     approvalHistory: program.approvalHistory ?? [],
     createdByUserId: program.createdByUserId ?? null,
@@ -226,6 +257,7 @@ export const programService = {
       batch: payload.batch,
       fundingSources: payload.fundingSources,
       approvalSteps: payload.approvalSteps,
+      distributionApprovalSteps: payload.distributionApprovalSteps ?? [],
       rejectionReason: null,
       approvalHistory: [],
       createdByUserId: payload.createdByUserId ?? creator.id,
@@ -305,6 +337,7 @@ export const programService = {
         batch: payload.batch,
         fundingSources: payload.fundingSources,
         approvalSteps: payload.approvalSteps,
+        distributionApprovalSteps: payload.distributionApprovalSteps,
         rejectionReason: item.status === "REJECTED" ? item.rejectionReason ?? null : null,
         updatedAt: new Date().toISOString(),
         recentActivities: [
@@ -357,6 +390,42 @@ export const programService = {
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Program status updated successfully" : "Program not found",
+      data: updated ? normalizeProgram(updated) : null,
+    });
+  },
+
+  async updateDistributionApprovalSteps(
+    id: string,
+    distributionApprovalSteps: DistributionApprovalTemplateStep[],
+  ): Promise<ApiResponse<ProgramDetails | null>> {
+    let updated: ProgramDetails | null = null;
+
+    programStore = programStore.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
+
+      updated = {
+        ...item,
+        distributionApprovalSteps: normalizeDistributionApprovalSteps(distributionApprovalSteps),
+        updatedAt: new Date().toISOString(),
+        recentActivities: [
+          {
+            id: `activity_${Date.now()}`,
+            actor: "Amina Bello",
+            action: "updated agency approval steps for benefit distributions",
+            timestamp: new Date().toISOString(),
+          },
+          ...item.recentActivities,
+        ],
+      };
+
+      return updated;
+    });
+
+    return Promise.resolve({
+      success: Boolean(updated),
+      message: updated ? "Agency approval steps updated successfully" : "Program not found",
       data: updated ? normalizeProgram(updated) : null,
     });
   },

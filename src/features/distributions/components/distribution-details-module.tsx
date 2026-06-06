@@ -152,7 +152,23 @@ export function DistributionDetailsModule({ id }: { id: string }) {
 
       <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Approval history</p>
-        <h2 className="mt-2 text-xl font-semibold text-foreground">Governance trail</h2>
+        <h2 className="mt-2 text-xl font-semibold text-foreground">Agency approval trail</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {distribution.distributionApprovalSteps.map((step) => (
+            <div key={step.id} className="rounded-3xl border border-border bg-surface-muted px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Step {step.order}</p>
+              <p className="mt-2 text-base font-semibold text-foreground">{step.role.replaceAll("_", " ")}</p>
+              <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
+              <p className="mt-2 text-sm text-foreground">
+                {step.status === "APPROVED"
+                  ? `Approved ${formatDateTime(step.approvedAt ?? "")}`
+                  : step.status === "REJECTED"
+                    ? `Rejected${step.rejectionReason ? `: ${step.rejectionReason}` : ""}`
+                    : "Pending approval"}
+              </p>
+            </div>
+          ))}
+        </div>
         <div className="mt-5 space-y-4">
           {distribution.approvalHistory.map((entry) => (
             <div key={entry.id} className="flex gap-4">

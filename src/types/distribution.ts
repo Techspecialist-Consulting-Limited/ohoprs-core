@@ -1,4 +1,4 @@
-import type { BenefitType } from "@/types/program";
+import type { AgencyApprovalRole, BenefitType } from "@/types/program";
 
 export type DistributionMethod =
   | "BANK_TRANSFER"
@@ -55,6 +55,7 @@ export interface Distribution {
   status: DistributionStatus;
   approvalStatus: DistributionApprovalStatus;
   executionStatus: DistributionExecutionStatus;
+  distributionApprovalSteps: DistributionApprovalStep[];
   scheduledDate: string;
   createdByUserId: string;
   createdBy: string;
@@ -97,6 +98,18 @@ export interface DistributionApprovalHistoryItem {
   actor: string;
   timestamp: string;
   note?: string;
+}
+
+export interface DistributionApprovalStep {
+  id: string;
+  order: number;
+  role: AgencyApprovalRole;
+  assigneeUserId: string;
+  assigneeName: string;
+  assigneeEmail: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  approvedAt: string | null;
+  rejectionReason?: string;
 }
 
 export interface DistributionValidationSummary {

@@ -12,6 +12,7 @@ import type {
   DistributionListResponse,
   DistributionMethod,
   DistributionPayload,
+  DistributionApprovalStep,
   DistributionPhaseType,
   DistributionRecipientPreview,
   DistributionStatus,
@@ -22,7 +23,34 @@ import type { ProgramDetails } from "@/types/program";
 let distributionStore = [...distributionsData];
 
 function getProgram(id: string) {
-  return programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+  const program = programsData.find((item) => item.id === id) as ProgramDetails | undefined;
+  if (!program) {
+    return undefined;
+  }
+
+  if (program.distributionApprovalSteps?.length) {
+    return program;
+  }
+
+  return {
+    ...program,
+    distributionApprovalSteps: seededDistributionApprovalSteps(),
+  };
+}
+
+function seededDistributionApprovalSteps() {
+  const roleOrder = ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DIRECTOR"] as const;
+  return roleOrder.map((role, index) => {
+    const assignee = mockUsers.find((user) => user.role === role) ?? mockUsers[0];
+    return {
+      id: `seed_distribution_approval_${role.toLowerCase()}`,
+      order: index + 1,
+      role,
+      assigneeUserId: assignee.id,
+      assigneeName: assignee.name,
+      assigneeEmail: assignee.email,
+    };
+  });
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
@@ -250,6 +278,19 @@ function buildRecipients(
     }));
 }
 
+function buildDistributionApprovalSteps(program: ProgramDetails): DistributionApprovalStep[] {
+  return (program.distributionApprovalSteps ?? []).map((step) => ({
+    id: `distribution_approval_${step.id}`,
+    order: step.order,
+    role: step.role,
+    assigneeUserId: step.assigneeUserId,
+    assigneeName: step.assigneeName,
+    assigneeEmail: step.assigneeEmail,
+    status: "PENDING",
+    approvedAt: null,
+  }));
+}
+
 function toDistributionDetails(input: {
   id: string;
   program: ProgramDetails;
@@ -315,6 +356,7 @@ function toDistributionDetails(input: {
     status: input.status,
     approvalStatus: input.approvalStatus,
     executionStatus: input.executionStatus,
+    distributionApprovalSteps: buildDistributionApprovalSteps(program),
     scheduledDate: input.scheduledDate,
     createdByUserId: input.createdByUserId,
     createdBy: input.createdBy,
@@ -469,6 +511,14 @@ export const distributionService = {
       return Promise.resolve({
         success: false,
         message: "Intervention not found",
+        data: null,
+      });
+    }
+
+    if (!program.distributionApprovalSteps?.length) {
+      return Promise.resolve({
+        success: false,
+        message: "This intervention requires agency approval steps before a benefit distribution can be created.",
         data: null,
       });
     }
@@ -701,6 +751,67 @@ export const distributionService = {
       };
 
       updated.timeline = buildTimeline(updated.id, updated.status, updated.scheduledDate, updated.createdBy);
+
+      return updated ?? item;
+    });
+
+    return updated;
+  },
+
+  updateDistributionApprovalDecision(
+    id: string,
+    params: {
+      actorName: string;
+      approve: boolean;
+      reason?: string;
+    },
+  ) {
+    let updated: DistributionDetails | null = null;
+
+    distributionStore = distributionStore.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
+
+      const currentPendingStep = item.distributionApprovalSteps.find((step) => step.status === "PENDING") ?? null;
+      if (!currentPendingStep) {
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      const nextSteps = item.distributionApprovalSteps.map((step) =>
+        step.id === currentPendingStep.id
+          ? {
+              ...step,
+              status: params.approve ? ("APPROVED" as const) : ("REJECTED" as const),
+              approvedAt: params.approve ? timestamp : null,
+              rejectionReason: params.approve ? undefined : params.reason,
+            }
+          : step,
+      );
+      const hasPending = nextSteps.some((step) => step.status === "PENDING");
+      const approvalStatus = params.approve ? (hasPending ? "SUBMITTED" : "APPROVED") : "REJECTED";
+
+      updated = {
+        ...item,
+        distributionApprovalSteps: nextSteps,
+        approvalStatus,
+        executionStatus: params.approve ? item.executionStatus : "NOT_STARTED",
+        rejectionReason: params.approve ? undefined : params.reason,
+        updatedAt: timestamp,
+        approvalHistory: [
+          {
+            id: `${id}_${params.approve ? "approved" : "rejected"}_${Date.now()}`,
+            label: params.approve ? "Approved" : "Rejected",
+            actor: params.actorName,
+            timestamp,
+            note: params.approve
+              ? `Completed Step ${currentPendingStep.order}: ${currentPendingStep.role.replaceAll("_", " ")}`
+              : params.reason,
+          },
+          ...item.approvalHistory,
+        ],
+      };
 
       return updated ?? item;
     });

@@ -14,6 +14,9 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: "National Benefits Administration Platform",
   description: "Enterprise multi-tenant government benefits administration prototype.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 const themeInitializationScript = `
