@@ -1,14 +1,24 @@
 import type { UserRole } from "@/types/auth";
+import type { Permission } from "@/constants/permissions";
 
 export interface SettingsUser {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: string;
   organizationId?: string;
   organizationName?: string;
+  scope: "SYSTEM" | "AGENCY";
   status: "ACTIVE" | "INVITED" | "SUSPENDED";
   lastLoginAt?: string;
+}
+
+export interface CustomRole {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  scope: "SYSTEM" | "AGENCY";
+  isSystem: boolean;
 }
 
 export interface SecuritySettings {

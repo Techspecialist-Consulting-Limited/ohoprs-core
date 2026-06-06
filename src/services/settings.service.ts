@@ -1,6 +1,7 @@
 import {
   approvalSettings,
   auditorSettingsCards,
+  customRolesData,
   integrationSettingsData,
   notificationSettings,
   orgAdminSettingsCards,
@@ -9,8 +10,10 @@ import {
   platformProfileSettings,
   securitySettings,
   settingsUsersData,
+  systemRolesData,
   superAdminSettingsCards,
 } from "@/mock/settings.mock";
+import { rolePermissions, type Permission } from "@/constants/permissions";
 import type { ApiResponse } from "@/types/api";
 import type {
   ApprovalSettings,
@@ -20,6 +23,7 @@ import type {
   PlatformProfileSettings,
   SecuritySettings,
   SettingsCardItem,
+  CustomRole,
   SettingsUser,
 } from "@/types/settings";
 import type { UserRole } from "@/types/auth";
@@ -100,6 +104,70 @@ export const settingsService = {
       success: true,
       message: "Settings users fetched successfully",
       data,
+    });
+  },
+
+  async createUser(payload: Omit<SettingsUser, "id" | "lastLoginAt">): Promise<ApiResponse<SettingsUser>> {
+    const next: SettingsUser = {
+      ...payload,
+      id: `user_${String(settingsUsersData.length + 1).padStart(3, "0")}`,
+      lastLoginAt: undefined,
+    };
+    settingsUsersData.unshift(next);
+    return Promise.resolve({
+      success: true,
+      message: "User created successfully",
+      data: next,
+    });
+  },
+
+  async getRoles(): Promise<ApiResponse<CustomRole[]>> {
+    return Promise.resolve({
+      success: true,
+      message: "Roles fetched successfully",
+      data: [...systemRolesData, ...customRolesData],
+    });
+  },
+
+  getReservedSuperAdminPermissions(): Permission[] {
+    return rolePermissions.SUPER_ADMIN.filter(
+      (permission) =>
+        !Object.entries(rolePermissions)
+          .filter(([role]) => role !== "SUPER_ADMIN")
+          .some(([, permissions]) => permissions.includes(permission)),
+    );
+  },
+
+  async createCustomRole(payload: {
+    name: string;
+    permissions: Permission[];
+    scope: "SYSTEM" | "AGENCY";
+  }): Promise<ApiResponse<CustomRole>> {
+    const normalizedName = payload.name.trim().toUpperCase().replaceAll(" ", "_");
+    const existingNames = [...systemRolesData, ...customRolesData].map((role) => role.name.toUpperCase());
+
+    if (!normalizedName) {
+      return Promise.resolve({ success: false, message: "Role name is required", data: null as never });
+    }
+
+    if (existingNames.includes(normalizedName)) {
+      return Promise.resolve({ success: false, message: "Role name must be unique", data: null as never });
+    }
+
+    const reserved = this.getReservedSuperAdminPermissions();
+    const filteredPermissions = payload.permissions.filter((permission) => !reserved.includes(permission));
+    const next: CustomRole = {
+      id: `custom_role_${String(customRolesData.length + 1).padStart(3, "0")}`,
+      name: normalizedName,
+      permissions: filteredPermissions,
+      scope: payload.scope,
+      isSystem: false,
+    };
+    customRolesData.unshift(next);
+    return Promise.resolve({
+      success: true,
+      message: "Custom role created successfully",
+      data: next,
     });
   },
 

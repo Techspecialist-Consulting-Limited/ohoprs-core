@@ -1,12 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { organizationsData } from "@/mock/organizations.mock";
 import { settingsService } from "@/services/settings.service";
 import { useAuthStore } from "@/store/auth.store";
 import { ApprovalSettingsPanel } from "@/features/settings/components/approval-settings-panel";
@@ -91,10 +94,46 @@ export function SettingsProfileModule() {
 export function SettingsUsersModule() {
   const role = useAuthStore((state) => state.role);
   const organizationId = useAuthStore((state) => state.organizationId);
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [selectedRole, setSelectedRole] = useState("PROGRAM_OFFICER");
+  const [scope, setScope] = useState<"SYSTEM" | "AGENCY">("AGENCY");
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState(organizationId ?? "");
   const usersQuery = useQuery({
     queryKey: ["settings-users", role, organizationId],
     queryFn: () => settingsService.getUsers(role!, organizationId),
     enabled: role === "SUPER_ADMIN" || role === "ORG_ADMIN",
+  });
+  const rolesQuery = useQuery({
+    queryKey: ["settings-roles"],
+    queryFn: () => settingsService.getRoles(),
+    enabled: role === "SUPER_ADMIN" || role === "ORG_ADMIN",
+  });
+  const createUserMutation = useMutation({
+    mutationFn: () =>
+      settingsService.createUser({
+        name,
+        email,
+        role: selectedRole,
+        scope,
+        organizationId: scope === "AGENCY" ? selectedOrganizationId : undefined,
+        organizationName:
+          scope === "AGENCY"
+            ? organizationsData.find((item) => item.id === selectedOrganizationId)?.name
+            : undefined,
+        status: "INVITED",
+      }),
+    onSuccess: (response) => {
+      if (!response.success) {
+        toast.error(response.message);
+        return;
+      }
+      toast.success(response.message);
+      setName("");
+      setEmail("");
+      void queryClient.invalidateQueries({ queryKey: ["settings-users"] });
+    },
   });
 
   if (role === "PROGRAM_OFFICER" || role === "AUDITOR") {
@@ -108,7 +147,65 @@ export function SettingsUsersModule() {
   return (
     <PageContainer>
       <PageHeader title="User Management" description="View platform or organization users, access roles, and invite status." />
-      <UserManagementTable items={usersQuery.data?.data ?? []} canManage={role === "SUPER_ADMIN"} />
+      <UserManagementTable items={usersQuery.data?.data ?? []} canManage={role === "SUPER_ADMIN" || role === "ORG_ADMIN"}>
+        {role === "SUPER_ADMIN" || role === "ORG_ADMIN" ? (
+          <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-foreground">Add User</h3>
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-foreground">Full Name</span>
+                <input value={name} onChange={(event) => setName(event.target.value)} className={inputClassName} placeholder="Amina Bello" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-foreground">Email</span>
+                <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClassName} placeholder="amina.bello@gov.ng" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-foreground">Role</span>
+                <select value={selectedRole} onChange={(event) => setSelectedRole(event.target.value)} className={inputClassName}>
+                  {(rolesQuery.data?.data ?? []).map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-foreground">User Scope</span>
+                <select value={scope} onChange={(event) => setScope(event.target.value as "SYSTEM" | "AGENCY")} className={inputClassName}>
+                  <option value="AGENCY">Agency User</option>
+                  <option value="SYSTEM">System User</option>
+                </select>
+              </label>
+            </div>
+            {scope === "AGENCY" ? (
+              <div className="mt-4 max-w-sm">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-foreground">Linked Agency</span>
+                  <select value={selectedOrganizationId} onChange={(event) => setSelectedOrganizationId(event.target.value)} className={inputClassName}>
+                    <option value="">Select agency</option>
+                    {organizationsData.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ) : null}
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => createUserMutation.mutate()}
+                disabled={createUserMutation.isPending}
+                className="inline-flex h-11 items-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
+              >
+                {createUserMutation.isPending ? "Saving..." : "Create User"}
+              </button>
+            </div>
+          </section>
+        ) : null}
+      </UserManagementTable>
     </PageContainer>
   );
 }
@@ -122,11 +219,14 @@ export function SettingsRolesModule() {
 
   return (
     <PageContainer>
-      <PageHeader title="Roles & Permissions" description="Read the current RBAC matrix directly from the active permission configuration." />
+      <PageHeader title="Roles & Permissions" description="View all system roles, inspect permissions, and add custom roles for system or agency users." />
       <RolePermissionMatrix />
     </PageContainer>
   );
 }
+
+const inputClassName =
+  "h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-accent";
 
 export function SettingsSecurityModule() {
   const role = useAuthStore((state) => state.role);

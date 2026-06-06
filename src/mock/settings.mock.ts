@@ -8,9 +8,11 @@ import type {
   PaymentSettings,
   PlatformProfileSettings,
   SecuritySettings,
+  CustomRole,
   SettingsCardItem,
   SettingsUser,
 } from "@/types/settings";
+import { rolePermissions } from "@/constants/permissions";
 
 export const settingsUsersData: SettingsUser[] = [
   ...mockUsers.map((user, index): SettingsUser => ({
@@ -20,6 +22,7 @@ export const settingsUsersData: SettingsUser[] = [
     role: user.role,
     organizationId: user.organizationId ?? undefined,
     organizationName: user.organizationName ?? undefined,
+    scope: user.organizationId ? "AGENCY" : "SYSTEM",
     status: index === 3 ? "INVITED" : "ACTIVE",
     lastLoginAt: index === 3 ? undefined : `2026-06-0${index + 1}T09:30:00Z`,
   })),
@@ -30,6 +33,7 @@ export const settingsUsersData: SettingsUser[] = [
     role: "PROGRAM_OFFICER",
     organizationId: "org_001",
     organizationName: organizationsData.find((item) => item.id === "org_001")?.name,
+    scope: "AGENCY",
     status: "ACTIVE",
     lastLoginAt: "2026-06-02T10:40:00Z",
   },
@@ -38,10 +42,13 @@ export const settingsUsersData: SettingsUser[] = [
     name: "Emeka Nwosu",
     email: "emeka.nwosu@gov.ng",
     role: "AUDITOR",
+    scope: "SYSTEM",
     status: "SUSPENDED",
     lastLoginAt: "2026-05-29T15:10:00Z",
   },
 ];
+
+export const customRolesData: CustomRole[] = [];
 
 export const platformProfileSettings: PlatformProfileSettings = {
   platformName: "National Benefits Administration Platform",
@@ -158,21 +165,21 @@ export const superAdminSettingsCards: SettingsCardItem[] = [
   { id: "profile", title: "Profile", description: "Platform profile and support contact settings.", href: "/settings/profile" },
   { id: "users", title: "Users", description: "User administration, invite status, and access controls.", href: "/settings/users" },
   { id: "roles", title: "Roles & Permissions", description: "Inspect RBAC roles and permission matrix.", href: "/settings/roles" },
-  { id: "security", title: "Security", description: "MFA, password policy, sessions, IP restrictions, and audit retention.", href: "/settings/security" },
-  { id: "integrations", title: "Integrations", description: "Provider connectivity for identity, payments, storage, and communications.", href: "/settings/integrations" },
-  { id: "approvals", title: "Approvals", description: "Workflow controls for program, distribution, and bulk approvals.", href: "/settings/approvals" },
-  { id: "payments", title: "Payments", description: "Payment provider configuration and reconciliation settings.", href: "/settings/payments" },
-  { id: "notifications", title: "Notification Settings", description: "Channel availability and platform communication defaults.", href: "/settings/notifications" },
 ];
 
 export const orgAdminSettingsCards: SettingsCardItem[] = [
-  { id: "profile", title: "Organization Profile", description: "Manage organization identity, contact details, and address.", href: "/settings/profile" },
-  { id: "users", title: "Users", description: "View and manage users within your organization.", href: "/settings/users" },
-  { id: "notifications", title: "Notification Settings", description: "Organization-level communication defaults and channels.", href: "/settings/notifications" },
+  { id: "profile", title: "Agency Profile", description: "Manage agency identity, contact details, and address.", href: "/settings/profile" },
+  { id: "users", title: "Users", description: "View and manage users within your agency.", href: "/settings/users" },
 ];
 
 export const auditorSettingsCards: SettingsCardItem[] = [
   { id: "roles", title: "Roles & Permissions", description: "Read-only visibility into the platform RBAC structure.", href: "/settings/roles" },
-  { id: "security", title: "Security", description: "Read-only summary of security policy and retention controls.", href: "/settings/security" },
-  { id: "retention", title: "Audit Retention Summary", description: `Audit retention currently set to ${securitySettings.auditRetentionDays} days.`, href: "/settings/security" },
 ];
+
+export const systemRolesData: CustomRole[] = Object.entries(rolePermissions).map(([name, permissions]) => ({
+  id: `system_role_${name.toLowerCase()}`,
+  name,
+  permissions,
+  scope: name === "SUPER_ADMIN" || name === "AUDITOR" ? "SYSTEM" : "AGENCY",
+  isSystem: true,
+}));
