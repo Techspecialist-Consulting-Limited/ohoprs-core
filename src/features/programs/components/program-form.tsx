@@ -374,6 +374,11 @@ export function ProgramForm({
     "focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft disabled:cursor-not-allowed disabled:bg-surface-muted";
 
   function onSubmit(values: ProgramFormValues) {
+    if (!isLastStep) {
+      setCurrentStepIndex(programSteps.length - 1);
+      return;
+    }
+
     mutation.mutate({
       name: values.name,
       organizationId: values.organizationId,
@@ -1208,7 +1213,7 @@ export function ProgramForm({
                   disabled={mutation.isPending}
                   className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
                 >
-                  {mutation.isPending ? "Saving..." : mode === "create" ? "Create Intervention" : "Save Changes"}
+                  {mutation.isPending ? "Saving..." : mode === "create" ? "Confirm and Create Intervention" : "Confirm and Save Changes"}
                 </button>
               )}
             </div>

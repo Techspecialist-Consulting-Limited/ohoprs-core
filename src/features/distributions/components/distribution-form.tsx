@@ -204,6 +204,11 @@ export function DistributionForm({
   }
 
   function onSubmit(values: DistributionFormOutput) {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(steps.length - 1);
+      return;
+    }
+
     mutation.mutate(values);
   }
 
@@ -481,7 +486,7 @@ export function DistributionForm({
                 disabled={mutation.isPending}
                 className="inline-flex h-11 items-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
               >
-                {mutation.isPending ? "Creating..." : mode === "create" ? "Create benefit distribution" : "Save changes"}
+                {mutation.isPending ? "Creating..." : mode === "create" ? "Confirm and Create Benefit Distribution" : "Confirm and Save Changes"}
               </button>
             )}
           </div>
