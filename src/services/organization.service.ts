@@ -1,4 +1,5 @@
 import { organizationsData } from "@/mock/organizations.mock";
+import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import type { ApiResponse } from "@/types/api";
 import type {
   Organization,
@@ -9,10 +10,28 @@ import type {
   OrganizationStatus,
 } from "@/types/organization";
 
+const ORGANIZATIONS_STORAGE_KEY = "ohoprs.organizations.v1";
+
 let organizationStore = [...organizationsData];
+let hasHydratedOrganizations = false;
+
+function hydrateOrganizationStore() {
+  if (hasHydratedOrganizations) {
+    return;
+  }
+
+  organizationStore = readLocalStorage(ORGANIZATIONS_STORAGE_KEY, organizationsData).map((item) => ({ ...item }));
+  hasHydratedOrganizations = true;
+}
+
+function persistOrganizationStore() {
+  writeLocalStorage(ORGANIZATIONS_STORAGE_KEY, organizationStore);
+}
 
 export const organizationService = {
   async getOrganizations(params: OrganizationListParams = {}): Promise<ApiResponse<OrganizationListResponse>> {
+    hydrateOrganizationStore();
+
     const {
       limit = 10,
       page = 1,
@@ -69,6 +88,8 @@ export const organizationService = {
   },
 
   async getOrganizationById(id: string): Promise<ApiResponse<OrganizationDetails | null>> {
+    hydrateOrganizationStore();
+
     const organization = organizationStore.find((item) => item.id === id) ?? null;
 
     return Promise.resolve({
@@ -79,6 +100,8 @@ export const organizationService = {
   },
 
   async createOrganization(payload: OrganizationPayload): Promise<ApiResponse<OrganizationDetails>> {
+    hydrateOrganizationStore();
+
     const timestamp = new Date().toISOString();
     const next: OrganizationDetails = {
       id: `org_${String(organizationStore.length + 1).padStart(3, "0")}`,
@@ -105,6 +128,7 @@ export const organizationService = {
     };
 
     organizationStore = [next, ...organizationStore];
+    persistOrganizationStore();
 
     return Promise.resolve({
       success: true,
@@ -114,6 +138,8 @@ export const organizationService = {
   },
 
   async updateOrganization(id: string, payload: OrganizationPayload): Promise<ApiResponse<OrganizationDetails | null>> {
+    hydrateOrganizationStore();
+
     let updated: OrganizationDetails | null = null;
 
     organizationStore = organizationStore.map((item) => {
@@ -140,6 +166,10 @@ export const organizationService = {
       return updated;
     });
 
+    if (updated) {
+      persistOrganizationStore();
+    }
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Organization updated successfully" : "Organization not found",
@@ -151,6 +181,8 @@ export const organizationService = {
     id: string,
     status: OrganizationStatus,
   ): Promise<ApiResponse<OrganizationDetails | null>> {
+    hydrateOrganizationStore();
+
     let updated: OrganizationDetails | null = null;
 
     organizationStore = organizationStore.map((item) => {
@@ -175,6 +207,10 @@ export const organizationService = {
 
       return updated;
     });
+
+    if (updated) {
+      persistOrganizationStore();
+    }
 
     return Promise.resolve({
       success: Boolean(updated),
