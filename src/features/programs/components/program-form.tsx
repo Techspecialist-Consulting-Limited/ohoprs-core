@@ -253,6 +253,7 @@ export function ProgramForm({
   const amountValue = useWatch({ control: form.control, name: "amount" });
   const budgetValue = useWatch({ control: form.control, name: "budget" });
   const amountPerRecipientValue = useWatch({ control: form.control, name: "amountPerRecipient" });
+  const recipientCountValue = useWatch({ control: form.control, name: "recipientCount" });
   const selectedRegions = useWatch({ control: form.control, name: "regions" }) ?? [];
   const selectedStates = useWatch({ control: form.control, name: "states" }) ?? [];
   const selectedFundingSources = useWatch({ control: form.control, name: "fundingSources" });
@@ -301,6 +302,15 @@ export function ProgramForm({
           : null,
       ),
     [amountPerRecipientValue],
+  );
+  const formattedRecipientCountValue = useMemo(
+    () =>
+      formatNumericInput(
+        typeof recipientCountValue === "number" || typeof recipientCountValue === "string"
+          ? recipientCountValue
+          : null,
+      ),
+    [recipientCountValue],
   );
   const selectedAssigneeIds = useMemo(
     () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
@@ -402,11 +412,6 @@ export function ProgramForm({
     "focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-soft disabled:cursor-not-allowed disabled:bg-surface-muted";
 
   function onSubmit(values: ProgramFormValues) {
-    if (!isLastStep) {
-      setCurrentStepIndex(programSteps.length - 1);
-      return;
-    }
-
     mutation.mutate({
       name: values.name,
       organizationId: values.organizationId,
@@ -445,6 +450,10 @@ export function ProgramForm({
   }
 
   async function goToNextStep() {
+    if (isLastStep) {
+      return;
+    }
+
     if (activeStep.fields?.length) {
       const isValid = await form.trigger(activeStep.fields as never[], { shouldFocus: true });
       if (!isValid) {
@@ -527,11 +536,11 @@ export function ProgramForm({
   }
 
   function updateFormattedNumberField(
-    field: "amount" | "budget" | "amountPerRecipient",
+    field: "amount" | "budget" | "amountPerRecipient" | "recipientCount",
     rawValue: string,
   ) {
     const digitsOnly = rawValue.replace(/[^\d]/g, "");
-    form.setValue(field, digitsOnly ? Number(digitsOnly) : null, {
+    form.setValue(field, digitsOnly ? Number(digitsOnly) : field === "recipientCount" ? 0 : null, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -858,9 +867,10 @@ export function ProgramForm({
                 error={form.formState.errors.recipientCount?.message}
               >
                 <input
-                  type="number"
-                  min={0}
-                  {...form.register("recipientCount")}
+                  type="text"
+                  inputMode="numeric"
+                  value={formattedRecipientCountValue}
+                  onChange={(event) => updateFormattedNumberField("recipientCount", event.target.value)}
                   className={inputClassName}
                   disabled={isLocked}
                 />

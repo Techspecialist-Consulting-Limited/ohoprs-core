@@ -254,11 +254,6 @@ export function DistributionForm({
   }
 
   function onSubmit(values: DistributionFormOutput) {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(steps.length - 1);
-      return;
-    }
-
     mutation.mutate(values);
   }
 

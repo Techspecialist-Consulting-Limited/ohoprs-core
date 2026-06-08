@@ -88,6 +88,25 @@ textarea {
   font: inherit;
 }
 
+select {
+  color: var(--app-foreground);
+  background-color: var(--app-background);
+  color-scheme: light dark;
+}
+
+select option,
+select optgroup {
+  background-color: var(--app-surface);
+  color: var(--app-foreground);
+}
+
+[data-theme="dark"] select option:checked,
+[data-theme="dark"] select option:hover,
+[data-theme="dark"] select option:focus {
+  background-color: var(--app-surface-elevated);
+  color: var(--app-foreground);
+}
+
 ::selection {
   background: rgba(57, 176, 74, 0.22);
 }

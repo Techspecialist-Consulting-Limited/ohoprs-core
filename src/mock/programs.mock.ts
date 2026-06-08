@@ -24,8 +24,6 @@ export const fundingSourceOptions: ProgramFundingSource[] = [
   { id: "fund_unicef", name: "UNICEF", createdByUserId: null, isCustom: false },
   { id: "fund_undp", name: "UNDP", createdByUserId: null, isCustom: false },
   { id: "fund_ngo_partner", name: "NGO Partner", createdByUserId: null, isCustom: false },
-  { id: "fund_private_donor", name: "Private Donor", createdByUserId: null, isCustom: false },
-  { id: "fund_other", name: "Other", createdByUserId: null, isCustom: false },
 ];
 
 function organizationById(id: string) {
