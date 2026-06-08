@@ -6,7 +6,7 @@ import { ChevronDown, ChevronLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { permissions, type Permission } from "@/constants/permissions";
+import { permissions, rolePermissions, type Permission } from "@/constants/permissions";
 import { settingsService } from "@/services/settings.service";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -47,13 +47,23 @@ export function RolePermissionMatrix() {
   });
 
   const reservedPermissions = useMemo(() => settingsService.getReservedSuperAdminPermissions(), []);
-  const availableCustomPermissions = permissions.filter((permission) => !reservedPermissions.includes(permission));
+  const isRoleManager = role === "SUPER_ADMIN" || role === "ORG_ADMIN";
+  const availableCustomPermissions = useMemo(() => {
+    const basePermissions = permissions.filter((permission) => !reservedPermissions.includes(permission));
+
+    if (role === "ORG_ADMIN") {
+      const orgAdminPermissions = new Set(rolePermissions.ORG_ADMIN);
+      return basePermissions.filter((permission) => orgAdminPermissions.has(permission));
+    }
+
+    return basePermissions;
+  }, [reservedPermissions, role]);
 
   const createRoleMutation = useMutation({
     mutationFn: () =>
       settingsService.createCustomRole({
         name,
-        scope,
+        scope: role === "SUPER_ADMIN" ? scope : "AGENCY",
         permissions: selectedPermissions,
       }),
     onSuccess: (response) => {
@@ -69,7 +79,10 @@ export function RolePermissionMatrix() {
     },
   });
 
-  const roles = rolesQuery.data?.data ?? [];
+  const roles = useMemo(() => {
+    const items = rolesQuery.data?.data ?? [];
+    return role === "ORG_ADMIN" ? items.filter((item) => item.scope === "AGENCY") : items;
+  }, [role, rolesQuery.data?.data]);
 
   function togglePermission(permission: Permission) {
     setSelectedPermissions((current) =>
@@ -86,24 +99,26 @@ export function RolePermissionMatrix() {
         </Link>
       </div>
 
-      {role === "SUPER_ADMIN" ? (
+      {isRoleManager ? (
         <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-center gap-2">
             <Plus size={16} />
             <h3 className="text-lg font-semibold text-foreground">Add Custom Role</h3>
           </div>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className={`mt-5 grid gap-4 ${role === "SUPER_ADMIN" ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-foreground">Role Name</span>
               <input value={name} onChange={(event) => setName(event.target.value)} className={inputClassName} placeholder="Agency Review Officer" />
             </label>
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-foreground">Scope</span>
-              <select value={scope} onChange={(event) => setScope(event.target.value as "SYSTEM" | "AGENCY")} className={inputClassName}>
-                <option value="AGENCY">Agency</option>
-                <option value="SYSTEM">System</option>
-              </select>
-            </label>
+            {role === "SUPER_ADMIN" ? (
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-foreground">Scope</span>
+                <select value={scope} onChange={(event) => setScope(event.target.value as "SYSTEM" | "AGENCY")} className={inputClassName}>
+                  <option value="AGENCY">Agency</option>
+                  <option value="SYSTEM">System</option>
+                </select>
+              </label>
+            ) : null}
           </div>
           <div className="mt-5">
             <p className="text-sm font-medium text-foreground">Selectable Permissions</p>

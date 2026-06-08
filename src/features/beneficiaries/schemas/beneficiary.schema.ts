@@ -3,6 +3,7 @@ import { z } from "zod";
 export const verificationStatuses = ["VERIFIED", "PENDING", "FAILED", "FLAGGED"] as const;
 export const benefitStatuses = ["ACTIVE", "PAUSED", "EXITED", "SUSPENDED"] as const;
 export const beneficiaryGenders = ["MALE", "FEMALE", "OTHER"] as const;
+export const maritalStatuses = ["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"] as const;
 
 const optionalDigits = (message: string) =>
   z
@@ -20,6 +21,11 @@ export const beneficiarySchema = z.object({
   phone: z.string().min(8, "Phone is required"),
   email: z.email("Enter a valid email").optional().or(z.literal("")),
   gender: z.enum(beneficiaryGenders),
+  occupation: z.string().min(2, "Occupation is required"),
+  maritalStatus: z.enum(maritalStatuses),
+  householdDependents: z.coerce.number().min(0, "Household dependents cannot be negative"),
+  numberOfChildren: z.coerce.number().min(0, "Number of children cannot be negative"),
+  numberOfWives: z.coerce.number().min(0, "Number of wives cannot be negative"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   state: z.string().min(2, "State is required"),
   lga: z.string().min(2, "LGA is required"),

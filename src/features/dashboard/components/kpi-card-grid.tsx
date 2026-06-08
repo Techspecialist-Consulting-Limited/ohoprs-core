@@ -5,6 +5,7 @@ import {
   FolderKanban,
   HandCoins,
   House,
+  Landmark,
   Users,
 } from "lucide-react";
 
@@ -19,11 +20,21 @@ type KpiCardGridProps = {
 };
 
 export function KpiCardGrid({ kpis, role }: KpiCardGridProps) {
+  if (role === "SUPER_ADMIN") {
+    return (
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <KpiCard icon={Building2} label="Total Agencies" value={formatNumber(kpis.totalOrganizations)} />
+        <KpiCard icon={HandCoins} label="Active Interventions" value={formatCompactNumber(kpis.activePrograms)} />
+        <KpiCard icon={Users} label="Total Beneficiaries" value={formatNumber(kpis.totalBeneficiaries)} />
+        <KpiCard icon={House} label="Households Impacted" value={`${formatCompactNumber(kpis.householdImpact)}+`} />
+        <KpiCard icon={CircleDollarSign} label="Total Cash Relief" value={formatCurrency(kpis.totalCashRelief)} />
+        <KpiCard icon={Landmark} label="Equivalent Non-Cash Relief" value={formatCurrency(kpis.equivalentNonCashRelief)} />
+      </section>
+    );
+  }
+
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {role === "SUPER_ADMIN" ? (
-        <KpiCard icon={Building2} label="Total Agencies" value={formatNumber(kpis.totalOrganizations)} />
-      ) : null}
       <KpiCard icon={FolderKanban} label="Total Interventions" value={formatNumber(kpis.totalPrograms)} />
       <KpiCard icon={Users} label="Total Beneficiaries" value={formatNumber(kpis.totalBeneficiaries)} />
       <KpiCard icon={House} label="Beneficiary Household Impact" value={`${formatCompactNumber(kpis.householdImpact)}+`} />

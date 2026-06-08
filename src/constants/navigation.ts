@@ -17,7 +17,7 @@ export const navigationItems = [
   { href: "/programs", icon: Files, label: "Interventions" },
   { href: "/beneficiaries", icon: Users, label: "Beneficiaries" },
   { href: "/distributions", icon: HandCoins, label: "Distributions" },
-  { href: "/payments", icon: CreditCard, label: "Payments" },
+  { href: "/payments", icon: CreditCard, label: "Payement records" },
   { href: "/reports", icon: ChartColumnIncreasing, label: "Reports" },
   { href: "/audit-logs", icon: ShieldCheck, label: "Audit Logs" },
   { href: "/notifications", icon: Bell, label: "Notifications" },

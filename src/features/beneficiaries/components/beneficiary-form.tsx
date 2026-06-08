@@ -14,6 +14,7 @@ import {
   beneficiaryGenders,
   beneficiarySchema,
   benefitStatuses,
+  maritalStatuses,
   verificationStatuses,
 } from "@/features/beneficiaries/schemas/beneficiary.schema";
 import { beneficiaryService } from "@/services/beneficiary.service";
@@ -49,6 +50,11 @@ export function BeneficiaryForm({
       phone: initialValues?.phone ?? "",
       email: initialValues?.email ?? "",
       gender: initialValues?.gender ?? "MALE",
+      occupation: initialValues?.occupation ?? "",
+      maritalStatus: initialValues?.maritalStatus ?? "SINGLE",
+      householdDependents: initialValues?.householdDependents ?? 0,
+      numberOfChildren: initialValues?.numberOfChildren ?? 0,
+      numberOfWives: initialValues?.numberOfWives ?? 0,
       dateOfBirth: initialValues?.dateOfBirth ?? "",
       state: initialValues?.state ?? "",
       lga: initialValues?.lga ?? "",
@@ -139,6 +145,31 @@ export function BeneficiaryForm({
         </Field>
         <Field label="Date of Birth" error={form.formState.errors.dateOfBirth?.message}>
           <input type="date" {...form.register("dateOfBirth")} className={inputClassName} />
+        </Field>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-3">
+        <Field label="Occupation" error={form.formState.errors.occupation?.message}>
+          <input {...form.register("occupation")} className={inputClassName} />
+        </Field>
+        <Field label="Marital Status" error={form.formState.errors.maritalStatus?.message}>
+          <select {...form.register("maritalStatus")} className={inputClassName}>
+            {maritalStatuses.map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Household Dependents" error={form.formState.errors.householdDependents?.message}>
+          <input type="number" min={0} {...form.register("householdDependents", { valueAsNumber: true })} className={inputClassName} />
+        </Field>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-3">
+        <Field label="Number of Children" error={form.formState.errors.numberOfChildren?.message}>
+          <input type="number" min={0} {...form.register("numberOfChildren", { valueAsNumber: true })} className={inputClassName} />
+        </Field>
+        <Field label="Number of Wives" error={form.formState.errors.numberOfWives?.message}>
+          <input type="number" min={0} {...form.register("numberOfWives", { valueAsNumber: true })} className={inputClassName} />
         </Field>
       </div>
 

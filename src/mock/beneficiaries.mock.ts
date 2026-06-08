@@ -40,6 +40,12 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     index % 6 === 0 ? "REVIEW_REQUIRED" : index % 5 === 0 ? "FAILED" : index % 4 === 0 ? "PENDING" : "PASSED";
   const riskLevel: RiskLevel = index % 6 === 0 ? "HIGH" : index % 4 === 0 ? "MEDIUM" : "LOW";
   const organization = organizationsData.find((item) => item.id === organizationId)!;
+  const gender = overrides.gender ?? (index % 3 === 0 ? "FEMALE" : index % 2 === 0 ? "MALE" : "OTHER");
+  const maritalStatus = overrides.maritalStatus ?? (index % 5 === 0 ? "DIVORCED" : index % 4 === 0 ? "MARRIED" : index % 7 === 0 ? "WIDOWED" : "SINGLE");
+  const householdDependents = overrides.householdDependents ?? 2 + (index % 6);
+  const numberOfChildren = overrides.numberOfChildren ?? Math.max(0, householdDependents - 1);
+  const numberOfWives = overrides.numberOfWives ?? (gender === "MALE" && maritalStatus === "MARRIED" ? (index % 8 === 0 ? 2 : 1) : 0);
+  const occupation = overrides.occupation ?? ["Farmer", "Trader", "Teacher", "Tailor", "Artisan", "Civil Servant"][index % 6];
 
   return {
     id: `beneficiary_${String(index).padStart(3, "0")}`,
@@ -53,7 +59,12 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     bvn: index % 4 === 0 ? "" : String(22000000000 + index),
     phone: `+23480${String(10000000 + index).slice(0, 8)}`,
     email: `beneficiary${index}@example.ng`,
-    gender: index % 3 === 0 ? "FEMALE" : index % 2 === 0 ? "MALE" : "OTHER",
+    gender,
+    occupation,
+    maritalStatus,
+    householdDependents,
+    numberOfChildren,
+    numberOfWives,
     dateOfBirth: `199${index % 10}-0${(index % 8) + 1}-1${index % 9}`,
     state: ["FCT", "Lagos", "Kano", "Kaduna", "Borno", "Osun"][index % 6],
     lga: ["Municipal", "Central", "North", "South", "East", "West"][index % 6],

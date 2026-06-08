@@ -17,7 +17,12 @@ export function BeneficiaryIdentityCard({ beneficiary }: { beneficiary: Benefici
         <Info label="Last Name" value={beneficiary.lastName} />
         <Info label="Middle Name" value={beneficiary.middleName || "Not provided"} />
         <Info label="Gender" value={beneficiary.gender} />
+        <Info label="Occupation" value={beneficiary.occupation} />
+        <Info label="Marital Status" value={beneficiary.maritalStatus} />
         <Info label="Date of Birth" value={beneficiary.dateOfBirth} />
+        <Info label="Household Dependents" value={String(beneficiary.householdDependents)} />
+        <Info label="Number of Children" value={String(beneficiary.numberOfChildren)} />
+        <Info label="Number of Wives" value={String(beneficiary.numberOfWives)} />
         <Info label="NIN" value={maskValue(beneficiary.nin)} />
         <Info label="BVN" value={beneficiary.bvn ? maskValue(beneficiary.bvn) : "Not provided"} />
         <Info label="Phone" value={beneficiary.phone} />

@@ -8,6 +8,8 @@ export interface DashboardKpis {
   totalDistributed: number;
   pendingDistributions: number;
   activePrograms: number;
+  totalCashRelief: number;
+  equivalentNonCashRelief: number;
 }
 
 export interface ChartPoint {
