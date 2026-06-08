@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, GripHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
@@ -25,10 +25,6 @@ const agencyApprovalRoleLabels: Record<AgencyApprovalRole, string> = {
   AGENCY_ACCOUNTANT: "Agency Accountant",
 };
 
-const agencyApprovalUsers = mockUsers.filter((user) =>
-  ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DISTRIBUTION_MANAGER", "AGENCY_ACCOUNTANT"].includes(user.role),
-);
-
 function createApprovalStep(role: AgencyApprovalRole): DistributionApprovalTemplateStep {
   return {
     id: `distribution_approval_step_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -42,6 +38,7 @@ function createApprovalStep(role: AgencyApprovalRole): DistributionApprovalTempl
 
 export function ProgramDistributionApprovalModule({ id, from }: { id: string; from?: string | null }) {
   const role = useAuthStore((state) => state.role);
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [steps, setSteps] = useState<DistributionApprovalTemplateStep[]>([]);
@@ -67,6 +64,15 @@ export function ProgramDistributionApprovalModule({ id, from }: { id: string; fr
   });
 
   const program = programQuery.data?.data;
+  const agencyApprovalUsers = useMemo(
+    () =>
+      mockUsers.filter(
+        (item) =>
+          ["ORGANIZATION_MANAGER", "STORE_MANAGER", "DISTRIBUTION_MANAGER", "AGENCY_ACCOUNTANT"].includes(item.role) &&
+          item.organizationId === program?.organizationId,
+      ),
+    [program?.organizationId],
+  );
 
   useEffect(() => {
     if (!program) {
@@ -101,6 +107,17 @@ export function ProgramDistributionApprovalModule({ id, from }: { id: string; fr
     return (
       <PageContainer>
         <EmptyState title="Intervention not found" description="The selected intervention could not be loaded for agency approval setup." />
+      </PageContainer>
+    );
+  }
+
+  if (user?.organizationId && user.organizationId !== program.organizationId) {
+    return (
+      <PageContainer>
+        <PermissionDeniedState
+          title="Agency approval setup denied"
+          description="You can only manage benefit distribution approval steps for interventions in your own agency."
+        />
       </PageContainer>
     );
   }

@@ -91,13 +91,13 @@ export function LoginForm() {
         />
         <div className="rounded-[32px] bg-white/92 p-6 shadow-[0_24px_70px_rgba(27,52,39,0.14)] backdrop-blur-xl sm:p-8">
           <div className="flex flex-col items-center text-center">
-            <div className="rounded-[22px] bg-[#f4f6f2] p-3">
+            <div className="rounded-full bg-[#f4f6f2] p-3">
               <Image
-                src="/images/OHO-Logo.png"
+                src="/images/logo-withbg.jpeg"
                 alt="OHOPRS logo"
                 width={78}
                 height={78}
-                className="h-16 w-16 object-contain"
+                className="h-16 w-16 object-contain rounded-full"
                 priority
               />
             </div>

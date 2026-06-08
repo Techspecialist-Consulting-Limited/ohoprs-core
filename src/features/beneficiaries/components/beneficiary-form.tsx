@@ -39,7 +39,7 @@ export function BeneficiaryForm({
   beneficiaryId?: string;
 }) {
   const router = useRouter();
-  const form = useForm<BeneficiaryFormValues>({
+  const form = useForm<BeneficiaryFormValues, unknown, BeneficiarySubmitValues>({
     resolver: zodResolver(beneficiarySchema),
     defaultValues: {
       firstName: initialValues?.firstName ?? "",
@@ -96,7 +96,7 @@ export function BeneficiaryForm({
     },
   });
 
-  function onSubmit(values: BeneficiaryFormValues) {
+  function onSubmit(values: BeneficiarySubmitValues) {
     mutation.mutate({
       ...values,
       programIds: values.programIds,
