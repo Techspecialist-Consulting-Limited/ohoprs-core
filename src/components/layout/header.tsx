@@ -226,21 +226,21 @@ export function Header({
             </button>
 
             {isMenuOpen ? (
-              <div className="absolute right-0 top-14 z-40 w-72 rounded-[24px] border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
-                <div className="rounded-2xl bg-surface-muted p-4">
+              <div className="absolute right-0 top-14 z-40 flex max-h-[min(28rem,calc(100vh-5rem))] w-72 flex-col overflow-hidden rounded-[24px] border border-border bg-surface-elevated p-2 shadow-[0_18px_48px_rgba(12,16,20,0.16)]">
+                <div className="shrink-0 rounded-2xl bg-surface-muted p-4">
                   <p className="text-sm font-semibold text-foreground">{user?.name}</p>
                   <p className="mt-1 text-sm text-muted">{user?.email}</p>
                 </div>
-                <div className="px-2 py-3">
+                <div className="shrink-0 px-2 py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-soft">Demo role switcher</p>
                 </div>
-                <div className="space-y-1 px-1 pb-2">
+                <div className="app-scrollbar min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-auto px-1 pb-2">
                   {userRoles.map((item) => (
                     <button
                       key={item}
                       type="button"
                       className={cn(
-                        "flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-sm transition",
+                        "flex min-w-max w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-sm transition",
                         role === item
                           ? "bg-surface-muted text-foreground"
                           : "text-muted hover:bg-surface-muted hover:text-foreground",
@@ -256,7 +256,7 @@ export function Header({
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-border px-1 pt-2">
+                <div className="shrink-0 border-t border-border px-1 pt-2">
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-danger transition hover:bg-danger/10"
