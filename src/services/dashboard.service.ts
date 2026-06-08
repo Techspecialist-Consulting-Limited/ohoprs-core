@@ -3,6 +3,7 @@ import {
   nationalDashboardData,
   organizationDashboardData,
   programOfficerDashboardData,
+  systemAccountantDashboardData,
 } from "@/mock/dashboard.mock";
 import type { ApiResponse } from "@/types/api";
 import type { DashboardResponse } from "@/types/dashboard";
@@ -30,6 +31,10 @@ export const dashboardService = {
             ? `${currentTenant.shortCode} Program Operations Overview`
             : "Program Operations Overview",
         };
+      }
+
+      if (role === "SYSTEM_ACCOUNTANT") {
+        return systemAccountantDashboardData;
       }
 
       return {

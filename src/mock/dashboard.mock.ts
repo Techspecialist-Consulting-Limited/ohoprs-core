@@ -64,9 +64,9 @@ export const nationalDashboardData: DashboardResponse = {
     },
   ],
   quickActions: [
-    { id: "qa_001", label: "Create Agency", href: "/organizations", permission: "create_organization", variant: "primary" },
-    { id: "qa_002", label: "Create Program", href: "/programs", permission: "create_program", variant: "secondary" },
-    { id: "qa_003", label: "Upload Beneficiaries", href: "/beneficiaries", permission: "upload_beneficiaries", variant: "secondary" },
+    { id: "qa_001", label: "View Agency", href: "/organizations", permission: "create_organization", variant: "primary" },
+    { id: "qa_002", label: "View Intervention", href: "/programs", permission: "create_program", variant: "secondary" },
+    { id: "qa_003", label: "View Beneficiaries", href: "/beneficiaries", permission: "upload_beneficiaries", variant: "secondary" },
     { id: "qa_004", label: "View Reports", href: "/reports", permission: "view_reports", variant: "secondary" },
   ],
   systemStatus: [
@@ -258,5 +258,59 @@ export const auditorDashboardData: DashboardResponse = {
     { label: "Audit Log", status: "OPERATIONAL", description: "Cross-module event capture is available for review and traceability." },
     { label: "Control Monitoring", status: "OPERATIONAL", description: "Exception reporting is active across national distribution flows." },
     { label: "Evidence Queue", status: "DEGRADED", description: "Mock evidence review queue has elevated backlog for compliance sampling." },
+  ],
+};
+
+export const systemAccountantDashboardData: DashboardResponse = {
+  scope: "NATIONAL",
+  title: "System Accountant Oversight",
+  subtitle: "Approval-focused visibility across interventions, agencies, and beneficiary scope for governance review.",
+  kpis: {
+    totalOrganizations: 12,
+    totalPrograms: 56,
+    totalBeneficiaries: 3000000,
+    householdImpact: 1000000,
+    totalDistributed: 600000000000,
+    pendingDistributions: 150000000,
+    activePrograms: 42,
+  },
+  distributionOverview: nationalDashboardData.distributionOverview,
+  beneficiaryGrowth: nationalDashboardData.beneficiaryGrowth,
+  benefitTypeBreakdown: nationalDashboardData.benefitTypeBreakdown,
+  recentActivities: [
+    {
+      id: "sa_act_001",
+      actor: "System Accountant Queue",
+      action: "flagged pending intervention approvals",
+      target: "National approval lane",
+      timestamp: "2026-06-02T09:10:00Z",
+      type: "PROGRAM",
+    },
+    {
+      id: "sa_act_002",
+      actor: "Amina Bello",
+      action: "validated beneficiary scope",
+      target: "Rural Nutrition Outreach",
+      timestamp: "2026-06-01T13:25:00Z",
+      type: "BENEFICIARY",
+    },
+    {
+      id: "sa_act_003",
+      actor: "Governance Desk",
+      action: "reviewed agency intervention portfolio",
+      target: "Federal Ministry of Humanitarian Affairs",
+      timestamp: "2026-05-31T15:05:00Z",
+      type: "ORGANIZATION",
+    },
+  ],
+  quickActions: [
+    { id: "qa_015", label: "View Agencies", href: "/organizations", permission: "view_organizations", variant: "primary" },
+    { id: "qa_016", label: "View Interventions", href: "/programs", permission: "view_programs", variant: "secondary" },
+    { id: "qa_017", label: "View Beneficiaries", href: "/beneficiaries", permission: "view_beneficiaries", variant: "secondary" },
+  ],
+  systemStatus: [
+    { label: "Approval Queue", status: "OPERATIONAL", description: "Intervention approvals are available for finance governance review." },
+    { label: "Beneficiary Scope", status: "OPERATIONAL", description: "Beneficiary coverage snapshots are aligned with intervention records." },
+    { label: "Funding Controls", status: "DEGRADED", description: "Two mock interventions require additional funding trace review." },
   ],
 };
