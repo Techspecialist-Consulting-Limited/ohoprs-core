@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const verificationStatuses = ["VERIFIED", "PENDING", "FAILED", "FLAGGED"] as const;
 export const benefitStatuses = ["ACTIVE", "PAUSED", "EXITED", "SUSPENDED"] as const;
-export const beneficiaryGenders = ["MALE", "FEMALE", "OTHER"] as const;
+export const beneficiaryGenders = ["MALE", "FEMALE"] as const;
 export const maritalStatuses = ["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"] as const;
 
 const optionalDigits = (message: string) =>

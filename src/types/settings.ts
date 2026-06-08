@@ -8,6 +8,10 @@ export interface SettingsUser {
   role: string;
   organizationId?: string;
   organizationName?: string;
+  stateOfOrigin: string;
+  lga: string;
+  address: string;
+  hasDisability: boolean;
   scope: "SYSTEM" | "AGENCY";
   status: "ACTIVE" | "INVITED" | "SUSPENDED";
   lastLoginAt?: string;

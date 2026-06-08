@@ -19,6 +19,10 @@ export interface AuthUser {
   role: UserRole;
   organizationId: string | null;
   organizationName?: string | null;
+  stateOfOrigin: string;
+  lga: string;
+  address: string;
+  hasDisability: boolean;
 }
 
 export interface LoginPayload {

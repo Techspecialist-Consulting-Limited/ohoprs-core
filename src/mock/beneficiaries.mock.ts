@@ -40,7 +40,7 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     index % 6 === 0 ? "REVIEW_REQUIRED" : index % 5 === 0 ? "FAILED" : index % 4 === 0 ? "PENDING" : "PASSED";
   const riskLevel: RiskLevel = index % 6 === 0 ? "HIGH" : index % 4 === 0 ? "MEDIUM" : "LOW";
   const organization = organizationsData.find((item) => item.id === organizationId)!;
-  const gender = overrides.gender ?? (index % 3 === 0 ? "FEMALE" : index % 2 === 0 ? "MALE" : "OTHER");
+  const gender = overrides.gender ?? (index % 2 === 0 ? "MALE" : "FEMALE");
   const maritalStatus = overrides.maritalStatus ?? (index % 5 === 0 ? "DIVORCED" : index % 4 === 0 ? "MARRIED" : index % 7 === 0 ? "WIDOWED" : "SINGLE");
   const householdDependents = overrides.householdDependents ?? 2 + (index % 6);
   const numberOfChildren = overrides.numberOfChildren ?? Math.max(0, householdDependents - 1);

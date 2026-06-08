@@ -43,22 +43,20 @@ export function BeneficiaryFilters({
         />
       </label>
 
-      {showOrganizationFilter ? (
-        <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
-          <select
-            value={value.organizationId}
-            onChange={(event) => onChange({ ...value, organizationId: event.target.value })}
-            className="w-full bg-transparent text-sm text-foreground outline-none"
-          >
-            <option value="ALL">All agencies</option>
-            {organizations.map((organization) => (
-              <option key={organization.id} value={organization.id}>
-                {organization.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
+        <select
+          value={value.state}
+          onChange={(event) => onChange({ ...value, state: event.target.value })}
+          className="w-full bg-transparent text-sm text-foreground outline-none"
+        >
+          <option value="ALL">All states</option>
+          {states.map((state) => (
+            <option key={state} value={state}>
+              {state}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
         <select
@@ -75,20 +73,22 @@ export function BeneficiaryFilters({
         </select>
       </label>
 
-      <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
-        <select
-          value={value.state}
-          onChange={(event) => onChange({ ...value, state: event.target.value })}
-          className="w-full bg-transparent text-sm text-foreground outline-none"
-        >
-          <option value="ALL">All states</option>
-          {states.map((state) => (
-            <option key={state} value={state}>
-              {state}
-            </option>
-          ))}
-        </select>
-      </label>
+      {showOrganizationFilter ? (
+        <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
+          <select
+            value={value.organizationId}
+            onChange={(event) => onChange({ ...value, organizationId: event.target.value })}
+            className="w-full bg-transparent text-sm text-foreground outline-none"
+          >
+            <option value="ALL">All agencies</option>
+            {organizations.map((organization) => (
+              <option key={organization.id} value={organization.id}>
+                {organization.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <label className="flex h-11 items-center rounded-2xl border border-border bg-background px-3">
         <select

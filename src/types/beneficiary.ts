@@ -2,7 +2,7 @@ import type { ProgramStatus } from "@/types/program";
 
 export type VerificationStatus = "VERIFIED" | "PENDING" | "FAILED" | "FLAGGED";
 export type BenefitStatus = "ACTIVE" | "PAUSED" | "EXITED" | "SUSPENDED";
-export type BeneficiaryGender = "MALE" | "FEMALE" | "OTHER";
+export type BeneficiaryGender = "MALE" | "FEMALE";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED";
 export type BenefitTimelineStatus = "COMPLETED" | "PENDING" | "FAILED" | "REVERSED";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";

@@ -19,8 +19,8 @@ export function BenefitTypeBreakdown({ data }: { data: ChartPoint[] }) {
         <p className="text-sm font-semibold text-foreground">Intervention type distribution</p>
         <p className="mt-1 text-sm text-muted">Portfolio composition across the active benefit mix.</p>
       </div>
-      <div className="mt-4 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <div className="h-64">
+      <div className="mt-4 flex min-w-0 flex-col gap-6 xl:flex-row xl:items-center">
+        <div className="h-64 min-w-0 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -39,14 +39,14 @@ export function BenefitTypeBreakdown({ data }: { data: ChartPoint[] }) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           {data.map((item, index) => (
-            <div key={item.label} className="flex items-center justify-between rounded-2xl bg-surface-muted px-4 py-3">
-              <div className="flex items-center gap-3">
+            <div key={item.label} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <span className="h-3 w-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
-                <span className="text-sm font-medium text-foreground">{item.label}</span>
+                <span className="truncate text-sm font-medium text-foreground">{item.label}</span>
               </div>
-              <span className="text-sm text-muted">{item.value}%</span>
+              <span className="shrink-0 text-sm text-muted">{item.value}%</span>
             </div>
           ))}
         </div>

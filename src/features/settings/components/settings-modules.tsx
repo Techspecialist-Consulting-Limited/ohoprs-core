@@ -93,6 +93,10 @@ export function SettingsProfileModule() {
             <ReadOnlyField label="Scope" value={user.organizationId ? "Agency User" : "System User"} />
             <ReadOnlyField label="Agency" value={user.organizationName ?? currentTenant?.name ?? "System-wide access"} />
             <ReadOnlyField label="Tenant" value={currentTenant?.name ?? "Central deployment"} />
+            <ReadOnlyField label="State of Origin" value={user.stateOfOrigin} />
+            <ReadOnlyField label="LGA" value={user.lga} />
+            <ReadOnlyField label="Disability" value={user.hasDisability ? "Yes" : "No"} />
+            <ReadOnlyField label="Address" value={user.address} />
           </div>
         </section>
       )}
@@ -125,6 +129,10 @@ export function SettingsUsersModule() {
         name,
         email,
         role: selectedRole,
+        stateOfOrigin: "FCT",
+        lga: "Abuja Municipal",
+        address: "Agency office address pending update",
+        hasDisability: false,
         scope,
         organizationId: scope === "AGENCY" ? selectedOrganizationId : undefined,
         organizationName:
