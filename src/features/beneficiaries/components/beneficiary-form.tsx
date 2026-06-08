@@ -57,8 +57,11 @@ export function BeneficiaryForm({
       numberOfWives: initialValues?.numberOfWives ?? 0,
       dateOfBirth: initialValues?.dateOfBirth ?? "",
       state: initialValues?.state ?? "",
+      stateOfOrigin: initialValues?.stateOfOrigin ?? "",
       lga: initialValues?.lga ?? "",
       address: initialValues?.address ?? "",
+      hasDisability: initialValues?.hasDisability ?? false,
+      disabilityType: initialValues?.disabilityType ?? "",
       organizationId: initialValues?.organizationId ?? defaultOrganizationId ?? "",
       programIds: initialValues?.programIds ?? [],
       verificationStatus: initialValues?.verificationStatus ?? "PENDING",
@@ -69,6 +72,10 @@ export function BeneficiaryForm({
   const selectedOrganizationId = useWatch({
     control: form.control,
     name: "organizationId",
+  });
+  const hasDisability = useWatch({
+    control: form.control,
+    name: "hasDisability",
   });
 
   const scopedPrograms = programsData.filter((program) =>
@@ -184,13 +191,54 @@ export function BeneficiaryForm({
             ))}
           </select>
         </Field>
+        <Field label="State of Origin" error={form.formState.errors.stateOfOrigin?.message}>
+          <select {...form.register("stateOfOrigin")} className={inputClassName}>
+            <option value="">Select state of origin</option>
+            {nigeriaStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </Field>
         <Field label="LGA" error={form.formState.errors.lga?.message}>
           <input {...form.register("lga")} className={inputClassName} />
         </Field>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
         <Field label="Address" error={form.formState.errors.address?.message}>
           <input {...form.register("address")} className={inputClassName} />
         </Field>
+        <Field label="Disability" error={form.formState.errors.hasDisability?.message as string | undefined}>
+          <select
+            value={hasDisability ? "YES" : "NO"}
+            onChange={(event) => {
+              const nextValue = event.target.value === "YES";
+              form.setValue("hasDisability", nextValue, { shouldDirty: true, shouldValidate: true });
+              if (!nextValue) {
+                form.setValue("disabilityType", "", { shouldDirty: true, shouldValidate: true });
+              }
+            }}
+            className={inputClassName}
+          >
+            <option value="NO">No</option>
+            <option value="YES">Yes</option>
+          </select>
+        </Field>
       </div>
+
+      {hasDisability ? (
+        <div className="grid gap-5 md:grid-cols-2">
+          <Field label="Type of Disability" error={form.formState.errors.disabilityType?.message}>
+            <input
+              {...form.register("disabilityType")}
+              className={inputClassName}
+              placeholder="e.g. Visual impairment"
+            />
+          </Field>
+        </div>
+      ) : null}
 
       <div className="grid gap-5 md:grid-cols-3">
         <Field label="Agency Benefited From" error={form.formState.errors.organizationId?.message}>

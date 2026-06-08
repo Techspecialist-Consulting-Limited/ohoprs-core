@@ -9,6 +9,7 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <Info label="Agency Benefited From" value={beneficiary.organizationName} />
         <Info label="State" value={beneficiary.state} />
+        <Info label="State of Origin" value={beneficiary.stateOfOrigin} />
         <Info label="LGA" value={beneficiary.lga} />
         <Info label="Address" value={beneficiary.address} />
       </div>

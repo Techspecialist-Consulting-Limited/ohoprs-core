@@ -67,8 +67,15 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     numberOfWives,
     dateOfBirth: `199${index % 10}-0${(index % 8) + 1}-1${index % 9}`,
     state: ["FCT", "Lagos", "Kano", "Kaduna", "Borno", "Osun"][index % 6],
+    stateOfOrigin: overrides.stateOfOrigin ?? ["Kaduna", "Lagos", "Kano", "Enugu", "FCT", "Oyo"][index % 6],
     lga: ["Municipal", "Central", "North", "South", "East", "West"][index % 6],
     address: `${10 + index} Relief Avenue`,
+    hasDisability: overrides.hasDisability ?? index % 7 === 0,
+    disabilityType:
+      overrides.disabilityType ??
+      ((overrides.hasDisability ?? index % 7 === 0)
+        ? ["Visual impairment", "Hearing impairment", "Mobility impairment", "Speech impairment"][index % 4]
+        : undefined),
     programIds,
     programs,
     verificationStatus,

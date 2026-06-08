@@ -7,7 +7,7 @@ export function BeneficiaryBenefitKpis({ beneficiary }: { beneficiary: Beneficia
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <Card icon={Banknote} label="Total Cash Received" value={formatCurrency(beneficiary.benefit360Summary.totalCashReceived)} />
-      <Card icon={Package} label="Total Non-Cash Benefits" value={formatNumber(beneficiary.benefit360Summary.totalNonCashBenefits)} />
+      <Card icon={Package} label="Total Non-Cash Relief" value={formatNumber(beneficiary.benefit360Summary.totalNonCashBenefits)} />
       <Card icon={Layers3} label="Interventions Enrolled" value={formatNumber(beneficiary.benefit360Summary.programsEnrolled)} />
       <Card icon={CalendarClock} label="Last Benefit Date" value={formatDate(beneficiary.benefit360Summary.lastBenefitDate)} />
       <Card icon={BadgeCheck} label="Verification Status" value={beneficiary.verificationStatus} />

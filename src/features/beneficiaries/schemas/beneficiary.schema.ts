@@ -12,26 +12,39 @@ const optionalDigits = (message: string) =>
     .optional()
     .or(z.literal(""));
 
-export const beneficiarySchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  middleName: z.string().optional().or(z.literal("")),
-  nin: z.string().regex(/^\d{11}$/, "NIN must be exactly 11 digits"),
-  bvn: optionalDigits("BVN must be exactly 11 digits"),
-  phone: z.string().min(8, "Phone is required"),
-  email: z.email("Enter a valid email").optional().or(z.literal("")),
-  gender: z.enum(beneficiaryGenders),
-  occupation: z.string().min(2, "Occupation is required"),
-  maritalStatus: z.enum(maritalStatuses),
-  householdDependents: z.coerce.number().min(0, "Household dependents cannot be negative"),
-  numberOfChildren: z.coerce.number().min(0, "Number of children cannot be negative"),
-  numberOfWives: z.coerce.number().min(0, "Number of wives cannot be negative"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  state: z.string().min(2, "State is required"),
-  lga: z.string().min(2, "LGA is required"),
-  address: z.string().min(5, "Address is required"),
-  organizationId: z.string().min(1, "Agency is required"),
-  programIds: z.array(z.string()).min(1, "Select at least one program"),
-  verificationStatus: z.enum(verificationStatuses),
-  benefitStatus: z.enum(benefitStatuses),
-});
+export const beneficiarySchema = z
+  .object({
+    firstName: z.string().min(2, "First name is required"),
+    lastName: z.string().min(2, "Last name is required"),
+    middleName: z.string().optional().or(z.literal("")),
+    nin: z.string().regex(/^\d{11}$/, "NIN must be exactly 11 digits"),
+    bvn: optionalDigits("BVN must be exactly 11 digits"),
+    phone: z.string().min(8, "Phone is required"),
+    email: z.email("Enter a valid email").optional().or(z.literal("")),
+    gender: z.enum(beneficiaryGenders),
+    occupation: z.string().min(2, "Occupation is required"),
+    maritalStatus: z.enum(maritalStatuses),
+    householdDependents: z.coerce.number().min(0, "Household dependents cannot be negative"),
+    numberOfChildren: z.coerce.number().min(0, "Number of children cannot be negative"),
+    numberOfWives: z.coerce.number().min(0, "Number of wives cannot be negative"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    state: z.string().min(2, "State is required"),
+    stateOfOrigin: z.string().min(2, "State of origin is required"),
+    lga: z.string().min(2, "LGA is required"),
+    address: z.string().min(5, "Address is required"),
+    hasDisability: z.boolean(),
+    disabilityType: z.string().optional().or(z.literal("")),
+    organizationId: z.string().min(1, "Agency is required"),
+    programIds: z.array(z.string()).min(1, "Select at least one program"),
+    verificationStatus: z.enum(verificationStatuses),
+    benefitStatus: z.enum(benefitStatuses),
+  })
+  .superRefine((value, ctx) => {
+    if (value.hasDisability && !value.disabilityType?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["disabilityType"],
+        message: "Disability type is required when disability is yes",
+      });
+    }
+  });

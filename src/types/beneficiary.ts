@@ -35,8 +35,11 @@ export interface Beneficiary {
   numberOfWives: number;
   dateOfBirth: string;
   state: string;
+  stateOfOrigin: string;
   lga: string;
   address: string;
+  hasDisability: boolean;
+  disabilityType?: string;
   programIds: string[];
   programs: BeneficiaryProgramEnrollment[];
   verificationStatus: VerificationStatus;
@@ -170,8 +173,11 @@ export interface BeneficiaryPayload {
   numberOfWives: number;
   dateOfBirth: string;
   state: string;
+  stateOfOrigin: string;
   lga: string;
   address: string;
+  hasDisability: boolean;
+  disabilityType?: string;
   organizationId: string;
   programIds: string[];
   verificationStatus: VerificationStatus;
