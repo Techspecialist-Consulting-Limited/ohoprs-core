@@ -1,5 +1,6 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { distributionsData } from "@/mock/distributions.mock";
+import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import { programService } from "@/services/program.service";
 import type { ApiResponse } from "@/types/api";
 import type {
@@ -20,7 +21,23 @@ import type {
 } from "@/types/distribution";
 import type { ProgramDetails } from "@/types/program";
 
+const DISTRIBUTION_STORAGE_KEY = "ohoprs:v1:distributions";
+
 let distributionStore = [...distributionsData];
+let hasHydratedDistributionStore = false;
+
+function ensureDistributionStore() {
+  if (hasHydratedDistributionStore) {
+    return;
+  }
+
+  distributionStore = readLocalStorage(DISTRIBUTION_STORAGE_KEY, [...distributionsData]);
+  hasHydratedDistributionStore = true;
+}
+
+function persistDistributionStore() {
+  writeLocalStorage(DISTRIBUTION_STORAGE_KEY, distributionStore);
+}
 
 function getProgram(id: string) {
   return programService.getProgramSnapshot(id) ?? undefined;
@@ -404,6 +421,7 @@ function phaseExists(programId: string, phaseType: DistributionPhaseType, phaseN
 
 export const distributionService = {
   async getDistributions(params: DistributionListParams = {}): Promise<ApiResponse<DistributionListResponse>> {
+    ensureDistributionStore();
     const {
       benefitType = "ALL",
       limit = 10,
@@ -469,6 +487,7 @@ export const distributionService = {
   },
 
   async getDistributionById(id: string): Promise<ApiResponse<DistributionDetails | null>> {
+    ensureDistributionStore();
     const distribution = distributionStore.find((item) => item.id === id) ?? null;
 
     return Promise.resolve({
@@ -479,10 +498,12 @@ export const distributionService = {
   },
 
   getDistributionSnapshot(id: string) {
+    ensureDistributionStore();
     return distributionStore.find((item) => item.id === id) ?? null;
   },
 
   getUnavailablePhaseNumbers(programId: string) {
+    ensureDistributionStore();
     const program = getProgram(programId);
 
     if (!program) {
@@ -501,6 +522,7 @@ export const distributionService = {
     createdByUserId: string,
     createdBy: string,
   ): Promise<ApiResponse<DistributionDetails | null>> {
+    ensureDistributionStore();
     const program = getProgram(payload.programId);
 
     if (!program) {
@@ -560,6 +582,7 @@ export const distributionService = {
     });
 
     distributionStore = [next, ...distributionStore];
+    persistDistributionStore();
 
     return Promise.resolve({
       success: true,
@@ -569,6 +592,7 @@ export const distributionService = {
   },
 
   async updateDistribution(id: string, payload: DistributionPayload): Promise<ApiResponse<DistributionDetails | null>> {
+    ensureDistributionStore();
     const current = distributionStore.find((item) => item.id === id) ?? null;
 
     if (!current) {
@@ -635,6 +659,8 @@ export const distributionService = {
       return updated;
     });
 
+    persistDistributionStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Distribution updated successfully" : "Distribution not found",
@@ -643,6 +669,7 @@ export const distributionService = {
   },
 
   async updateDistributionStatus(id: string, status: DistributionStatus): Promise<ApiResponse<DistributionDetails | null>> {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -671,6 +698,8 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Distribution status updated successfully" : "Distribution not found",
@@ -687,6 +716,7 @@ export const distributionService = {
       historyEntry: DistributionDetails["approvalHistory"][number];
     },
   ) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -706,6 +736,7 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 
@@ -715,6 +746,7 @@ export const distributionService = {
     actor: string,
     note: string,
   ) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -753,6 +785,7 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 
@@ -764,6 +797,7 @@ export const distributionService = {
       reason?: string;
     },
   ) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -817,10 +851,12 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 
   approveDistributionFinalReview(id: string, actorName: string) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -859,10 +895,12 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 
   rejectDistributionFinalReview(id: string, actorName: string, reason: string) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -900,10 +938,12 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 
   initiateDistributionPayment(id: string, actorName: string) {
+    ensureDistributionStore();
     let updated: DistributionDetails | null = null;
 
     distributionStore = distributionStore.map((item) => {
@@ -939,6 +979,7 @@ export const distributionService = {
       return updated ?? item;
     });
 
+    persistDistributionStore();
     return updated;
   },
 };

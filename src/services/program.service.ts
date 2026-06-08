@@ -1,6 +1,7 @@
 import { organizationsData } from "@/mock/organizations.mock";
 import { defaultProgramDuration, fundingSourceOptions, programsData } from "@/mock/programs.mock";
 import { mockUsers } from "@/mock/auth.mock";
+import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import type { ApiResponse } from "@/types/api";
 import type {
   DistributionApprovalTemplateStep,
@@ -16,7 +17,23 @@ import type {
 } from "@/types/program";
 import type { AuthUser } from "@/types/auth";
 
+const PROGRAM_STORAGE_KEY = "ohoprs:v1:programs";
+
 let programStore = [...programsData];
+let hasHydratedProgramStore = false;
+
+function ensureProgramStore() {
+  if (hasHydratedProgramStore) {
+    return;
+  }
+
+  programStore = readLocalStorage(PROGRAM_STORAGE_KEY, [...programsData]);
+  hasHydratedProgramStore = true;
+}
+
+function persistProgramStore() {
+  writeLocalStorage(PROGRAM_STORAGE_KEY, programStore);
+}
 
 function normalizeFundingSources(sources?: ProgramFundingSource[]) {
   return sources?.length ? sources : [fundingSourceOptions[0]];
@@ -105,6 +122,7 @@ function isDistributionEligibleProgram(program: ProgramDetails) {
 
 export const programService = {
   async getPrograms(params: ProgramListParams = {}): Promise<ApiResponse<ProgramListResponse>> {
+    ensureProgramStore();
     const {
       benefitType = "ALL",
       limit = 10,
@@ -190,6 +208,7 @@ export const programService = {
   },
 
   async getProgramById(id: string): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     const program = programStore.find((item) => item.id === id) ?? null;
 
     return Promise.resolve({
@@ -200,6 +219,7 @@ export const programService = {
   },
 
   getProgramSnapshot(id: string) {
+    ensureProgramStore();
     const program = programStore.find((item) => item.id === id) ?? null;
     return program ? normalizeProgram(program) : null;
   },
@@ -209,6 +229,7 @@ export const programService = {
     eligibleForDistribution?: boolean;
     onlyFullyApprovedForAgencyScope?: boolean;
   }) {
+    ensureProgramStore();
     const {
       organizationId = null,
       eligibleForDistribution = false,
@@ -237,6 +258,7 @@ export const programService = {
   },
 
   async createProgram(payload: ProgramPayload): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     const organization = findOrganization(payload.organizationId);
 
     if (!organization) {
@@ -304,6 +326,7 @@ export const programService = {
     };
 
     programStore = [next, ...programStore];
+    persistProgramStore();
 
     return Promise.resolve({
       success: true,
@@ -313,6 +336,7 @@ export const programService = {
   },
 
   async updateProgram(id: string, payload: ProgramPayload): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     const organization = findOrganization(payload.organizationId);
 
     if (!organization) {
@@ -370,6 +394,8 @@ export const programService = {
       return updated;
     });
 
+    persistProgramStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Program updated successfully" : "Program not found",
@@ -378,6 +404,7 @@ export const programService = {
   },
 
   async updateProgramStatus(id: string, status: ProgramStatus): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     let updated: ProgramDetails | null = null;
 
     programStore = programStore.map((item) => {
@@ -403,6 +430,8 @@ export const programService = {
       return updated;
     });
 
+    persistProgramStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Program status updated successfully" : "Program not found",
@@ -414,6 +443,7 @@ export const programService = {
     id: string,
     distributionApprovalSteps: DistributionApprovalTemplateStep[],
   ): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     let updated: ProgramDetails | null = null;
 
     programStore = programStore.map((item) => {
@@ -439,6 +469,8 @@ export const programService = {
       return updated;
     });
 
+    persistProgramStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Agency approval steps updated successfully" : "Program not found",
@@ -462,6 +494,7 @@ export const programService = {
   },
 
   async approveProgram(id: string, actor: AuthUser): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     let updated: ProgramDetails | null = null;
     let message = "Program not found";
 
@@ -523,6 +556,8 @@ export const programService = {
       return updated;
     });
 
+    persistProgramStore();
+
     return Promise.resolve({
       success: Boolean(updated),
       message,
@@ -531,6 +566,7 @@ export const programService = {
   },
 
   async rejectProgram(id: string, reason: string, actor: AuthUser): Promise<ApiResponse<ProgramDetails | null>> {
+    ensureProgramStore();
     let updated: ProgramDetails | null = null;
     let message = "Program not found";
     const trimmedReason = reason.trim();
@@ -598,6 +634,8 @@ export const programService = {
       message = "Intervention rejected successfully.";
       return updated;
     });
+
+    persistProgramStore();
 
     return Promise.resolve({
       success: Boolean(updated),

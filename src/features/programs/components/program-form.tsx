@@ -14,6 +14,7 @@ import { fundingSourceOptions } from "@/mock/programs.mock";
 import { mockUsers } from "@/mock/auth.mock";
 import { getStatesForRegions, nigeriaRegions } from "@/constants/nigeria-regions";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
+import { readLocalStorage, removeLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import {
   benefitTypes,
   programSchema,
@@ -38,6 +39,12 @@ type StepConfig = {
   title: string;
   description: string;
   fields?: string[];
+};
+
+type ProgramDraftState = {
+  values: ProgramFormValues;
+  currentStepIndex: number;
+  completedStepIds: string[];
 };
 
 const approvalRoleLabels: Record<SystemApprovalRole, string> = {
@@ -139,6 +146,12 @@ function addDurationToDate(startDate: string, duration: ProgramFormValues["durat
   return formatDateForInput(nextDate);
 }
 
+function getProgramDraftStorageKey(mode: "create" | "edit", programId?: string) {
+  return mode === "create"
+    ? "ohoprs:v1:drafts:program:create"
+    : `ohoprs:v1:drafts:program:edit:${programId ?? "unknown"}`;
+}
+
 function createApprovalStep(role: SystemApprovalRole): ProgramApprovalStep {
   return {
     id: `approval_step_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -181,44 +194,55 @@ export function ProgramForm({
   const router = useRouter();
   const currentUser = useAuthStore((state) => state.user);
   const customFundingId = useId();
+  const draftStorageKey = getProgramDraftStorageKey(mode, programId);
+  const savedDraft = readLocalStorage<ProgramDraftState | null>(draftStorageKey, null);
+  const savedDraftValues = savedDraft?.values;
+  const savedCustomFundingSources = (savedDraftValues?.fundingSources ?? []).filter((source) => source.isCustom);
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
   const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
-  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [...fundingSourceOptions]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(
+    Math.max(0, Math.min(savedDraft?.currentStepIndex ?? 0, programSteps.length - 1)),
+  );
+  const [completedStepIds, setCompletedStepIds] = useState<string[]>(savedDraft?.completedStepIds ?? []);
+  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [
+    ...fundingSourceOptions,
+    ...savedCustomFundingSources.filter((source) => !fundingSourceOptions.some((option) => option.id === source.id)),
+  ]);
   const todayDate = getTodayDateForInput();
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: {
-      name: initialValues?.name ?? "",
-      organizationId: initialValues?.organizationId ?? defaultOrganizationId ?? "",
-      benefitType: initialValues?.benefitType ?? "CASH",
-      description: initialValues?.description ?? "",
-      startDate: initialValues?.startDate ?? "",
-      endDate: initialValues?.endDate ?? "",
-      duration: initialValues?.duration ?? {
+      name: savedDraftValues?.name ?? initialValues?.name ?? "",
+      organizationId: savedDraftValues?.organizationId ?? initialValues?.organizationId ?? defaultOrganizationId ?? "",
+      benefitType: savedDraftValues?.benefitType ?? initialValues?.benefitType ?? "CASH",
+      description: savedDraftValues?.description ?? initialValues?.description ?? "",
+      startDate: savedDraftValues?.startDate ?? initialValues?.startDate ?? "",
+      endDate: savedDraftValues?.endDate ?? initialValues?.endDate ?? "",
+      duration: savedDraftValues?.duration ?? initialValues?.duration ?? {
         days: 0,
         weeks: 0,
         months: 0,
         years: 0,
       },
-      recipientCount: initialValues?.recipientCount ?? 0,
-      amountPerRecipient: initialValues?.amountPerRecipient ?? null,
-      regions: initialValues?.regions ?? [],
-      states: initialValues?.states ?? [],
-      amount: initialValues?.amount ?? null,
-      budget: initialValues?.budget ?? 0,
-      numberOfTrenches: initialValues?.numberOfTrenches ?? null,
-      batch: initialValues?.batch ?? 0,
-      fundingSources: initialValues?.fundingSources ?? [fundingSourceOptions[0]],
-      status: initialValues?.status ?? "IN_PROGRESS",
+      recipientCount: savedDraftValues?.recipientCount ?? initialValues?.recipientCount ?? 0,
+      amountPerRecipient: savedDraftValues?.amountPerRecipient ?? initialValues?.amountPerRecipient ?? null,
+      regions: savedDraftValues?.regions ?? initialValues?.regions ?? [],
+      states: savedDraftValues?.states ?? initialValues?.states ?? [],
+      amount: savedDraftValues?.amount ?? initialValues?.amount ?? null,
+      budget: savedDraftValues?.budget ?? initialValues?.budget ?? 0,
+      numberOfTrenches: savedDraftValues?.numberOfTrenches ?? initialValues?.numberOfTrenches ?? null,
+      batch: savedDraftValues?.batch ?? initialValues?.batch ?? 0,
+      fundingSources: savedDraftValues?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
+      status: savedDraftValues?.status ?? initialValues?.status ?? "IN_PROGRESS",
       approvalSteps:
-        initialValues?.approvalSteps?.length
-          ? initialValues.approvalSteps
-          : [createApprovalStep("DIRECTOR")],
-      distributionApprovalSteps: initialValues?.distributionApprovalSteps ?? [],
+        savedDraftValues?.approvalSteps?.length
+          ? savedDraftValues.approvalSteps
+          : initialValues?.approvalSteps?.length
+            ? initialValues.approvalSteps
+            : [createApprovalStep("DIRECTOR")],
+      distributionApprovalSteps: savedDraftValues?.distributionApprovalSteps ?? initialValues?.distributionApprovalSteps ?? [],
     },
   });
 
@@ -282,6 +306,14 @@ export function ProgramForm({
     () => new Set(approvalSteps.map((step) => step.assigneeUserId).filter(Boolean)),
     [approvalSteps],
   );
+
+  useEffect(() => {
+    writeLocalStorage(draftStorageKey, {
+      values: formSnapshot,
+      currentStepIndex,
+      completedStepIds,
+    });
+  }, [completedStepIds, currentStepIndex, draftStorageKey, formSnapshot]);
 
   useEffect(() => {
     if (!selectedStartDate) {
@@ -357,6 +389,7 @@ export function ProgramForm({
         return;
       }
 
+      removeLocalStorage(draftStorageKey);
       toast.success(response.message);
       router.push(`/programs/${response.data.id}`);
     },

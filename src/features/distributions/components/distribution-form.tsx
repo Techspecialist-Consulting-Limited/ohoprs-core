@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { distributionSchema } from "@/features/distributions/schemas/distribution.schema";
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
+import { readLocalStorage, removeLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import { distributionService } from "@/services/distribution.service";
 import { programService } from "@/services/program.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -28,6 +29,11 @@ const steps = [
 ] as const;
 
 type StepId = (typeof steps)[number]["id"];
+
+type DistributionDraftState = {
+  values: DistributionFormValues;
+  currentStep: number;
+};
 
 const stepFields: Record<StepId, (keyof DistributionFormValues)[]> = {
   intervention: ["programId", "phaseNumber"],
@@ -48,6 +54,12 @@ function accountNumberForIndex(index: number) {
   return `01${String(10000000 + index).slice(-8)}`;
 }
 
+function getDistributionDraftStorageKey(mode: "create" | "edit", distributionId?: string) {
+  return mode === "create"
+    ? "ohoprs:v1:drafts:distribution:create"
+    : `ohoprs:v1:drafts:distribution:edit:${distributionId ?? "unknown"}`;
+}
+
 export function DistributionForm({
   mode,
   distributionId,
@@ -63,7 +75,11 @@ export function DistributionForm({
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const role = useAuthStore((state) => state.role);
-  const [currentStep, setCurrentStep] = useState(0);
+  const draftStorageKey = getDistributionDraftStorageKey(mode, distributionId);
+  const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
+  const initialDraftValues = savedDraft?.values;
+  const initialDraftStep = Math.max(0, Math.min(savedDraft?.currentStep ?? 0, steps.length - 1));
+  const [currentStep, setCurrentStep] = useState(initialDraftStep);
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
   const [showApprovalRequiredModal, setShowApprovalRequiredModal] = useState(false);
   type DistributionFormInput = z.input<typeof distributionSchema>;
@@ -71,7 +87,7 @@ export function DistributionForm({
 
   const form = useForm<DistributionFormInput, unknown, DistributionFormOutput>({
     resolver: zodResolver(distributionSchema),
-    defaultValues: initialValues ?? {
+    defaultValues: initialDraftValues ?? initialValues ?? {
       programId: "",
       phaseNumber: 0,
       states: [],
@@ -141,6 +157,18 @@ export function DistributionForm({
       : null;
   const isSuperAdmin = role === "SUPER_ADMIN";
 
+  useEffect(() => {
+    writeLocalStorage(draftStorageKey, {
+      values: {
+        programId,
+        phaseNumber,
+        states: selectedStates,
+        beneficiaryIds: selectedBeneficiaryIds,
+      },
+      currentStep,
+    });
+  }, [currentStep, draftStorageKey, phaseNumber, programId, selectedBeneficiaryIds, selectedStates]);
+
   function resetSelectedIntervention() {
     setShowApprovalRequiredModal(false);
     form.setValue("programId", "", { shouldValidate: true, shouldDirty: true });
@@ -165,6 +193,7 @@ export function DistributionForm({
         return;
       }
 
+      removeLocalStorage(draftStorageKey);
       void queryClient.invalidateQueries({ queryKey: ["distributions"] });
       void queryClient.invalidateQueries({ queryKey: ["distribution", response.data.id] });
       toast.success(mode === "create" ? "Distribution created successfully" : "Distribution updated successfully");
