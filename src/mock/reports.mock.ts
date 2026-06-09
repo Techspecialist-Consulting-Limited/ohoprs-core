@@ -100,6 +100,12 @@ export function getScopedPrograms(filters: ReportFiltersState) {
   );
 }
 
+export function getScopedOrganizations(filters: ReportFiltersState) {
+  return organizationsData.filter(
+    (item) => !filters.organizationId || filters.organizationId === "ALL" || item.id === filters.organizationId,
+  );
+}
+
 export function getScopedBeneficiaries(filters: ReportFiltersState) {
   return beneficiariesData.filter(
     (item) =>

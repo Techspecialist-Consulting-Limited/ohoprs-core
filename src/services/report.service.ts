@@ -82,9 +82,13 @@ export const reportService = {
       const data = reportsDashboardData(params);
       content = toCsv([
         {
-          totalDistributed: data.kpis.totalDistributed,
+          totalOrganizations: data.kpis.totalOrganizations,
           totalBeneficiaries: data.kpis.totalBeneficiaries,
+          householdImpact: data.kpis.householdImpact,
           totalPrograms: data.kpis.totalPrograms,
+          activePrograms: data.kpis.activePrograms,
+          totalCashRelief: data.kpis.totalCashRelief,
+          equivalentNonCashRelief: data.kpis.equivalentNonCashRelief,
           completedDistributions: data.kpis.completedDistributions,
           failedDistributions: data.kpis.failedDistributions,
           pendingAmount: data.kpis.pendingAmount,
