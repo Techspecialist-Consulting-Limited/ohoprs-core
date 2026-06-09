@@ -22,12 +22,7 @@ export function BeneficiaryDetailsHeader({
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">{beneficiary.fullName}</h1>
             <VerificationStatusBadge status={beneficiary.verificationStatus} />
             <BeneficiaryStatusBadge status={beneficiary.benefitStatus} />
-            {readOnly ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-warning/20 bg-warning/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warning">
-                <Eye size={14} />
-                Read-only oversight view
-              </span>
-            ) : null}
+        
           </div>
           <p className="mt-3 text-sm text-muted">Beneficiary details, agency benefit history, enrollment preview, and basic benefit summary.</p>
         </div>

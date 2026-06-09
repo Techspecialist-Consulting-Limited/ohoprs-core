@@ -33,12 +33,7 @@ export function Beneficiary360Header({
             </span>
             <VerificationStatusBadge status={beneficiary.verificationStatus} />
             <BeneficiaryStatusBadge status={beneficiary.benefitStatus} />
-            {readOnly ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-warning/20 bg-warning/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warning">
-                <Eye size={14} />
-                Read-only oversight view
-              </span>
-            ) : null}
+            
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{beneficiary.fullName}</h1>
           <p className="mt-2 text-sm leading-6 text-muted">

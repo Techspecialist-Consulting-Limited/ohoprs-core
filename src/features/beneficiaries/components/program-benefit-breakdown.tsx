@@ -25,7 +25,7 @@ export function ProgramBenefitBreakdown({ items }: { items: ProgramBenefitBreakd
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <Stat
                 label="Total Received"
-                value={typeof item.totalCashReceived === "number" ? formatCurrency(item.totalCashReceived) : `${formatNumber(item.nonCashBenefitCount ?? 0)} non-cash Relief`}
+                value={typeof item.totalCashReceived === "number" ? formatCurrency(item.totalCashReceived) : `${formatNumber(item.nonCashBenefitCount ?? 0)} Relief Materials`}
               />
               <Stat label="Benefit Count" value={formatNumber(item.benefitCount)} />
               <Stat label="Last Benefit Date" value={formatDateTime(item.lastBenefitDate)} />

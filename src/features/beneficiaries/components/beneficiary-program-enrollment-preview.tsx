@@ -39,7 +39,7 @@ export function BeneficiaryProgramEnrollmentPreview({
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Stat label="Active Enrollments" value={formatNumber(benefitSummary.activeEnrollments)} />
           <Stat label="Total Cash Received" value={formatCurrency(benefitSummary.totalCashReceived)} />
-          <Stat label="Non-cash Relief Received" value={formatNumber(benefitSummary.nonCashBenefitsReceived)} />
+          <Stat label="Relief Material Received" value={formatNumber(benefitSummary.nonCashBenefitsReceived)} />
           <Stat label="Last Distribution Status" value={benefitSummary.lastDistributionStatus} />
           <Stat label="Verification State" value={benefitSummary.verificationState} className="md:col-span-2" />
         </div>

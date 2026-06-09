@@ -31,6 +31,9 @@ export function BeneficiaryIdentityCard({ beneficiary }: { beneficiary: Benefici
         <Info label="BVN" value={beneficiary.bvn ? maskValue(beneficiary.bvn) : "Not provided"} />
         <Info label="Phone" value={beneficiary.phone} />
         <Info label="Email" value={beneficiary.email || "Not provided"} />
+        <Info label="State" value={beneficiary.state} />
+        <Info label="LGA" value={beneficiary.lga} />
+        <Info label="Address" value={beneficiary.address} />
       </div>
     </div>
   );

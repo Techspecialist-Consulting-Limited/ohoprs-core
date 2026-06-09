@@ -17,11 +17,7 @@ export function AuditEventSummary({
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            {readOnly ? (
-              <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-                Read-only oversight view
-              </span>
-            ) : null}
+            
             <AuditModuleBadge module={item.module} />
             <AuditResultBadge result={item.result} />
           </div>

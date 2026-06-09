@@ -22,12 +22,7 @@ export function ProgramDetailsHeader({
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">{program.name}</h1>
             <BenefitTypeBadge benefitType={program.benefitType} />
             <ProgramStatusBadge status={program.status} />
-            {readOnly ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-warning/20 bg-warning/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-warning">
-                <Eye size={14} />
-                Read-only oversight view
-              </span>
-            ) : null}
+            
           </div>
           <p className="mt-3 text-sm text-muted">{program.description}</p>
         </div>
