@@ -105,6 +105,7 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
           householdDependents: beneficiary.householdDependents,
           numberOfChildren: beneficiary.numberOfChildren,
           numberOfWives: beneficiary.numberOfWives,
+          numberOfHusbands: beneficiary.numberOfHusbands,
           dateOfBirth: beneficiary.dateOfBirth,
           state: beneficiary.state,
           stateOfOrigin: beneficiary.stateOfOrigin,

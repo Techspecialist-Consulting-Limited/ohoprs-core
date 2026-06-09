@@ -55,6 +55,7 @@ export function BeneficiaryForm({
       householdDependents: initialValues?.householdDependents ?? 0,
       numberOfChildren: initialValues?.numberOfChildren ?? 0,
       numberOfWives: initialValues?.numberOfWives ?? 0,
+      numberOfHusbands: initialValues?.numberOfHusbands ?? 0,
       dateOfBirth: initialValues?.dateOfBirth ?? "",
       state: initialValues?.state ?? "",
       stateOfOrigin: initialValues?.stateOfOrigin ?? "",
@@ -177,6 +178,9 @@ export function BeneficiaryForm({
         </Field>
         <Field label="Number of Wives" error={form.formState.errors.numberOfWives?.message}>
           <input type="number" min={0} {...form.register("numberOfWives", { valueAsNumber: true })} className={inputClassName} />
+        </Field>
+        <Field label="Number of Husbands" error={form.formState.errors.numberOfHusbands?.message}>
+          <input type="number" min={0} {...form.register("numberOfHusbands", { valueAsNumber: true })} className={inputClassName} />
         </Field>
       </div>
 

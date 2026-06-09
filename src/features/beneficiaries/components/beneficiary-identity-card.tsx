@@ -9,6 +9,10 @@ function maskValue(value: string) {
 }
 
 export function BeneficiaryIdentityCard({ beneficiary }: { beneficiary: Beneficiary360Details }) {
+  const spouseLabel = beneficiary.gender === "FEMALE" ? "Number of Husbands" : "Number of Wives";
+  const spouseCount = beneficiary.gender === "FEMALE" ? beneficiary.numberOfHusbands : beneficiary.numberOfWives;
+  const shouldShowSpouseCount = spouseCount > 0 || beneficiary.maritalStatus === "MARRIED";
+
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <p className="text-sm font-semibold text-foreground">Personal information</p>
@@ -26,7 +30,7 @@ export function BeneficiaryIdentityCard({ beneficiary }: { beneficiary: Benefici
         <Info label="Date of Birth" value={beneficiary.dateOfBirth} />
         <Info label="Household Dependents" value={String(beneficiary.householdDependents)} />
         <Info label="Number of Children" value={String(beneficiary.numberOfChildren)} />
-        <Info label="Number of Wives" value={String(beneficiary.numberOfWives)} />
+        {shouldShowSpouseCount ? <Info label={spouseLabel} value={String(spouseCount)} /> : null}
         <Info label="NIN" value={maskValue(beneficiary.nin)} />
         <Info label="BVN" value={beneficiary.bvn ? maskValue(beneficiary.bvn) : "Not provided"} />
         <Info label="Phone" value={beneficiary.phone} />

@@ -27,6 +27,7 @@ export const beneficiarySchema = z
     householdDependents: z.coerce.number().min(0, "Household dependents cannot be negative"),
     numberOfChildren: z.coerce.number().min(0, "Number of children cannot be negative"),
     numberOfWives: z.coerce.number().min(0, "Number of wives cannot be negative"),
+    numberOfHusbands: z.coerce.number().min(0, "Number of husbands cannot be negative"),
     dateOfBirth: z.string().min(1, "Date of birth is required"),
     state: z.string().min(2, "State is required"),
     stateOfOrigin: z.string().min(2, "State of origin is required"),

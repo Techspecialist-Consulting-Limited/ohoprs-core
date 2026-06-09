@@ -33,6 +33,7 @@ export interface Beneficiary {
   householdDependents: number;
   numberOfChildren: number;
   numberOfWives: number;
+  numberOfHusbands: number;
   dateOfBirth: string;
   state: string;
   stateOfOrigin: string;
@@ -171,6 +172,7 @@ export interface BeneficiaryPayload {
   householdDependents: number;
   numberOfChildren: number;
   numberOfWives: number;
+  numberOfHusbands: number;
   dateOfBirth: string;
   state: string;
   stateOfOrigin: string;

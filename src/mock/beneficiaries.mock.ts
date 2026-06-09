@@ -27,6 +27,82 @@ function organizationName(id: string) {
   return organizationsData.find((organization) => organization.id === id)?.name ?? "Unknown Organization";
 }
 
+const fallbackStates = ["FCT", "Lagos", "Kano", "Kaduna", "Borno", "Osun"] as const;
+const fallbackLgas = ["Municipal", "Central", "North", "South", "East", "West"] as const;
+const stateLocations: Record<string, { lgas: string[]; areas: string[] }> = {
+  FCT: { lgas: ["Abuja Municipal", "Bwari", "Gwagwalada", "Kuje"], areas: ["Garki", "Wuse", "Kubwa", "Lugbe"] },
+  Lagos: { lgas: ["Ikeja", "Alimosho", "Eti-Osa", "Surulere"], areas: ["Alausa", "Yaba", "Lekki", "Ikotun"] },
+  Kano: { lgas: ["Municipal", "Nassarawa", "Fagge", "Gwale"], areas: ["Sabon Gari", "Bompai", "Sharada", "Tudun Wada"] },
+  Kaduna: { lgas: ["North", "South", "Chikun", "Zaria"], areas: ["Barnawa", "Ungwan Rimi", "Sabo", "Kawo"] },
+  Borno: { lgas: ["Maiduguri", "Jere", "Biu", "Konduga"], areas: ["Bolori", "Custom", "Pompomari", "Gamboru"] },
+  Osun: { lgas: ["Osogbo", "Ife Central", "Ilesa East", "Ede North"], areas: ["Alekuwodo", "Oke-Fia", "Mayfair", "Ota-Efun"] },
+};
+const streetNames = ["Independence", "Unity", "Palm Grove", "Market", "Railway", "College", "Emir's", "Hospital", "New Layout", "Community"];
+const streetTypes = ["Road", "Street", "Close", "Crescent", "Avenue", "Lane"];
+
+function resolveState(index: number, overrides: Partial<Beneficiary360Details>) {
+  return overrides.state ?? fallbackStates[index % fallbackStates.length];
+}
+
+function resolveLga(index: number, state: string, overrides: Partial<Beneficiary360Details>) {
+  if (overrides.lga) {
+    return overrides.lga;
+  }
+
+  const options = stateLocations[state]?.lgas ?? fallbackLgas;
+  return options[index % options.length];
+}
+
+function buildAddress(index: number, state: string, lga: string, overrides: Partial<Beneficiary360Details>) {
+  if (overrides.address) {
+    return overrides.address;
+  }
+
+  const areas = stateLocations[state]?.areas ?? [lga];
+  const area = areas[index % areas.length];
+  const street = streetNames[index % streetNames.length];
+  const type = streetTypes[index % streetTypes.length];
+  const houseNumber = 8 + ((index * 3) % 91);
+
+  return `${houseNumber} ${street} ${type}, ${area}, ${lga}`;
+}
+
+function buildHouseholdProfile(index: number, gender: "MALE" | "FEMALE", maritalStatus: "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED") {
+  const childBase = index % 5;
+
+  if (maritalStatus === "MARRIED") {
+    const numberOfChildren = 1 + childBase;
+    const spouseCount = gender === "MALE" ? (index % 11 === 0 ? 2 : 1) : 1;
+
+    return {
+      numberOfChildren,
+      householdDependents: numberOfChildren + (index % 3) + 1,
+      numberOfWives: gender === "MALE" ? spouseCount : 0,
+      numberOfHusbands: gender === "FEMALE" ? spouseCount : 0,
+    };
+  }
+
+  if (maritalStatus === "DIVORCED" || maritalStatus === "WIDOWED") {
+    const numberOfChildren = 1 + (index % 4);
+
+    return {
+      numberOfChildren,
+      householdDependents: numberOfChildren + (index % 2),
+      numberOfWives: 0,
+      numberOfHusbands: 0,
+    };
+  }
+
+  const numberOfChildren = index % 6 === 0 ? 1 : 0;
+
+  return {
+    numberOfChildren,
+    householdDependents: numberOfChildren + (index % 3 === 0 ? 1 : 0),
+    numberOfWives: 0,
+    numberOfHusbands: 0,
+  };
+}
+
 function createBeneficiary(index: number, organizationId: string, programIds: string[], overrides: Partial<Beneficiary360Details> = {}): Beneficiary360Details {
   const firstName = `Beneficiary${index}`;
   const lastName = `Person${index}`;
@@ -41,11 +117,16 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
   const riskLevel: RiskLevel = index % 6 === 0 ? "HIGH" : index % 4 === 0 ? "MEDIUM" : "LOW";
   const organization = organizationsData.find((item) => item.id === organizationId)!;
   const gender = overrides.gender ?? (index % 2 === 0 ? "MALE" : "FEMALE");
-  const maritalStatus = overrides.maritalStatus ?? (index % 5 === 0 ? "DIVORCED" : index % 4 === 0 ? "MARRIED" : index % 7 === 0 ? "WIDOWED" : "SINGLE");
-  const householdDependents = overrides.householdDependents ?? 2 + (index % 6);
-  const numberOfChildren = overrides.numberOfChildren ?? Math.max(0, householdDependents - 1);
-  const numberOfWives = overrides.numberOfWives ?? (gender === "MALE" && maritalStatus === "MARRIED" ? (index % 8 === 0 ? 2 : 1) : 0);
+  const maritalStatus = overrides.maritalStatus ?? (index % 4 === 0 ? "MARRIED" : index % 6 === 0 ? "DIVORCED" : index % 9 === 0 ? "WIDOWED" : "SINGLE");
+  const householdProfile = buildHouseholdProfile(index, gender, maritalStatus);
+  const householdDependents = overrides.householdDependents ?? householdProfile.householdDependents;
+  const numberOfChildren = overrides.numberOfChildren ?? householdProfile.numberOfChildren;
+  const numberOfWives = overrides.numberOfWives ?? householdProfile.numberOfWives;
+  const numberOfHusbands = overrides.numberOfHusbands ?? householdProfile.numberOfHusbands;
   const occupation = overrides.occupation ?? ["Farmer", "Trader", "Teacher", "Tailor", "Artisan", "Civil Servant"][index % 6];
+  const state = resolveState(index, overrides);
+  const lga = resolveLga(index, state, overrides);
+  const address = buildAddress(index, state, lga, overrides);
 
   return {
     id: `beneficiary_${String(index).padStart(3, "0")}`,
@@ -65,11 +146,12 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     householdDependents,
     numberOfChildren,
     numberOfWives,
+    numberOfHusbands,
     dateOfBirth: `199${index % 10}-0${(index % 8) + 1}-1${index % 9}`,
-    state: ["FCT", "Lagos", "Kano", "Kaduna", "Borno", "Osun"][index % 6],
+    state,
     stateOfOrigin: overrides.stateOfOrigin ?? ["Kaduna", "Lagos", "Kano", "Enugu", "FCT", "Oyo"][index % 6],
-    lga: ["Municipal", "Central", "North", "South", "East", "West"][index % 6],
-    address: `${10 + index} Relief Avenue`,
+    lga,
+    address,
     hasDisability: overrides.hasDisability ?? index % 7 === 0,
     disabilityType:
       overrides.disabilityType ??
@@ -396,7 +478,6 @@ export const beneficiariesData: Beneficiary360Details[] = [
       fullName: `Expanded${index} Coverage`,
       state,
       lga,
-      address: `${index} Community Support Road`,
       verificationStatus: "VERIFIED",
       benefitStatus: "ACTIVE",
     }),
@@ -439,7 +520,6 @@ export const beneficiariesData: Beneficiary360Details[] = [
       fullName: `${state}Ben${index} Mock`,
       state,
       lga,
-      address: `${index} ${state} Support Lane`,
       verificationStatus: "VERIFIED",
       benefitStatus: "ACTIVE",
     }),
