@@ -73,10 +73,12 @@ function buildHouseholdProfile(index: number, gender: "MALE" | "FEMALE", marital
   if (maritalStatus === "MARRIED") {
     const numberOfChildren = 1 + childBase;
     const spouseCount = gender === "MALE" ? (index % 11 === 0 ? 2 : 1) : 1;
+    const spouseDependents = spouseCount;
+    const otherDependents = index % 2;
 
     return {
       numberOfChildren,
-      householdDependents: numberOfChildren + (index % 3) + 1,
+      householdDependents: numberOfChildren + spouseDependents + otherDependents,
       numberOfWives: gender === "MALE" ? spouseCount : 0,
       numberOfHusbands: gender === "FEMALE" ? spouseCount : 0,
     };
@@ -84,20 +86,21 @@ function buildHouseholdProfile(index: number, gender: "MALE" | "FEMALE", marital
 
   if (maritalStatus === "DIVORCED" || maritalStatus === "WIDOWED") {
     const numberOfChildren = 1 + (index % 4);
+    const otherDependents = index % 2;
 
     return {
       numberOfChildren,
-      householdDependents: numberOfChildren + (index % 2),
+      householdDependents: numberOfChildren + otherDependents,
       numberOfWives: 0,
       numberOfHusbands: 0,
     };
   }
 
-  const numberOfChildren = index % 6 === 0 ? 1 : 0;
+  const numberOfChildren = 0;
 
   return {
     numberOfChildren,
-    householdDependents: numberOfChildren + (index % 3 === 0 ? 1 : 0),
+    householdDependents: 0,
     numberOfWives: 0,
     numberOfHusbands: 0,
   };
@@ -313,6 +316,11 @@ export const beneficiariesData: Beneficiary360Details[] = [
     firstName: "Aisha",
     lastName: "Bello",
     fullName: "Aisha Bello",
+    maritalStatus: "MARRIED",
+    householdDependents: 3,
+    numberOfChildren: 2,
+    numberOfHusbands: 1,
+    address: "18 Hope Rise, Garki, Abuja Municipal",
     state: "FCT",
     lga: "Abuja Municipal",
     verificationStatus: "VERIFIED",
@@ -331,6 +339,13 @@ export const beneficiariesData: Beneficiary360Details[] = [
     firstName: "Sani",
     lastName: "Musa",
     fullName: "Sani Musa",
+    maritalStatus: "MARRIED",
+    householdDependents: 5,
+    numberOfChildren: 3,
+    numberOfWives: 1,
+    state: "Kano",
+    lga: "Fagge",
+    address: "27 Emir's Road, Sabon Gari, Fagge",
     riskSummary: {
       riskLevel: "MEDIUM",
       flags: [
@@ -349,11 +364,29 @@ export const beneficiariesData: Beneficiary360Details[] = [
       ],
     },
   }),
-  createBeneficiary(3, "org_001", ["program_001"], { firstName: "Ngozi", lastName: "Okafor", fullName: "Ngozi Okafor" }),
+  createBeneficiary(3, "org_001", ["program_001"], {
+    firstName: "Ngozi",
+    lastName: "Okafor",
+    fullName: "Ngozi Okafor",
+    maritalStatus: "MARRIED",
+    householdDependents: 2,
+    numberOfChildren: 1,
+    numberOfHusbands: 1,
+    state: "Kaduna",
+    lga: "Zaria",
+    address: "14 College Street, Sabo, Zaria",
+  }),
   createBeneficiary(4, "org_001", ["program_003"], {
     firstName: "John",
     lastName: "Yakubu",
     fullName: "John Yakubu",
+    maritalStatus: "MARRIED",
+    householdDependents: 4,
+    numberOfChildren: 2,
+    numberOfWives: 1,
+    state: "Borno",
+    lga: "Maiduguri",
+    address: "33 Market Road, Bolori, Maiduguri",
     verificationSummary: {
       status: "PENDING",
       ninVerified: true,
@@ -364,16 +397,65 @@ export const beneficiariesData: Beneficiary360Details[] = [
       lastCheckedAt: "2026-05-22T09:30:00Z",
     },
   }),
-  createBeneficiary(5, "org_001", ["program_001", "program_002", "program_003"], { firstName: "Fatima", lastName: "Abdullahi", fullName: "Fatima Abdullahi" }),
-  createBeneficiary(6, "org_001", ["program_002"], { firstName: "Chinedu", lastName: "Nwosu", fullName: "Chinedu Nwosu" }),
-  createBeneficiary(7, "org_001", ["program_001"], { firstName: "Maryam", lastName: "Aliyu", fullName: "Maryam Aliyu" }),
-  createBeneficiary(8, "org_001", ["program_003"], { firstName: "Emeka", lastName: "Udeh", fullName: "Emeka Udeh" }),
+  createBeneficiary(5, "org_001", ["program_001", "program_002", "program_003"], {
+    firstName: "Fatima",
+    lastName: "Abdullahi",
+    fullName: "Fatima Abdullahi",
+    maritalStatus: "MARRIED",
+    householdDependents: 4,
+    numberOfChildren: 2,
+    numberOfHusbands: 1,
+    state: "Osun",
+    lga: "Ife Central",
+    address: "22 Palm Grove Crescent, Mayfair, Ife Central",
+  }),
+  createBeneficiary(6, "org_001", ["program_002"], {
+    firstName: "Chinedu",
+    lastName: "Nwosu",
+    fullName: "Chinedu Nwosu",
+    maritalStatus: "DIVORCED",
+    householdDependents: 1,
+    numberOfChildren: 1,
+    numberOfWives: 0,
+    state: "FCT",
+    lga: "Gwagwalada",
+    address: "41 Unity Close, Kubwa, Gwagwalada",
+  }),
+  createBeneficiary(7, "org_001", ["program_001"], {
+    firstName: "Maryam",
+    lastName: "Aliyu",
+    fullName: "Maryam Aliyu",
+    maritalStatus: "WIDOWED",
+    householdDependents: 2,
+    numberOfChildren: 2,
+    numberOfHusbands: 0,
+    state: "Lagos",
+    lga: "Surulere",
+    address: "16 Railway Avenue, Yaba, Surulere",
+  }),
+  createBeneficiary(8, "org_001", ["program_003"], {
+    firstName: "Emeka",
+    lastName: "Udeh",
+    fullName: "Emeka Udeh",
+    maritalStatus: "MARRIED",
+    householdDependents: 6,
+    numberOfChildren: 4,
+    numberOfWives: 2,
+    state: "Kano",
+    lga: "Municipal",
+    address: "29 Hospital Lane, Bompai, Municipal",
+  }),
   createBeneficiary(9, "org_002", ["program_004", "program_005"], {
     firstName: "Kemi",
     lastName: "Afolabi",
     fullName: "Kemi Afolabi",
+    maritalStatus: "MARRIED",
+    householdDependents: 3,
+    numberOfChildren: 2,
+    numberOfHusbands: 1,
     state: "Lagos",
     lga: "Ikeja",
+    address: "12 Civic Street, Alausa, Ikeja",
     benefit360Summary: {
       totalCashReceived: 210000,
       totalNonCashBenefits: 4,
@@ -382,7 +464,18 @@ export const beneficiariesData: Beneficiary360Details[] = [
       riskFlags: 2,
     },
   }),
-  createBeneficiary(10, "org_002", ["program_004"], { firstName: "Sade", lastName: "Balogun", fullName: "Sade Balogun" }),
+  createBeneficiary(10, "org_002", ["program_004"], {
+    firstName: "Sade",
+    lastName: "Balogun",
+    fullName: "Sade Balogun",
+    maritalStatus: "SINGLE",
+    householdDependents: 0,
+    numberOfChildren: 0,
+    numberOfHusbands: 0,
+    state: "Borno",
+    lga: "Biu",
+    address: "38 Community Road, Custom, Biu",
+  }),
   createBeneficiary(11, "org_002", ["program_005", "program_006"], { firstName: "Adewale", lastName: "Johnson", fullName: "Adewale Johnson" }),
   createBeneficiary(12, "org_002", ["program_004"], { firstName: "Ruth", lastName: "Ojo", fullName: "Ruth Ojo" }),
   createBeneficiary(13, "org_002", ["program_006"], { firstName: "Michael", lastName: "Adeoye", fullName: "Michael Adeoye" }),
