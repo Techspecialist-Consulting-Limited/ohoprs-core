@@ -21,6 +21,8 @@ export function BeneficiaryIdentityCard({ beneficiary }: { beneficiary: Benefici
         <Info label="Last Name" value={beneficiary.lastName} />
         <Info label="Middle Name" value={beneficiary.middleName || "Not provided"} />
         <Info label="Gender" value={beneficiary.gender} />
+        <Info label="Blood Group" value={beneficiary.bloodGroup} />
+        <Info label="Genotype" value={beneficiary.genotype} />
         <Info label="Occupation" value={beneficiary.occupation} />
         <Info label="Marital Status" value={beneficiary.maritalStatus} />
         <Info label="Disability" value={beneficiary.hasDisability ? "Yes" : "No"} />

@@ -4,6 +4,8 @@ export const verificationStatuses = ["VERIFIED", "PENDING", "FAILED", "FLAGGED"]
 export const benefitStatuses = ["ACTIVE", "PAUSED", "EXITED", "SUSPENDED"] as const;
 export const beneficiaryGenders = ["MALE", "FEMALE"] as const;
 export const maritalStatuses = ["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"] as const;
+export const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+export const genotypes = ["AA", "AS", "SS", "AC", "SC"] as const;
 
 const optionalDigits = (message: string) =>
   z
@@ -21,6 +23,8 @@ export const beneficiarySchema = z
     bvn: optionalDigits("BVN must be exactly 11 digits"),
     phone: z.string().min(8, "Phone is required"),
     email: z.email("Enter a valid email").optional().or(z.literal("")),
+    bloodGroup: z.enum(bloodGroups),
+    genotype: z.enum(genotypes),
     gender: z.enum(beneficiaryGenders),
     occupation: z.string().min(2, "Occupation is required"),
     maritalStatus: z.enum(maritalStatuses),

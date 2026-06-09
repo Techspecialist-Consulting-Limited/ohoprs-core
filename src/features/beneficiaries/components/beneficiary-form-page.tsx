@@ -99,6 +99,8 @@ export function BeneficiaryEditModule({ id }: { id: string }) {
           bvn: beneficiary.bvn,
           phone: beneficiary.phone,
           email: beneficiary.email,
+          bloodGroup: beneficiary.bloodGroup,
+          genotype: beneficiary.genotype,
           gender: beneficiary.gender,
           occupation: beneficiary.occupation,
           maritalStatus: beneficiary.maritalStatus,

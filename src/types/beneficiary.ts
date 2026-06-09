@@ -4,6 +4,8 @@ export type VerificationStatus = "VERIFIED" | "PENDING" | "FAILED" | "FLAGGED";
 export type BenefitStatus = "ACTIVE" | "PAUSED" | "EXITED" | "SUSPENDED";
 export type BeneficiaryGender = "MALE" | "FEMALE";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED";
+export type BloodGroup = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+export type Genotype = "AA" | "AS" | "SS" | "AC" | "SC";
 export type BenefitTimelineStatus = "COMPLETED" | "PENDING" | "FAILED" | "REVERSED";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 export type DuplicateCheckStatus = "PASSED" | "REVIEW_REQUIRED" | "FAILED" | "PENDING";
@@ -27,6 +29,8 @@ export interface Beneficiary {
   bvn?: string;
   phone: string;
   email?: string;
+  bloodGroup: BloodGroup;
+  genotype: Genotype;
   gender: BeneficiaryGender;
   occupation: string;
   maritalStatus: MaritalStatus;
@@ -166,6 +170,8 @@ export interface BeneficiaryPayload {
   bvn?: string;
   phone: string;
   email?: string;
+  bloodGroup: BloodGroup;
+  genotype: Genotype;
   gender: BeneficiaryGender;
   occupation: string;
   maritalStatus: MaritalStatus;

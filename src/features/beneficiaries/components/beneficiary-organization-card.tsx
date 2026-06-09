@@ -1,17 +1,20 @@
 import Link from "next/link";
 
+import { organizationsData } from "@/mock/organizations.mock";
 import type { Beneficiary360Details } from "@/types/beneficiary";
 
 export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Beneficiary360Details }) {
+  const organization = organizationsData.find((item) => item.id === beneficiary.organizationId);
+
   return (
     <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
       <p className="text-sm font-semibold text-foreground">Agency usage and enrollment</p>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <Info label="Agency Benefited From" value={beneficiary.organizationName} />
-        <Info label="State" value={beneficiary.state} />
-        <Info label="State of Origin" value={beneficiary.stateOfOrigin} />
-        <Info label="LGA" value={beneficiary.lga} />
-        <Info label="Address" value={beneficiary.address} />
+        <Info label="Agency State" value={organization?.state ?? "Not provided"} />
+        <Info label="Agency Address" value={organization?.address ?? "Not provided"} />
+        <Info label="Beneficiary State of Origin" value={beneficiary.stateOfOrigin} />
+        <Info label="Beneficiary LGA" value={beneficiary.lga} />
       </div>
       <div className="mt-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention enrollments</p>

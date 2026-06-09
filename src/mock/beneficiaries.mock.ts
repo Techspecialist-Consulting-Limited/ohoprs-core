@@ -37,6 +37,8 @@ const stateLocations: Record<string, { lgas: string[]; areas: string[] }> = {
   Borno: { lgas: ["Maiduguri", "Jere", "Biu", "Konduga"], areas: ["Bolori", "Custom", "Pompomari", "Gamboru"] },
   Osun: { lgas: ["Osogbo", "Ife Central", "Ilesa East", "Ede North"], areas: ["Alekuwodo", "Oke-Fia", "Mayfair", "Ota-Efun"] },
 };
+const bloodGroupOptions = ["O+", "A+", "B+", "AB+", "O-", "A-", "B-", "AB-"] as const;
+const genotypeOptions = ["AA", "AS", "AA", "AC", "AA", "AS", "SC", "SS"] as const;
 const streetNames = ["Independence", "Unity", "Palm Grove", "Market", "Railway", "College", "Emir's", "Hospital", "New Layout", "Community"];
 const streetTypes = ["Road", "Street", "Close", "Crescent", "Avenue", "Lane"];
 
@@ -143,6 +145,8 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     bvn: index % 4 === 0 ? "" : String(22000000000 + index),
     phone: `+23480${String(10000000 + index).slice(0, 8)}`,
     email: `beneficiary${index}@example.ng`,
+    bloodGroup: overrides.bloodGroup ?? bloodGroupOptions[index % bloodGroupOptions.length],
+    genotype: overrides.genotype ?? genotypeOptions[index % genotypeOptions.length],
     gender,
     occupation,
     maritalStatus,

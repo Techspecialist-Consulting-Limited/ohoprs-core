@@ -14,6 +14,8 @@ import {
   beneficiaryGenders,
   beneficiarySchema,
   benefitStatuses,
+  bloodGroups,
+  genotypes,
   maritalStatuses,
   verificationStatuses,
 } from "@/features/beneficiaries/schemas/beneficiary.schema";
@@ -49,6 +51,8 @@ export function BeneficiaryForm({
       bvn: initialValues?.bvn ?? "",
       phone: initialValues?.phone ?? "",
       email: initialValues?.email ?? "",
+      bloodGroup: initialValues?.bloodGroup ?? "O+",
+      genotype: initialValues?.genotype ?? "AA",
       gender: initialValues?.gender ?? "MALE",
       occupation: initialValues?.occupation ?? "",
       maritalStatus: initialValues?.maritalStatus ?? "SINGLE",
@@ -148,6 +152,23 @@ export function BeneficiaryForm({
           <select {...form.register("gender")} className={inputClassName}>
             {beneficiaryGenders.map((gender) => (
               <option key={gender} value={gender}>{gender}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Blood Group" error={form.formState.errors.bloodGroup?.message}>
+          <select {...form.register("bloodGroup")} className={inputClassName}>
+            {bloodGroups.map((group) => (
+              <option key={group} value={group}>{group}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-3">
+        <Field label="Genotype" error={form.formState.errors.genotype?.message}>
+          <select {...form.register("genotype")} className={inputClassName}>
+            {genotypes.map((genotype) => (
+              <option key={genotype} value={genotype}>{genotype}</option>
             ))}
           </select>
         </Field>
