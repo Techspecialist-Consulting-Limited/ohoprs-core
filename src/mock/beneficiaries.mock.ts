@@ -399,9 +399,9 @@ export const beneficiariesData: Beneficiary360Details[] = [
     householdDependents: 2,
     numberOfChildren: 1,
     numberOfHusbands: 1,
-    state: "Kaduna",
-    lga: "Zaria",
-    address: "14 College Street, Sabo, Zaria",
+    state: "Enugu",
+    lga: "Nsukka",
+    address: "14 College Street, Sabo, Nsukka",
   }),
   createBeneficiary(4, "org_001", ["program_003"], {
     firstName: "John",
