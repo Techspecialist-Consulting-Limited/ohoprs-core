@@ -1,27 +1,31 @@
 "use client";
 
-import { AlertTriangle, CircleDollarSign, Clock3, FolderKanban, Users, Wallet } from "lucide-react";
+import { AlertTriangle, Building2, CircleDollarSign, Clock3, FolderKanban, HandCoins, House, Landmark, Users, Wallet } from "lucide-react";
 
 import { MetricCard } from "@/components/ui/metric-card";
-import { formatCurrency, formatNumber } from "@/lib/formatters";
+import { formatCompactNumber, formatCurrency, formatNumber } from "@/lib/formatters";
 import type { ReportKpis } from "@/types/report";
 
 export function ReportKpiGrid({
   kpis,
-  hideFinancials = false,
 }: {
   kpis: ReportKpis;
-  hideFinancials?: boolean;
 }) {
   const cards = [
-    !hideFinancials
-      ? {
-          label: "Total Distributed",
-          value: formatCurrency(kpis.totalDistributed),
-          change: "Distributed value",
-          icon: CircleDollarSign,
-        }
-      : null,
+    {
+      label: "Total Agencies",
+      value: formatNumber(kpis.totalOrganizations),
+      change: "Agencies in scope",
+      icon: Building2,
+      tone: "neutral" as const,
+    },
+    {
+      label: "Active Interventions",
+      value: formatCompactNumber(kpis.activePrograms),
+      change: "Currently active programs",
+      icon: HandCoins,
+      tone: "neutral" as const,
+    },
     {
       label: "Total Beneficiaries",
       value: formatNumber(kpis.totalBeneficiaries),
@@ -30,11 +34,23 @@ export function ReportKpiGrid({
       tone: "neutral" as const,
     },
     {
-      label: "Total Interventions",
-      value: formatNumber(kpis.totalPrograms),
-      change: "Interventions in scope",
-      icon: FolderKanban,
+      label: "Households Impacted",
+      value: formatCompactNumber(kpis.householdImpact),
+      change: "Household coverage",
+      icon: House,
       tone: "neutral" as const,
+    },
+    {
+      label: "Total Cash Relief",
+      value: formatCurrency(kpis.totalCashRelief),
+      change: "Cash value distributed",
+      icon: CircleDollarSign,
+    },
+    {
+      label: "Distributed Relief Material",
+      value: formatCompactNumber(kpis.equivalentNonCashRelief),
+      change: "Non-cash relief volume",
+      icon: Landmark,
     },
     {
       label: "Completed Distributions",
@@ -49,15 +65,20 @@ export function ReportKpiGrid({
       icon: AlertTriangle,
       tone: "warning" as const,
     },
-    !hideFinancials
-      ? {
-          label: "Pending Amount",
-          value: formatCurrency(kpis.pendingAmount),
-          change: "Awaiting execution",
-          icon: Clock3,
-          tone: "warning" as const,
-        }
-      : null,
+    {
+      label: "Total Interventions",
+      value: formatNumber(kpis.totalPrograms),
+      change: "Interventions in scope",
+      icon: FolderKanban,
+      tone: "neutral" as const,
+    },
+    {
+      label: "Pending Amount",
+      value: formatCurrency(kpis.pendingAmount),
+      change: "Awaiting execution",
+      icon: Clock3,
+      tone: "warning" as const,
+    },
   ].filter(Boolean) as Array<{
     label: string;
     value: string;
@@ -67,7 +88,7 @@ export function ReportKpiGrid({
   }>;
 
   return (
-    <section className={`grid gap-4 ${cards.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"}`}>
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       {cards.map((card) => (
         <MetricCard
           key={card.label}

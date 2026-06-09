@@ -8,9 +8,13 @@ export type ReportDatePreset =
   | "CUSTOM";
 
 export interface ReportKpis {
-  totalDistributed: number;
+  totalOrganizations: number;
   totalBeneficiaries: number;
+  householdImpact: number;
   totalPrograms: number;
+  activePrograms: number;
+  totalCashRelief: number;
+  equivalentNonCashRelief: number;
   completedDistributions: number;
   failedDistributions: number;
   pendingAmount: number;

@@ -1,3 +1,4 @@
+import { nationalDashboardData } from "@/mock/dashboard.mock";
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { bulkDistributionJobsData } from "@/mock/bulk-distributions.mock";
 import { distributionsData } from "@/mock/distributions.mock";
@@ -42,6 +43,36 @@ function sum(values: number[]) {
   return values.reduce((total, value) => total + value, 0);
 }
 
+const stateToRegion: Record<string, string> = {
+  Abia: "South East",
+  Anambra: "South East",
+  Bauchi: "North East",
+  Benue: "North Central",
+  Borno: "North East",
+  "Cross River": "South South",
+  Ebonyi: "South East",
+  Ekiti: "South West",
+  Enugu: "South East",
+  FCT: "North Central",
+  Imo: "South East",
+  Jigawa: "North West",
+  Kaduna: "North West",
+  Kano: "North West",
+  Katsina: "North West",
+  Kebbi: "North West",
+  Kogi: "North Central",
+  Kwara: "North Central",
+  Lagos: "South West",
+  Nasarawa: "North Central",
+  Niger: "North Central",
+  Osun: "South West",
+  Oyo: "South West",
+  Plateau: "North Central",
+  Rivers: "South South",
+  Sokoto: "North West",
+  Zamfara: "North West",
+};
+
 export function getScopedPrograms(filters: ReportFiltersState) {
   return programsData.filter(
     (item) =>
@@ -79,31 +110,71 @@ export function getScopedBulkJobs(filters: ReportFiltersState) {
 }
 
 export function buildReportKpis(filters: ReportFiltersState): ReportKpis {
+  const distributions = getScopedDistributions(filters);
+  const completedDistributionCount = distributions.filter((item) => item.status === "COMPLETED").length;
+  const failedDistributionCount = distributions.filter((item) => item.status === "FAILED").length;
+  const pendingAmount = sum(
+    distributions
+      .filter((item) => item.status === "SCHEDULED" || item.status === "PROCESSING")
+      .map((item) => item.amount ?? 0),
+  );
+
+  if (filters.organizationId === "ALL") {
+    return {
+      totalOrganizations: nationalDashboardData.kpis.totalOrganizations,
+      totalBeneficiaries: nationalDashboardData.kpis.totalBeneficiaries,
+      householdImpact: nationalDashboardData.kpis.householdImpact,
+      totalPrograms: nationalDashboardData.kpis.totalPrograms,
+      activePrograms: nationalDashboardData.kpis.activePrograms,
+      totalCashRelief: nationalDashboardData.kpis.totalCashRelief,
+      equivalentNonCashRelief: nationalDashboardData.kpis.equivalentNonCashRelief,
+      completedDistributions: completedDistributionCount,
+      failedDistributions: failedDistributionCount,
+      pendingAmount,
+    };
+  }
+
+  const organizations = getScopedOrganizations(filters);
   const programs = getScopedPrograms(filters);
   const beneficiaries = getScopedBeneficiaries(filters);
-  const distributions = getScopedDistributions(filters);
+  const completedDistributions = distributions.filter((item) => item.status === "COMPLETED");
+  const cashLikePrograms = new Set(
+    programs.filter((program) => program.benefitType === "CASH").map((program) => program.id),
+  );
+  const totalCashRelief = sum(
+    completedDistributions
+      .filter((item) => cashLikePrograms.has(item.programId))
+      .map((item) => item.amount ?? 0),
+  );
+  const equivalentNonCashRelief = sum(
+    completedDistributions
+      .filter((item) => !cashLikePrograms.has(item.programId))
+      .map((item) => item.amount ?? 0),
+  );
 
   return {
-    totalDistributed: sum(distributions.map((item) => item.amount ?? 0)),
-    totalBeneficiaries: beneficiaries.length,
+    totalOrganizations: organizations.length,
+    totalBeneficiaries: sum(programs.map((item) => item.beneficiaryCount)),
+    householdImpact: Math.round(sum(programs.map((item) => item.beneficiaryCount)) * 1.8),
     totalPrograms: programs.length,
-    completedDistributions: distributions.filter((item) => item.status === "COMPLETED").length,
-    failedDistributions: distributions.filter((item) => item.status === "FAILED").length,
-    pendingAmount: sum(
-      distributions
-        .filter((item) => item.status === "SCHEDULED" || item.status === "PROCESSING")
-        .map((item) => item.amount ?? 0),
-    ),
+    activePrograms: programs.filter((item) => item.status === "ACTIVE").length,
+    totalCashRelief,
+    equivalentNonCashRelief,
+    completedDistributions: completedDistributionCount,
+    failedDistributions: failedDistributionCount,
+    pendingAmount,
   };
 }
 
 function aggregateByMonth(distributions: ReturnType<typeof getScopedDistributions>) {
-  const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const totals = Array.from({ length: 12 }, () => 0);
+  const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  const totals = Array.from({ length: 6 }, () => 0);
 
   distributions.forEach((item) => {
     const month = new Date(item.scheduledDate).getMonth();
-    totals[month] += item.amount ?? Math.max((item.quantity ?? 0) * 10000, 0);
+    if (month >= 0 && month < 6) {
+      totals[month] += item.amount ?? Math.max((item.quantity ?? 0) * 10000, 0);
+    }
   });
 
   return labels.map((label, index) => ({ label, value: totals[index] || (index + 1) * 50000000 }));
@@ -118,6 +189,10 @@ function aggregateCounts<T>(items: T[], getKey: (item: T) => string): ReportChar
   return Array.from(map.entries()).map(([label, value]) => ({ label: titleCase(label), value }));
 }
 
+function aggregateRegions<T>(items: T[], getState: (item: T) => string): ReportChartPoint[] {
+  return aggregateCounts(items, (item) => stateToRegion[getState(item)] ?? "Other");
+}
+
 export function reportsDashboardData(filters: ReportFiltersState): ReportsDashboardData {
   const distributions = getScopedDistributions(filters);
   const beneficiaries = getScopedBeneficiaries(filters);
@@ -127,10 +202,10 @@ export function reportsDashboardData(filters: ReportFiltersState): ReportsDashbo
     kpis: buildReportKpis(filters),
     distributionByMonth: aggregateByMonth(distributions),
     distributionByBenefitType: aggregateCounts(distributions, (item) => item.benefitType),
-    distributionByState: aggregateCounts(beneficiaries, (item) => item.state)
+    distributionByState: aggregateRegions(beneficiaries, (item) => item.state)
       .map((item) => ({ ...item, value: item.value * 15000 }))
-      .slice(0, 8),
-    beneficiaryCoverageByState: aggregateCounts(beneficiaries, (item) => item.state).slice(0, 8),
+      .slice(0, 6),
+    beneficiaryCoverageByState: aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
     programPerformance: programs
       .slice(0, 8)
       .map((item) => ({
@@ -183,7 +258,7 @@ export function beneficiaryReportData(filters: ReportFiltersState): BeneficiaryR
   return {
     verificationStatusBreakdown: aggregateCounts(beneficiaries, (item) => item.verificationStatus),
     benefitStatusBreakdown: aggregateCounts(beneficiaries, (item) => item.benefitStatus),
-    beneficiaryCoverageByState: aggregateCounts(beneficiaries, (item) => item.state).slice(0, 10),
+    beneficiaryCoverageByState: aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
     demographicSummary: {
       verifiedRecords: beneficiaries.filter((item) => item.verificationStatus === "VERIFIED").length,
       flaggedRecords: beneficiaries.filter((item) => item.verificationStatus === "FLAGGED").length,

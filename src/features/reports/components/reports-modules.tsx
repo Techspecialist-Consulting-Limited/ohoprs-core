@@ -50,7 +50,7 @@ function useReportFilters() {
 }
 
 export function ReportsDashboardModule() {
-  const { filters, setFilters, showOrganizationFilter, scopedOrganizationId, readOnly, hideFinancials } = useReportFilters();
+  const { filters, setFilters, showOrganizationFilter, scopedOrganizationId, readOnly } = useReportFilters();
   const dataQuery = useQuery({
     queryKey: ["reports-dashboard", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getReportsDashboard({ ...filters, organizationId: scopedOrganizationId }),
@@ -89,7 +89,7 @@ export function ReportsDashboardModule() {
         showOrganizationFilter={showOrganizationFilter}
         allowedOrganizationId={showOrganizationFilter ? null : scopedOrganizationId}
       />
-      <ReportKpiGrid kpis={data.kpis} hideFinancials={hideFinancials} />
+      <ReportKpiGrid kpis={data.kpis} />
       <section className="grid gap-4 xl:grid-cols-2">
         <ReportChartCard title="Distribution by Month" description="Monthly distribution volume across the selected reporting scope.">
           <DistributionByMonthChart data={data.distributionByMonth} />
@@ -97,10 +97,10 @@ export function ReportsDashboardModule() {
         <ReportChartCard title="Distribution by Benefit Type" description="Benefit mix across current filters and scope.">
           <BenefitTypeChart data={data.distributionByBenefitType} />
         </ReportChartCard>
-        <ReportChartCard title="Distribution by State" description="Estimated delivered value across states.">
+        <ReportChartCard title="Distribution by Region" description="Estimated delivered value across geopolitical regions.">
           <StateDistributionChart data={data.distributionByState} currency />
         </ReportChartCard>
-        <ReportChartCard title="Beneficiary Coverage by State" description="Beneficiary footprint across states in the filtered view.">
+        <ReportChartCard title="Beneficiary Coverage by Region" description="Beneficiary footprint across geopolitical regions in the filtered view.">
           <StateDistributionChart data={data.beneficiaryCoverageByState} />
         </ReportChartCard>
         <ReportChartCard title="Intervention Performance" description="High-level intervention delivery performance score.">
@@ -194,7 +194,7 @@ export function BeneficiariesReportModule() {
         <ReportChartCard title="Benefit Status Breakdown" description="Operational benefit status across beneficiaries in scope.">
           <BenefitTypeChart data={data.benefitStatusBreakdown} />
         </ReportChartCard>
-        <ReportChartCard title="Beneficiary Coverage by State" description="Beneficiary footprint by state under active filters.">
+        <ReportChartCard title="Beneficiary Coverage by Region" description="Beneficiary footprint by geopolitical region under active filters.">
           <StateDistributionChart data={data.beneficiaryCoverageByState} />
         </ReportChartCard>
         <ReportChartCard title="Flagged Records Summary" description="Operational visibility into flagged and verified records.">
