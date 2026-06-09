@@ -13,8 +13,6 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
         <Info label="Agency Benefited From" value={beneficiary.organizationName} />
         <Info label="Agency State" value={organization?.state ?? "Not provided"} />
         <Info label="Agency Address" value={organization?.address ?? "Not provided"} />
-        <Info label="State" value={beneficiary.state} />
-        <Info label="Beneficiary LGA" value={beneficiary.lga} />
       </div>
       <div className="mt-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention enrollments</p>

@@ -179,7 +179,7 @@ function createBeneficiary(index: number, organizationId: string, programIds: st
     numberOfHusbands,
     dateOfBirth: `199${index % 10}-0${(index % 8) + 1}-1${index % 9}`,
     state,
-    stateOfOrigin: overrides.stateOfOrigin ?? ["Kaduna", "Lagos", "Kano", "Enugu", "FCT", "Oyo"][index % 6],
+    stateOfOrigin: overrides.stateOfOrigin ?? state,
     lga,
     address,
     hasDisability: overrides.hasDisability ?? index % 7 === 0,
