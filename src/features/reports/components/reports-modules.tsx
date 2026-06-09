@@ -94,7 +94,7 @@ export function ReportsDashboardModule() {
         <ReportChartCard title="Distribution by Month" description="Monthly distribution volume across the selected reporting scope.">
           <DistributionByMonthChart data={data.distributionByMonth} />
         </ReportChartCard>
-        <ReportChartCard title="Distribution by Benefit Type" description="Benefit mix across current filters and scope.">
+        <ReportChartCard title="Intervention Distribution by Benefit Type" description="Benefit mix across current filters and scope.">
           <BenefitTypeChart data={data.distributionByBenefitType} />
         </ReportChartCard>
         <ReportChartCard title="Distribution by Region" description="Estimated delivered value across geopolitical regions.">

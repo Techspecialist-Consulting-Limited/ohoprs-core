@@ -73,6 +73,24 @@ const stateToRegion: Record<string, string> = {
   Zamfara: "North West",
 };
 
+const nationalBeneficiaryCoverageByRegion: ReportChartPoint[] = [
+  { label: "North West", value: 780000 },
+  { label: "North East", value: 690000 },
+  { label: "North Central", value: 510000 },
+  { label: "South West", value: 420000 },
+  { label: "South South", value: 330000 },
+  { label: "South East", value: 270000 },
+];
+
+const nationalDistributionByRegion: ReportChartPoint[] = [
+  { label: "North West", value: 156000000000 },
+  { label: "North East", value: 138000000000 },
+  { label: "North Central", value: 102000000000 },
+  { label: "South West", value: 84000000000 },
+  { label: "South South", value: 66000000000 },
+  { label: "South East", value: 54000000000 },
+];
+
 export function getScopedPrograms(filters: ReportFiltersState) {
   return programsData.filter(
     (item) =>
@@ -197,15 +215,20 @@ export function reportsDashboardData(filters: ReportFiltersState): ReportsDashbo
   const distributions = getScopedDistributions(filters);
   const beneficiaries = getScopedBeneficiaries(filters);
   const programs = getScopedPrograms(filters);
+  const isNationalScope = filters.organizationId === "ALL";
 
   return {
     kpis: buildReportKpis(filters),
     distributionByMonth: aggregateByMonth(distributions),
     distributionByBenefitType: aggregateCounts(distributions, (item) => item.benefitType),
-    distributionByState: aggregateRegions(beneficiaries, (item) => item.state)
-      .map((item) => ({ ...item, value: item.value * 15000 }))
-      .slice(0, 6),
-    beneficiaryCoverageByState: aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
+    distributionByState: isNationalScope
+      ? nationalDistributionByRegion
+      : aggregateRegions(beneficiaries, (item) => item.state)
+          .map((item) => ({ ...item, value: item.value * 15000 }))
+          .slice(0, 6),
+    beneficiaryCoverageByState: isNationalScope
+      ? nationalBeneficiaryCoverageByRegion
+      : aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
     programPerformance: programs
       .slice(0, 8)
       .map((item) => ({
@@ -254,11 +277,14 @@ export function programReportRows(filters: ReportFiltersState): ProgramReportRow
 
 export function beneficiaryReportData(filters: ReportFiltersState): BeneficiaryReportData {
   const beneficiaries = getScopedBeneficiaries(filters);
+  const isNationalScope = filters.organizationId === "ALL";
 
   return {
     verificationStatusBreakdown: aggregateCounts(beneficiaries, (item) => item.verificationStatus),
     benefitStatusBreakdown: aggregateCounts(beneficiaries, (item) => item.benefitStatus),
-    beneficiaryCoverageByState: aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
+    beneficiaryCoverageByState: isNationalScope
+      ? nationalBeneficiaryCoverageByRegion
+      : aggregateRegions(beneficiaries, (item) => item.state).slice(0, 6),
     demographicSummary: {
       verifiedRecords: beneficiaries.filter((item) => item.verificationStatus === "VERIFIED").length,
       flaggedRecords: beneficiaries.filter((item) => item.verificationStatus === "FLAGGED").length,
