@@ -41,6 +41,18 @@ const bloodGroupOptions = ["O+", "A+", "B+", "AB+", "O-", "A-", "B-", "AB-"] as 
 const genotypeOptions = ["AA", "AS", "AA", "AC", "AA", "AS", "SC", "SS"] as const;
 const streetNames = ["Independence", "Unity", "Palm Grove", "Market", "Railway", "College", "Emir's", "Hospital", "New Layout", "Community"];
 const streetTypes = ["Road", "Street", "Close", "Crescent", "Avenue", "Lane"];
+const expansionFirstNames = [
+  "Hadiza", "Tunde", "Amaka", "Kabiru", "Bolanle", "Chika", "Ibrahim", "Zainab", "Mfon", "Femi",
+  "Rashida", "Emmanuel", "Adebisi", "Ngozi", "Usman", "Kehinde", "Rukayya", "Daniel", "Aisha", "Chinonso",
+  "Salisu", "Temitope", "Blessing", "Yakubu", "Nkiru", "Bashir", "Halima", "Tobechukwu", "Patience", "Musa",
+  "Josephine", "Amina",
+] as const;
+const expansionLastNames = [
+  "Okoro", "Bello", "Adewale", "Garba", "Eze", "Balogun", "Yakubu", "Okafor", "Danjuma", "Akinyemi",
+  "Suleiman", "Nwankwo", "Abdullahi", "Ogunleye", "Madu", "Shehu", "Ojo", "Lawal", "Afolabi", "Umar",
+  "Ibekwe", "Salami", "Aliyu", "Onyeka", "Gyang", "Sani", "Okon", "Dogo", "Bassey", "Adeyemi",
+  "Nnamdi", "Idris",
+] as const;
 
 function resolveState(index: number, overrides: Partial<Beneficiary360Details>) {
   return overrides.state ?? fallbackStates[index % fallbackStates.length];
@@ -67,6 +79,17 @@ function buildAddress(index: number, state: string, lga: string, overrides: Part
   const houseNumber = 8 + ((index * 3) % 91);
 
   return `${houseNumber} ${street} ${type}, ${area}, ${lga}`;
+}
+
+function buildExpandedName(index: number) {
+  const firstName = expansionFirstNames[(index - 51) % expansionFirstNames.length];
+  const lastName = expansionLastNames[(index - 51) % expansionLastNames.length];
+
+  return {
+    firstName,
+    lastName,
+    fullName: `${firstName} ${lastName}`,
+  };
 }
 
 function buildHouseholdProfile(index: number, gender: "MALE" | "FEMALE", maritalStatus: "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED") {
@@ -570,9 +593,7 @@ export const beneficiariesData: Beneficiary360Details[] = [
     { index: 62, state: "Osun", lga: "Ife Central", programIds: ["program_002", "program_003"] },
   ].map(({ index, state, lga, programIds }) =>
     createBeneficiary(index, "org_001", programIds, {
-      firstName: `Expanded${index}`,
-      lastName: "Coverage",
-      fullName: `Expanded${index} Coverage`,
+      ...buildExpandedName(index),
       state,
       lga,
       verificationStatus: "VERIFIED",
@@ -612,9 +633,7 @@ export const beneficiariesData: Beneficiary360Details[] = [
     { index: 92, state: "Plateau", lga: "Jos North", programIds: ["program_001", "program_002"] },
   ].map(({ index, state, lga, programIds }) =>
     createBeneficiary(index, "org_001", programIds, {
-      firstName: `${state}Ben${index}`,
-      lastName: "Mock",
-      fullName: `${state}Ben${index} Mock`,
+      ...buildExpandedName(index),
       state,
       lga,
       verificationStatus: "VERIFIED",
