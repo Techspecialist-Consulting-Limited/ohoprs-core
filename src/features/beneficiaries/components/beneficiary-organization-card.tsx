@@ -13,7 +13,7 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
         <Info label="Agency Benefited From" value={beneficiary.organizationName} />
         <Info label="Agency State" value={organization?.state ?? "Not provided"} />
         <Info label="Agency Address" value={organization?.address ?? "Not provided"} />
-        <Info label="Beneficiary State of Origin" value={beneficiary.stateOfOrigin} />
+        <Info label="State" value={beneficiary.state} />
         <Info label="Beneficiary LGA" value={beneficiary.lga} />
       </div>
       <div className="mt-5">
