@@ -1,5 +1,6 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { programsData } from "@/mock/programs.mock";
+import { buildInKindItems } from "@/lib/in-kind-items";
 import type {
   DistributionApprovalStatus,
   DistributionDetails,
@@ -376,6 +377,7 @@ function createDistribution(input: {
     organizationType: program.organizationType,
     organizationStatus: program.organizationStatus,
     recipients,
+    inKindItems: buildInKindItems(input.id, program.benefitType, recipients),
     statistics: {
       beneficiaries: input.beneficiaryCount,
       amountDistributed: program.benefitType === "CASH" ? input.amount ?? 0 : 0,

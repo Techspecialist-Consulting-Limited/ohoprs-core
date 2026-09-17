@@ -4,10 +4,13 @@ import { cn } from "@/lib/utils";
 const toneMap: Record<BenefitType, string> = {
   CASH: "border-accent/20 bg-accent/10 text-accent",
   FOOD: "border-success/20 bg-success/10 text-success",
+  FOOD_VOUCHER: "border-success/20 bg-success/10 text-success",
   MEDICAL: "border-warning/20 bg-warning/10 text-warning",
   EDUCATION: "border-border bg-surface-muted text-muted",
   AGRICULTURE: "border-success/20 bg-success/10 text-success",
   HOUSING: "border-warning/20 bg-warning/10 text-warning",
+  CONSTRUCTION_MATERIALS: "border-warning/20 bg-warning/10 text-warning",
+  RELIEF_MATERIALS: "border-danger/20 bg-danger/10 text-danger",
   EMERGENCY_RELIEF: "border-danger/20 bg-danger/10 text-danger",
   OTHER: "border-border bg-surface-muted text-muted",
 };

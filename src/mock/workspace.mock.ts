@@ -217,6 +217,10 @@ export const workspaceQuickActionsByRole: Record<UserRole, { id: string; label: 
     { id: "ws_qa_023", label: "Open Dashboard", href: "/dashboard" },
     { id: "ws_qa_024", label: "Review Interventions", href: "/programs" },
   ],
+  FIELD_OFFICER: [
+    { id: "ws_qa_027", label: "Open Field Data Collection", href: "/field" },
+    { id: "ws_qa_028", label: "View Households", href: "/households" },
+  ],
 };
 
 export const sampleWorkspaceLinks = [

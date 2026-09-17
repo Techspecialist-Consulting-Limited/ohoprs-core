@@ -325,12 +325,6 @@ export function ProgramForm({
   }, [completedStepIds, currentStepIndex, draftStorageKey, formSnapshot]);
 
   useEffect(() => {
-    if (activeStep.id !== "review") {
-      setReviewConfirmed(false);
-    }
-  }, [activeStep.id]);
-
-  useEffect(() => {
     if (!selectedStartDate) {
       return;
     }
@@ -474,10 +468,12 @@ export function ProgramForm({
 
       return [...current, activeStep.id];
     });
+    setReviewConfirmed(false);
     setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
   }
 
   function goToPreviousStep() {
+    setReviewConfirmed(false);
     setCurrentStepIndex((current) => Math.max(current - 1, 0));
   }
 
@@ -489,6 +485,7 @@ export function ProgramForm({
       completedStepIds.includes(programSteps[index - 1]?.id ?? "");
 
     if (canOpen) {
+      setReviewConfirmed(false);
       setCurrentStepIndex(index);
     }
   }

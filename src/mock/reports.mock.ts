@@ -4,6 +4,7 @@ import { bulkDistributionJobsData } from "@/mock/bulk-distributions.mock";
 import { distributionsData } from "@/mock/distributions.mock";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
+import { getRegionForState, nigeriaStates } from "@/constants/nigeria-regions";
 import type {
   BeneficiaryReportData,
   DistributionReportData,
@@ -13,6 +14,8 @@ import type {
   ReportFiltersState,
   ReportsDashboardData,
   ReportKpis,
+  ReportLgaMetric,
+  ReportStateMetric,
 } from "@/types/report";
 
 function matchesOrganization<T extends { organizationId: string }>(item: T, organizationId?: string) {
@@ -42,36 +45,6 @@ function titleCase(label: string) {
 function sum(values: number[]) {
   return values.reduce((total, value) => total + value, 0);
 }
-
-const stateToRegion: Record<string, string> = {
-  Abia: "South East",
-  Anambra: "South East",
-  Bauchi: "North East",
-  Benue: "North Central",
-  Borno: "North East",
-  "Cross River": "South South",
-  Ebonyi: "South East",
-  Ekiti: "South West",
-  Enugu: "South East",
-  FCT: "North Central",
-  Imo: "South East",
-  Jigawa: "North West",
-  Kaduna: "North West",
-  Kano: "North West",
-  Katsina: "North West",
-  Kebbi: "North West",
-  Kogi: "North Central",
-  Kwara: "North Central",
-  Lagos: "South West",
-  Nasarawa: "North Central",
-  Niger: "North Central",
-  Osun: "South West",
-  Oyo: "South West",
-  Plateau: "North Central",
-  Rivers: "South South",
-  Sokoto: "North West",
-  Zamfara: "North West",
-};
 
 const nationalBeneficiaryCoverageByRegion: ReportChartPoint[] = [
   { label: "North West", value: 780000 },
@@ -214,7 +187,56 @@ function aggregateCounts<T>(items: T[], getKey: (item: T) => string): ReportChar
 }
 
 function aggregateRegions<T>(items: T[], getState: (item: T) => string): ReportChartPoint[] {
-  return aggregateCounts(items, (item) => stateToRegion[getState(item)] ?? "Other");
+  return aggregateCounts(items, (item) => getRegionForState(getState(item)) ?? "Other");
+}
+
+function buildStateMetrics(filters: ReportFiltersState): ReportStateMetric[] {
+  const programs = getScopedPrograms(filters);
+  const distributions = getScopedDistributions(filters);
+  const beneficiaries = getScopedBeneficiaries(filters);
+
+  return nigeriaStates.map((state) => {
+    const stateBeneficiaries = beneficiaries.filter((item) => item.state === state);
+    const stateDistributions = distributions.filter((item) => item.states.includes(state));
+    const stateInterventions = programs.filter((item) => (item.states ?? []).includes(state));
+    const estimatedAmountDistributed = sum(
+      stateDistributions.map((item) => (item.amount ?? 0) / Math.max(item.states.length, 1)),
+    );
+
+    return {
+      state,
+      region: getRegionForState(state) ?? "Other",
+      beneficiaryCount: stateBeneficiaries.length,
+      interventionCount: stateInterventions.length,
+      distributionCount: stateDistributions.length,
+      estimatedAmountDistributed: Math.round(estimatedAmountDistributed),
+    };
+  });
+}
+
+function buildLgaMetrics(filters: ReportFiltersState): ReportLgaMetric[] {
+  const beneficiaries = getScopedBeneficiaries(filters);
+  const map = new Map<string, ReportLgaMetric>();
+
+  beneficiaries.forEach((item) => {
+    const key = `${item.state}::${item.lga}`;
+    const existing = map.get(key);
+
+    if (existing) {
+      existing.beneficiaryCount += 1;
+      existing.estimatedAmountDistributed += 15000;
+      return;
+    }
+
+    map.set(key, {
+      state: item.state,
+      lga: item.lga,
+      beneficiaryCount: 1,
+      estimatedAmountDistributed: 15000,
+    });
+  });
+
+  return Array.from(map.values());
 }
 
 export function reportsDashboardData(filters: ReportFiltersState): ReportsDashboardData {
@@ -244,6 +266,8 @@ export function reportsDashboardData(filters: ReportFiltersState): ReportsDashbo
     distributionStatusBreakdown: aggregateCounts(distributions, (item) =>
       item.status === "SCHEDULED" || item.status === "PROCESSING" ? "PENDING" : item.status,
     ),
+    stateMetrics: buildStateMetrics(filters),
+    lgaMetrics: buildLgaMetrics(filters),
   };
 }
 

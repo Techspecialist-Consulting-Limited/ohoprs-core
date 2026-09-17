@@ -1,5 +1,6 @@
 "use client";
 
+import { benefitTypes } from "@/features/programs/schemas/program.schema";
 import type { BenefitType } from "@/types/program";
 import type { DistributionStatus } from "@/types/distribution";
 
@@ -93,7 +94,7 @@ export function DistributionFilters({
             onChange={(event) => onChange({ ...value, benefitType: event.target.value as BenefitType | "ALL" })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
-            {["ALL", "CASH", "FOOD", "MEDICAL", "EDUCATION", "AGRICULTURE", "HOUSING", "EMERGENCY_RELIEF", "OTHER"].map((type) => (
+            {["ALL", ...benefitTypes].map((type) => (
               <option key={type} value={type}>
                 {type === "ALL" ? "All benefit types" : type.replaceAll("_", " ")}
               </option>

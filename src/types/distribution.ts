@@ -37,6 +37,25 @@ export type DistributionExecutionStatus =
 
 export type DeliveryStatus = "DELIVERED" | "PENDING" | "FAILED" | "REVERSED";
 
+export type InKindItemDeliveryStatus = "PENDING" | "DELIVERED" | "FAILED" | "RETURNED";
+
+export interface InKindItem {
+  id: string;
+  distributionId: string;
+  itemType: string;
+  unit: string;
+  quantity: number;
+  batchOrSerialCode: string;
+  qrCode: string;
+  recipientBeneficiaryId: string;
+  recipientHouseholdId: string;
+  deliveryLocation: string;
+  deliveryStatus: InKindItemDeliveryStatus;
+  deliveredAt: string | null;
+  scannedByUserId?: string | null;
+  scannedByName?: string | null;
+}
+
 export interface Distribution {
   id: string;
   organizationId: string;
@@ -68,6 +87,7 @@ export interface Distribution {
   finalApprovedBy?: string | null;
   paymentInitiatedAt?: string | null;
   paymentInitiatedBy?: string | null;
+  inKindItems?: InKindItem[];
 }
 
 export interface DistributionRecipientPreview {

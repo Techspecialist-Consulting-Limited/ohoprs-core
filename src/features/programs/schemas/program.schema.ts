@@ -13,10 +13,13 @@ function getTodayDateForValidation() {
 export const benefitTypes = [
   "CASH",
   "FOOD",
+  "FOOD_VOUCHER",
   "MEDICAL",
   "EDUCATION",
   "AGRICULTURE",
   "HOUSING",
+  "CONSTRUCTION_MATERIALS",
+  "RELIEF_MATERIALS",
   "EMERGENCY_RELIEF",
   "OTHER",
 ] as const;

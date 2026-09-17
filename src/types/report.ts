@@ -25,6 +25,22 @@ export interface ReportChartPoint {
   value: number;
 }
 
+export interface ReportStateMetric {
+  state: string;
+  region: string;
+  beneficiaryCount: number;
+  interventionCount: number;
+  distributionCount: number;
+  estimatedAmountDistributed: number;
+}
+
+export interface ReportLgaMetric {
+  state: string;
+  lga: string;
+  beneficiaryCount: number;
+  estimatedAmountDistributed: number;
+}
+
 export interface OrganizationReportRow {
   organizationId: string;
   organizationName: string;
@@ -52,6 +68,8 @@ export interface ReportsDashboardData {
   beneficiaryCoverageByState: ReportChartPoint[];
   programPerformance: ReportChartPoint[];
   distributionStatusBreakdown: ReportChartPoint[];
+  stateMetrics: ReportStateMetric[];
+  lgaMetrics: ReportLgaMetric[];
 }
 
 export interface BeneficiaryReportData {

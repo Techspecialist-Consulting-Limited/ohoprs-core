@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,10 +20,19 @@ import { ReportFilters } from "@/features/reports/components/report-filters";
 import { ReportHeader } from "@/features/reports/components/report-header";
 import { ReportKpiGrid } from "@/features/reports/components/report-kpi-grid";
 import { ReportNavigationCards } from "@/features/reports/components/report-navigation-cards";
+import { ReportViewToggle, type ReportViewMode } from "@/features/reports/components/report-view-toggle";
 import { StateDistributionChart } from "@/features/reports/components/state-distribution-chart";
 import { reportService } from "@/services/report.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { ReportFiltersState } from "@/types/report";
+
+const NigeriaChoroplethMap = dynamic(
+  () => import("@/features/reports/components/nigeria-choropleth-map").then((mod) => mod.NigeriaChoroplethMap),
+  {
+    ssr: false,
+    loading: () => <LoadingState title="Loading map" lines={4} />,
+  },
+);
 
 function useReportFilters() {
   const role = useAuthStore((state) => state.role);
@@ -51,6 +61,7 @@ function useReportFilters() {
 
 export function ReportsDashboardModule() {
   const { filters, setFilters, showOrganizationFilter, scopedOrganizationId, readOnly } = useReportFilters();
+  const [viewMode, setViewMode] = useState<ReportViewMode>("map");
   const dataQuery = useQuery({
     queryKey: ["reports-dashboard", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getReportsDashboard({ ...filters, organizationId: scopedOrganizationId }),
@@ -90,26 +101,46 @@ export function ReportsDashboardModule() {
         allowedOrganizationId={showOrganizationFilter ? null : scopedOrganizationId}
       />
       <ReportKpiGrid kpis={data.kpis} />
-      <section className="grid gap-4 xl:grid-cols-2">
-        <ReportChartCard title="Distribution by Month" description="Monthly distribution volume across the selected reporting scope.">
-          <DistributionByMonthChart data={data.distributionByMonth} />
-        </ReportChartCard>
-        <ReportChartCard title="Intervention Distribution by Benefit Type" description="Benefit mix across current filters and scope.">
-          <BenefitTypeChart data={data.distributionByBenefitType} />
-        </ReportChartCard>
-        <ReportChartCard title="Distribution by Region" description="Estimated delivered value across geopolitical regions.">
-          <StateDistributionChart data={data.distributionByState} currency />
-        </ReportChartCard>
-        <ReportChartCard title="Beneficiary Coverage by Region" description="Beneficiary footprint across geopolitical regions in the filtered view.">
-          <StateDistributionChart data={data.beneficiaryCoverageByState} />
-        </ReportChartCard>
-        <ReportChartCard title="Intervention Performance" description="High-level intervention delivery performance score.">
-          <ProgramPerformanceChart data={data.programPerformance} />
-        </ReportChartCard>
-        <ReportChartCard title="Distribution Status Breakdown" description="Completed, failed, and pending distribution mix.">
-          <BenefitTypeChart data={data.distributionStatusBreakdown} />
-        </ReportChartCard>
-      </section>
+      <div className="flex justify-end">
+        <ReportViewToggle value={viewMode} onChange={setViewMode} />
+      </div>
+      {viewMode === "chart" ? (
+        <section className="grid gap-4 xl:grid-cols-2">
+          <ReportChartCard title="Distribution by Month" description="Monthly distribution volume across the selected reporting scope.">
+            <DistributionByMonthChart data={data.distributionByMonth} />
+          </ReportChartCard>
+          <ReportChartCard title="Intervention Distribution by Benefit Type" description="Benefit mix across current filters and scope.">
+            <BenefitTypeChart data={data.distributionByBenefitType} />
+          </ReportChartCard>
+          <ReportChartCard title="Distribution by Region" description="Estimated delivered value across geopolitical regions.">
+            <StateDistributionChart data={data.distributionByState} currency />
+          </ReportChartCard>
+          <ReportChartCard title="Beneficiary Coverage by Region" description="Beneficiary footprint across geopolitical regions in the filtered view.">
+            <StateDistributionChart data={data.beneficiaryCoverageByState} />
+          </ReportChartCard>
+          <ReportChartCard title="Intervention Performance" description="High-level intervention delivery performance score.">
+            <ProgramPerformanceChart data={data.programPerformance} />
+          </ReportChartCard>
+          <ReportChartCard title="Distribution Status Breakdown" description="Completed, failed, and pending distribution mix.">
+            <BenefitTypeChart data={data.distributionStatusBreakdown} />
+          </ReportChartCard>
+        </section>
+      ) : (
+        <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
+          <p className="text-lg font-semibold text-foreground">Intervention Coverage Map</p>
+          <p className="mt-1 text-sm text-muted">
+            Hover a state for details, click it to filter every report on this page, or drill into its local government areas. Search for a household to jump straight to its location.
+          </p>
+          <div className="mt-5">
+            <NigeriaChoroplethMap
+              data={data.stateMetrics}
+              lgaData={data.lgaMetrics}
+              selectedState={filters.state && filters.state !== "ALL" ? filters.state : undefined}
+              onSelectState={(state) => setFilters((current) => ({ ...current, state: state ?? "ALL" }))}
+            />
+          </div>
+        </section>
+      )}
       <ReportNavigationCards />
     </PageContainer>
   );

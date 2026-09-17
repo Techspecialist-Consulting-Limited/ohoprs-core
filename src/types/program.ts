@@ -1,10 +1,13 @@
 export type BenefitType =
   | "CASH"
   | "FOOD"
+  | "FOOD_VOUCHER"
   | "MEDICAL"
   | "EDUCATION"
   | "AGRICULTURE"
   | "HOUSING"
+  | "CONSTRUCTION_MATERIALS"
+  | "RELIEF_MATERIALS"
   | "EMERGENCY_RELIEF"
   | "OTHER";
 

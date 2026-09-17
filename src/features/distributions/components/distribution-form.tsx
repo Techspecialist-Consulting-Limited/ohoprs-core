@@ -169,12 +169,6 @@ export function DistributionForm({
     });
   }, [currentStep, draftStorageKey, phaseNumber, programId, selectedBeneficiaryIds, selectedStates]);
 
-  useEffect(() => {
-    if (steps[currentStep]?.id !== "review") {
-      setReviewConfirmed(false);
-    }
-  }, [currentStep]);
-
   function resetSelectedIntervention() {
     setShowApprovalRequiredModal(false);
     form.setValue("programId", "", { shouldValidate: true, shouldDirty: true });
@@ -182,6 +176,7 @@ export function DistributionForm({
     form.setValue("states", [], { shouldValidate: true, shouldDirty: true });
     form.setValue("beneficiaryIds", [], { shouldValidate: true, shouldDirty: true });
     setBeneficiaryPage(1);
+    setReviewConfirmed(false);
     setCurrentStep(0);
   }
 
@@ -260,6 +255,7 @@ export function DistributionForm({
       return;
     }
 
+    setReviewConfirmed(false);
     setCurrentStep((value) => Math.min(value + 1, steps.length - 1));
   }
 
@@ -282,6 +278,7 @@ export function DistributionForm({
                 type="button"
                 onClick={() => {
                   if (index <= currentStep) {
+                    setReviewConfirmed(false);
                     setCurrentStep(index);
                   }
                 }}
@@ -557,7 +554,10 @@ export function DistributionForm({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setCurrentStep((value) => Math.max(0, value - 1))}
+              onClick={() => {
+                setReviewConfirmed(false);
+                setCurrentStep((value) => Math.max(0, value - 1));
+              }}
               disabled={currentStep === 0}
               className="inline-flex h-11 items-center gap-2 rounded-2xl border border-border px-4 text-sm font-medium text-foreground disabled:opacity-50"
             >

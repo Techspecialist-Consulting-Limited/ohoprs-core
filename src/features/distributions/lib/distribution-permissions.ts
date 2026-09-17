@@ -68,6 +68,26 @@ export function canInitiateDistributionPayment(
   );
 }
 
+export function canTrackInKindItems(
+  role: string | null,
+  distribution: Pick<Distribution, "organizationId">,
+  userOrganizationId: string | null | undefined,
+) {
+  if (!role) {
+    return false;
+  }
+
+  if (role === "SUPER_ADMIN") {
+    return true;
+  }
+
+  if (userOrganizationId !== distribution.organizationId) {
+    return false;
+  }
+
+  return hasPermission(role as UserRole, "edit_distribution") || hasPermission(role as UserRole, "initiate_distribution_payment");
+}
+
 export function canEditDistributionRecord(
   role: string | null,
   distribution: Pick<
