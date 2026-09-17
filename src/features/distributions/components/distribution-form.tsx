@@ -78,10 +78,10 @@ export function DistributionForm({
   const draftStorageKey = getDistributionDraftStorageKey(mode, distributionId);
   const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
   const initialDraftValues = savedDraft?.values;
-  const initialDraftStep = Math.max(0, Math.min(savedDraft?.currentStep ?? 0, steps.length - 1));
-  const [currentStep, setCurrentStep] = useState(initialDraftStep);
+  const [currentStep, setCurrentStep] = useState(0);
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
   const [showApprovalRequiredModal, setShowApprovalRequiredModal] = useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
   type DistributionFormInput = z.input<typeof distributionSchema>;
   type DistributionFormOutput = z.output<typeof distributionSchema>;
 
@@ -169,6 +169,12 @@ export function DistributionForm({
     });
   }, [currentStep, draftStorageKey, phaseNumber, programId, selectedBeneficiaryIds, selectedStates]);
 
+  useEffect(() => {
+    if (steps[currentStep]?.id !== "review") {
+      setReviewConfirmed(false);
+    }
+  }, [currentStep]);
+
   function resetSelectedIntervention() {
     setShowApprovalRequiredModal(false);
     form.setValue("programId", "", { shouldValidate: true, shouldDirty: true });
@@ -198,6 +204,10 @@ export function DistributionForm({
       void queryClient.invalidateQueries({ queryKey: ["distribution", response.data.id] });
       toast.success(mode === "create" ? "Distribution created successfully" : "Distribution updated successfully");
       router.push(`/distributions/${response.data.id}`);
+    },
+    onError: () => {
+      removeLocalStorage(draftStorageKey);
+      toast.error("Unable to save distribution.");
     },
   });
 
@@ -523,11 +533,25 @@ export function DistributionForm({
                 value={selectedProgram?.benefitType === "CASH" ? formatCurrency(estimatedAmount ?? 0) : `${formatNumber(selectedBeneficiaryCount)} packages`}
               />
             </div>
+
+            <label className="mt-6 flex items-start gap-3 rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={reviewConfirmed}
+                onChange={(event) => setReviewConfirmed(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-border"
+              />
+              <span>I have reviewed the information above and confirm it is correct.</span>
+            </label>
           </div>
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/distributions" className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground">
+          <Link
+            href="/distributions"
+            onClick={() => removeLocalStorage(draftStorageKey)}
+            className="inline-flex h-11 items-center rounded-2xl border border-border px-4 text-sm font-medium text-foreground"
+          >
             Cancel
           </Link>
           <div className="flex items-center gap-3">
@@ -549,7 +573,7 @@ export function DistributionForm({
             ) : (
               <button
                 type="submit"
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || !reviewConfirmed}
                 className="inline-flex h-11 items-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
               >
                 {mutation.isPending ? "Creating..." : mode === "create" ? "Confirm and Create Benefit Distribution" : "Confirm and Save Changes"}

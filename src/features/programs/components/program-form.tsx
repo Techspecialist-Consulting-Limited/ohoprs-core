@@ -201,10 +201,9 @@ export function ProgramForm({
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
   const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(
-    Math.max(0, Math.min(savedDraft?.currentStepIndex ?? 0, programSteps.length - 1)),
-  );
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completedStepIds, setCompletedStepIds] = useState<string[]>(savedDraft?.completedStepIds ?? []);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [
     ...fundingSourceOptions,
     ...savedCustomFundingSources.filter((source) => !fundingSourceOptions.some((option) => option.id === source.id)),
@@ -326,6 +325,12 @@ export function ProgramForm({
   }, [completedStepIds, currentStepIndex, draftStorageKey, formSnapshot]);
 
   useEffect(() => {
+    if (activeStep.id !== "review") {
+      setReviewConfirmed(false);
+    }
+  }, [activeStep.id]);
+
+  useEffect(() => {
     if (!selectedStartDate) {
       return;
     }
@@ -404,6 +409,7 @@ export function ProgramForm({
       router.push(`/programs/${response.data.id}`);
     },
     onError: () => {
+      removeLocalStorage(draftStorageKey);
       toast.error("Unable to save intervention.");
     },
   });
@@ -1220,13 +1226,26 @@ export function ProgramForm({
                   },
                 ]}
               />
+
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={reviewConfirmed}
+                  onChange={(event) => setReviewConfirmed(event.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border"
+                />
+                <span>I have reviewed the information above and confirm it is correct.</span>
+              </label>
             </div>
           ) : null}
 
           <div className="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => {
+                removeLocalStorage(draftStorageKey);
+                router.back();
+              }}
               className="inline-flex h-12 items-center justify-center rounded-2xl border border-border px-5 text-sm font-semibold text-foreground"
             >
               Cancel
@@ -1252,7 +1271,7 @@ export function ProgramForm({
               ) : (
                 <button
                   type="submit"
-                  disabled={mutation.isPending}
+                  disabled={mutation.isPending || !reviewConfirmed}
                   className="inline-flex h-12 items-center justify-center rounded-2xl bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
                 >
                   {mutation.isPending ? "Saving..." : mode === "create" ? "Confirm and Create Intervention" : "Confirm and Save Changes"}

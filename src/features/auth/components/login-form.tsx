@@ -117,10 +117,10 @@ export function LoginForm() {
                 id="role"
                 value={selectedRole}
                 onChange={(event) => form.setValue("role", event.target.value as UserRole, { shouldValidate: true })}
-                className="focus-ring h-13 w-full rounded-2xl bg-[#f7f8f5] px-4 text-sm text-[#162117] outline-none"
+                className="focus-ring h-13 w-full rounded-2xl bg-[#f7f8f5] px-4 text-sm text-[#162117] outline-none [color-scheme:light]"
               >
                 {Object.entries(roleLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <option key={value} value={value} className="bg-white text-[#162117]">
                     {label}
                   </option>
                 ))}
