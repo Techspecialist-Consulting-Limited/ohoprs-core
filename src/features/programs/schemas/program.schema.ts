@@ -92,7 +92,7 @@ export const programSchema = z
     states: z.array(z.string()).default([]),
     amount: z.coerce.number().nullable().optional(),
     budget: z.coerce.number().nullable().optional(),
-    numberOfTrenches: z.coerce.number().nullable().optional(),
+    numberOfTranches: z.coerce.number().nullable().optional(),
     batch: z.coerce.number().nullable().optional(),
     fundingSources: z.array(programFundingSourceSchema).min(1, "Select at least one funding source."),
     status: z.enum(programStatuses),
@@ -189,15 +189,15 @@ export const programSchema = z
       }
 
       if (
-        values.numberOfTrenches === null ||
-        values.numberOfTrenches === undefined ||
-        Number.isNaN(values.numberOfTrenches) ||
-        values.numberOfTrenches <= 0
+        values.numberOfTranches === null ||
+        values.numberOfTranches === undefined ||
+        Number.isNaN(values.numberOfTranches) ||
+        values.numberOfTranches <= 0
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["numberOfTrenches"],
-          message: "Number of trenches is required for cash interventions.",
+          path: ["numberOfTranches"],
+          message: "Number of tranches is required for cash interventions.",
         });
       }
     } else if (values.budget === null || values.budget === undefined || Number.isNaN(values.budget) || values.budget <= 0) {

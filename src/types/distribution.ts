@@ -9,7 +9,7 @@ export type DistributionMethod =
   | "EDUCATION_SUPPORT"
   | "AGRICULTURE_SUPPORT";
 
-export type DistributionPhaseType = "TRENCH" | "BATCH";
+export type DistributionPhaseType = "TRANCHE" | "BATCH";
 
 export type DistributionStatus =
   | "DRAFT"

@@ -104,7 +104,7 @@ export function ProgramEditModule({ id }: { id: string }) {
           states: program.states,
           amount: program.amount,
           budget: program.budget,
-          numberOfTrenches: program.numberOfTrenches,
+          numberOfTranches: program.numberOfTranches,
           batch: program.batch,
           fundingSources: program.fundingSources,
           status: program.status,

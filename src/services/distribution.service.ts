@@ -44,11 +44,11 @@ function getProgram(id: string) {
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
-  return program.benefitType === "CASH" ? "TRENCH" : "BATCH";
+  return program.benefitType === "CASH" ? "TRANCHE" : "BATCH";
 }
 
 function getPhaseLabel(phaseType: DistributionPhaseType, phaseNumber: number) {
-  return `${phaseType === "TRENCH" ? "Trench" : "Batch"} ${phaseNumber}`;
+  return `${phaseType === "TRANCHE" ? "Tranche" : "Batch"} ${phaseNumber}`;
 }
 
 function getMethod(program: ProgramDetails): DistributionMethod {

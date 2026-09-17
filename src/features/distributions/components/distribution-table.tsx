@@ -48,7 +48,7 @@ export function DistributionTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Trench / Batch", "Intervention", "Agency", "Benefit Type", "Approval", "Beneficiaries", "Amount / Quantity", "Status", "Created By", "Created Date", "Actions"].map((label) => (
+              {["Tranche / Batch", "Intervention", "Agency", "Benefit Type", "Approval", "Beneficiaries", "Amount / Quantity", "Status", "Created By", "Created Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -59,7 +59,7 @@ export function DistributionTable({
                 <td className="px-5 py-4">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.name}</p>
-                    <p className="mt-1 text-xs text-muted">{item.phaseType === "TRENCH" ? "Cash distribution" : "Non-cash distribution"}</p>
+                    <p className="mt-1 text-xs text-muted">{item.phaseType === "TRANCHE" ? "Cash distribution" : "Non-cash distribution"}</p>
                   </div>
                 </td>
                 <td className="px-5 py-4 text-sm text-foreground">{item.programName}</td>

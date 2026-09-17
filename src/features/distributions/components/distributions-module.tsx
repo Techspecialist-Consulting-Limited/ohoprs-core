@@ -204,7 +204,7 @@ export function DistributionsModule() {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <SummaryCard label="Intervention" value={paymentTarget.programName} />
-              <SummaryCard label="Trench / Batch" value={paymentTarget.name} />
+              <SummaryCard label="Tranche / Batch" value={paymentTarget.name} />
               <SummaryCard label="Beneficiaries" value={paymentTarget.beneficiaryCount.toLocaleString()} />
               <SummaryCard label="Amount" value={paymentTarget.amount ? `₦${Intl.NumberFormat("en-NG").format(paymentTarget.amount)}` : `${paymentTarget.quantity?.toLocaleString() ?? 0} packages`} />
             </div>
@@ -239,7 +239,7 @@ export function DistributionsModule() {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <SummaryCard label="Intervention" value={paymentSuccessTarget.programName} />
-              <SummaryCard label="Trench / Batch" value={paymentSuccessTarget.name} />
+              <SummaryCard label="Tranche / Batch" value={paymentSuccessTarget.name} />
               <SummaryCard label="Beneficiaries" value={paymentSuccessTarget.beneficiaryCount.toLocaleString()} />
               <SummaryCard label="Status" value={paymentSuccessTarget.status.replaceAll("_", " ")} />
             </div>

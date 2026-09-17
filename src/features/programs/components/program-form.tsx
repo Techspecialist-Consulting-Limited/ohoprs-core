@@ -93,7 +93,7 @@ const programSteps: StepConfig[] = [
     id: "benefit",
     title: "Benefit Setup",
     description: "Configure benefit value and structure.",
-    fields: ["amount", "budget", "numberOfTrenches", "batch", "amountPerRecipient"],
+    fields: ["amount", "budget", "numberOfTranches", "batch", "amountPerRecipient"],
   },
   {
     id: "coverage",
@@ -231,7 +231,7 @@ export function ProgramForm({
       states: savedDraftValues?.states ?? initialValues?.states ?? [],
       amount: savedDraftValues?.amount ?? initialValues?.amount ?? null,
       budget: savedDraftValues?.budget ?? initialValues?.budget ?? 0,
-      numberOfTrenches: savedDraftValues?.numberOfTrenches ?? initialValues?.numberOfTrenches ?? null,
+      numberOfTranches: savedDraftValues?.numberOfTranches ?? initialValues?.numberOfTranches ?? null,
       batch: savedDraftValues?.batch ?? initialValues?.batch ?? 0,
       fundingSources: savedDraftValues?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
       status: savedDraftValues?.status ?? initialValues?.status ?? "IN_PROGRESS",
@@ -346,14 +346,14 @@ export function ProgramForm({
       if (form.getValues("amount") === null) {
         form.setValue("amount", 0, { shouldDirty: true });
       }
-      if (form.getValues("numberOfTrenches") === null) {
-        form.setValue("numberOfTrenches", 0, { shouldDirty: true });
+      if (form.getValues("numberOfTranches") === null) {
+        form.setValue("numberOfTranches", 0, { shouldDirty: true });
       }
       return;
     }
 
     form.setValue("amount", null, { shouldDirty: true });
-    form.setValue("numberOfTrenches", null, { shouldDirty: true });
+    form.setValue("numberOfTranches", null, { shouldDirty: true });
     if (form.getValues("budget") === null) {
       form.setValue("budget", 0, { shouldDirty: true });
     }
@@ -387,7 +387,7 @@ export function ProgramForm({
         states: values.states ?? [],
         amount: values.amount ?? null,
         budget: values.budget ?? null,
-        numberOfTrenches: values.numberOfTrenches ?? null,
+        numberOfTranches: values.numberOfTranches ?? null,
         batch: values.batch ?? null,
         createdByUserId: initialValues?.createdByUserId ?? currentUser?.id ?? null,
       };
@@ -437,7 +437,7 @@ export function ProgramForm({
       states: values.states ?? [],
       amount: isCashBenefit ? Number(values.amount ?? 0) : null,
       budget: isCashBenefit ? null : Number(values.budget ?? 0),
-      numberOfTrenches: isCashBenefit ? Number(values.numberOfTrenches ?? 0) : null,
+      numberOfTranches: isCashBenefit ? Number(values.numberOfTranches ?? 0) : null,
       batch: isCashBenefit ? null : Number(values.batch ?? 0),
       fundingSources: values.fundingSources,
       status: values.status,
@@ -833,17 +833,17 @@ export function ProgramForm({
 
               <section>
                 <Field
-                  label={isCashBenefit ? "Number of Trenches" : "Batch"}
+                  label={isCashBenefit ? "Number of Tranches" : "Batch"}
                   error={
                     isCashBenefit
-                      ? form.formState.errors.numberOfTrenches?.message
+                      ? form.formState.errors.numberOfTranches?.message
                       : form.formState.errors.batch?.message
                   }
                 >
                   <input
                     type="number"
                     min={0}
-                    {...form.register(isCashBenefit ? "numberOfTrenches" : "batch")}
+                    {...form.register(isCashBenefit ? "numberOfTranches" : "batch")}
                     className={inputClassName}
                     disabled={isLocked}
                   />
@@ -1198,7 +1198,7 @@ export function ProgramForm({
                 title="Benefit Setup"
                 items={[
                   { label: isCashBenefit ? "Amount" : "Budget", value: formatCurrency(Number(isCashBenefit ? formSnapshot.amount ?? 0 : formSnapshot.budget ?? 0)) },
-                  { label: isCashBenefit ? "Number of Trenches" : "Batch", value: formatNumber(Number(isCashBenefit ? formSnapshot.numberOfTrenches ?? 0 : formSnapshot.batch ?? 0)) },
+                  { label: isCashBenefit ? "Number of Tranches" : "Batch", value: formatNumber(Number(isCashBenefit ? formSnapshot.numberOfTranches ?? 0 : formSnapshot.batch ?? 0)) },
                   { label: "Amount to be Received", value: formatCurrency(Number(formSnapshot.amountPerRecipient ?? 0)) },
                 ]}
               />

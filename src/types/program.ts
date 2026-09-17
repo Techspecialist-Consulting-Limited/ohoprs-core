@@ -89,7 +89,7 @@ export interface Program {
   states?: string[];
   amount?: number | null;
   budget: number | null;
-  numberOfTrenches?: number | null;
+  numberOfTranches?: number | null;
   batch?: number | null;
   fundingSources?: ProgramFundingSource[];
   approvalSteps?: ProgramApprovalStep[];
@@ -164,7 +164,7 @@ export interface ProgramPayload {
   states: string[];
   amount: number | null;
   budget: number | null;
-  numberOfTrenches: number | null;
+  numberOfTranches: number | null;
   batch: number | null;
   fundingSources: ProgramFundingSource[];
   approvalSteps: ProgramApprovalStep[];
