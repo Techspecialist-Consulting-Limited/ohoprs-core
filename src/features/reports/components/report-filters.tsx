@@ -1,5 +1,7 @@
 "use client";
 
+import { nigeriaStates } from "@/constants/nigeria-regions";
+import { benefitTypes } from "@/features/programs/schemas/program.schema";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import type { ReportDatePreset, ReportFiltersState } from "@/types/report";
@@ -76,7 +78,9 @@ export function ReportFilters({
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Organization</span>
             <select
               value={value.organizationId ?? "ALL"}
-              onChange={(event) => onChange({ ...value, organizationId: event.target.value, programId: "ALL" })}
+              onChange={(event) =>
+                onChange({ ...value, organizationId: event.target.value, programId: "ALL", phaseNumber: "ALL" })
+              }
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               <option value="ALL">All organizations</option>
@@ -93,7 +97,7 @@ export function ReportFilters({
           <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention</span>
           <select
             value={value.programId ?? "ALL"}
-            onChange={(event) => onChange({ ...value, programId: event.target.value })}
+            onChange={(event) => onChange({ ...value, programId: event.target.value, phaseNumber: "ALL" })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
             <option value="ALL">All interventions</option>
@@ -112,7 +116,7 @@ export function ReportFilters({
             onChange={(event) => onChange({ ...value, benefitType: event.target.value as ReportFiltersState["benefitType"] })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
-            {["ALL", "CASH", "FOOD", "MEDICAL", "EDUCATION", "AGRICULTURE", "HOUSING", "EMERGENCY_RELIEF", "OTHER"].map((type) => (
+            {["ALL", ...benefitTypes].map((type) => (
               <option key={type} value={type}>
                 {type === "ALL" ? "All benefit types" : type.replaceAll("_", " ")}
               </option>
@@ -127,7 +131,7 @@ export function ReportFilters({
             onChange={(event) => onChange({ ...value, state: event.target.value })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
-            {["ALL", "FCT", "Lagos", "Kano", "Kaduna", "Borno", "Osun", "Benue", "Rivers", "Bauchi"].map((state) => (
+            {["ALL", ...nigeriaStates].map((state) => (
               <option key={state} value={state}>
                 {state === "ALL" ? "All states" : state}
               </option>

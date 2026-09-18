@@ -1,5 +1,6 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { distributionsData } from "@/mock/distributions.mock";
+import { buildInKindItems } from "@/lib/in-kind-items";
 import { readLocalStorage, writeLocalStorage } from "@/lib/local-storage";
 import { programService } from "@/services/program.service";
 import type { ApiResponse } from "@/types/api";
@@ -18,6 +19,7 @@ import type {
   DistributionRecipientPreview,
   DistributionStatus,
   DistributionTimelineItem,
+  InKindItemDeliveryStatus,
 } from "@/types/distribution";
 import type { ProgramDetails } from "@/types/program";
 
@@ -44,11 +46,11 @@ function getProgram(id: string) {
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
-  return program.benefitType === "CASH" ? "TRENCH" : "BATCH";
+  return program.benefitType === "CASH" ? "TRANCHE" : "BATCH";
 }
 
 function getPhaseLabel(phaseType: DistributionPhaseType, phaseNumber: number) {
-  return `${phaseType === "TRENCH" ? "Trench" : "Batch"} ${phaseNumber}`;
+  return `${phaseType === "TRANCHE" ? "Tranche" : "Batch"} ${phaseNumber}`;
 }
 
 function getMethod(program: ProgramDetails): DistributionMethod {
@@ -379,6 +381,7 @@ function toDistributionDetails(input: {
     organizationType: program.organizationType,
     organizationStatus: program.organizationStatus,
     recipients,
+    inKindItems: buildInKindItems(input.id, program.benefitType, recipients),
     statistics: {
       beneficiaries: beneficiaryCount,
       amountDistributed: amount ?? 0,
@@ -703,6 +706,56 @@ export const distributionService = {
     return Promise.resolve({
       success: Boolean(updated),
       message: updated ? "Distribution status updated successfully" : "Distribution not found",
+      data: updated,
+    });
+  },
+
+  async updateInKindItemDeliveryStatus(
+    distributionId: string,
+    itemId: string,
+    deliveryStatus: InKindItemDeliveryStatus,
+    scannedByUserId: string,
+    scannedByName: string,
+  ): Promise<ApiResponse<DistributionDetails | null>> {
+    ensureDistributionStore();
+    let updated: DistributionDetails | null = null;
+
+    distributionStore = distributionStore.map((item) => {
+      if (item.id !== distributionId) {
+        return item;
+      }
+
+      const timestamp = new Date().toISOString();
+      let itemFound = false;
+
+      const inKindItems = (item.inKindItems ?? []).map((inKindItem) => {
+        if (inKindItem.id !== itemId) {
+          return inKindItem;
+        }
+
+        itemFound = true;
+        return {
+          ...inKindItem,
+          deliveryStatus,
+          deliveredAt: deliveryStatus === "DELIVERED" ? timestamp : inKindItem.deliveredAt,
+          scannedByUserId,
+          scannedByName,
+        };
+      });
+
+      if (!itemFound) {
+        return item;
+      }
+
+      updated = { ...item, inKindItems, updatedAt: timestamp };
+      return updated;
+    });
+
+    persistDistributionStore();
+
+    return Promise.resolve({
+      success: Boolean(updated),
+      message: updated ? "In-kind item status updated successfully" : "Distribution or item not found",
       data: updated,
     });
   },

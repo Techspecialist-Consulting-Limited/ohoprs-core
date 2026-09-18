@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide-react";
+import { Pencil, SquareArrowOutUpRight } from "lucide-react";
 
+import { Pagination } from "@/components/ui/pagination";
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,8 @@ export function ProgramTable({
   items,
   meta,
   onPageChange,
+  onLimitChange,
+  isFetching,
   onStatusAction,
   role,
   canChangeStatus,
@@ -38,6 +41,8 @@ export function ProgramTable({
   items: Program[];
   meta: ProgramListMeta;
   onPageChange: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  isFetching?: boolean;
   onStatusAction: (program: Program) => void;
   role: UserRole;
   canChangeStatus: boolean;
@@ -45,7 +50,6 @@ export function ProgramTable({
 }) {
   const canEditIntervention = role === "SUPER_ADMIN";
   const canManageDistributionApproval = role === "ORG_ADMIN";
-  const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-sm">
@@ -53,7 +57,7 @@ export function ProgramTable({
         <table className="min-w-full">
           <thead className="border-b border-border bg-surface-muted">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">
-              {["Intervention Name", "Agency", "Benefit Type", "Status", "Intervention Approval", "Distribution Approval", "Number of Trenches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
+              {["Intervention Name", "Agency", "Benefit Type", "Status", "Intervention Approval", "Distribution Approval", "Number of Tranches/Batch", "Total Distributed", "Start Date", "End Date", "Actions"].map((label) => (
                 <th key={label} className="px-5 py-4">{label}</th>
               ))}
             </tr>
@@ -94,7 +98,7 @@ export function ProgramTable({
                 </td>
                 <td className="px-5 py-4 text-sm text-foreground">
                   {item.benefitType === "CASH"
-                    ? formatNumber(item.numberOfTrenches ?? 0)
+                    ? formatNumber(item.numberOfTranches ?? 0)
                     : formatNumber(item.batch ?? 0)}
                 </td>
                 <td className="px-5 py-4 text-sm text-foreground">{formatCurrency(item.totalDistributed)}</td>
@@ -116,46 +120,13 @@ export function ProgramTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} interventions)
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={meta.page === 1}
-            onClick={() => onPageChange(meta.page - 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
-          {pageNumbers.map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => onPageChange(page)}
-              className={cn(
-                "inline-flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-medium",
-                page === meta.page
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border bg-surface text-foreground",
-              )}
-            >
-              {page}
-            </button>
-          ))}
-          <button
-            type="button"
-            disabled={meta.page === meta.totalPages}
-            onClick={() => onPageChange(meta.page + 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        meta={meta}
+        onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
+        isFetching={isFetching}
+        itemLabel="interventions"
+      />
     </div>
   );
 }

@@ -5,7 +5,13 @@ import { ArrowRight } from "lucide-react";
 
 import type { DistributionRecipientPreview } from "@/types/distribution";
 
-export function DistributionBeneficiaryPreview({ recipients }: { recipients: DistributionRecipientPreview[] }) {
+export function DistributionBeneficiaryPreview({
+  recipients,
+  totalBeneficiaryCount,
+}: {
+  recipients: DistributionRecipientPreview[];
+  totalBeneficiaryCount: number;
+}) {
   const isCash = recipients.some((recipient) => recipient.bankName || recipient.accountNumber);
   const previewRecipients = recipients.slice(0, 15);
 
@@ -67,9 +73,10 @@ export function DistributionBeneficiaryPreview({ recipients }: { recipients: Dis
           </tbody>
         </table>
       </div>
-      {recipients.length > 15 ? (
+      {totalBeneficiaryCount > previewRecipients.length ? (
         <p className="mt-4 text-sm text-muted">
-          Showing 15 of {recipients.length.toLocaleString()} beneficiaries. Use <span className="font-medium text-foreground">View All Beneficiaries</span> to inspect the full list.
+          Showing {previewRecipients.length.toLocaleString()} of {totalBeneficiaryCount.toLocaleString()} beneficiaries. Use{" "}
+          <span className="font-medium text-foreground">View All Beneficiaries</span> to inspect the full list.
         </p>
       ) : null}
     </section>

@@ -640,6 +640,52 @@ export const beneficiariesData: Beneficiary360Details[] = [
       benefitStatus: "ACTIVE",
     }),
   ),
+  ...[
+    { organizationId: "org_001", programIds: ["program_002"], state: "Rivers" },
+    { organizationId: "org_001", programIds: ["program_002"], state: "Edo" },
+    { organizationId: "org_001", programIds: ["program_001"], state: "Yobe" },
+    { organizationId: "org_001", programIds: ["program_003"], state: "Adamawa" },
+    { organizationId: "org_001", programIds: ["program_003"], state: "Gombe" },
+    { organizationId: "org_002", programIds: ["program_004"], state: "Lagos" },
+    { organizationId: "org_002", programIds: ["program_004"], state: "Ogun" },
+    { organizationId: "org_002", programIds: ["program_004"], state: "Oyo" },
+    { organizationId: "org_002", programIds: ["program_005"], state: "Lagos" },
+    { organizationId: "org_002", programIds: ["program_005"], state: "Ekiti" },
+    { organizationId: "org_002", programIds: ["program_005"], state: "Osun" },
+    { organizationId: "org_002", programIds: ["program_006"], state: "Lagos" },
+    { organizationId: "org_002", programIds: ["program_006"], state: "Ondo" },
+    { organizationId: "org_003", programIds: ["program_007"], state: "Kano" },
+    { organizationId: "org_003", programIds: ["program_007"], state: "Katsina" },
+    { organizationId: "org_003", programIds: ["program_007"], state: "Jigawa" },
+    { organizationId: "org_003", programIds: ["program_008"], state: "Kano" },
+    { organizationId: "org_003", programIds: ["program_008"], state: "Sokoto" },
+    { organizationId: "org_003", programIds: ["program_008"], state: "Zamfara" },
+    { organizationId: "org_004", programIds: ["program_009"], state: "Kaduna" },
+    { organizationId: "org_004", programIds: ["program_009"], state: "Niger" },
+    { organizationId: "org_004", programIds: ["program_009"], state: "Kogi" },
+    { organizationId: "org_004", programIds: ["program_010"], state: "Kaduna" },
+    { organizationId: "org_004", programIds: ["program_010"], state: "Nasarawa" },
+    { organizationId: "org_005", programIds: ["program_011"], state: "Plateau" },
+    { organizationId: "org_006", programIds: ["program_012"], state: "Borno" },
+    { organizationId: "org_007", programIds: ["program_013"], state: "Abia" },
+    { organizationId: "org_008", programIds: ["program_014"], state: "Osun" },
+    { organizationId: "org_009", programIds: ["program_015"], state: "Benue" },
+    { organizationId: "org_010", programIds: ["program_016"], state: "Ekiti" },
+    { organizationId: "org_011", programIds: ["program_017"], state: "Rivers" },
+    { organizationId: "org_012", programIds: ["program_018"], state: "Bauchi" },
+    { organizationId: "org_013", programIds: ["program_019"], state: "Cross River" },
+    { organizationId: "org_014", programIds: ["program_020"], state: "FCT" },
+  ].flatMap((combo, comboIndex) =>
+    Array.from({ length: 6 }, (_, offset) => {
+      const index = 93 + comboIndex * 6 + offset;
+      return createBeneficiary(index, combo.organizationId, combo.programIds, {
+        ...buildExpandedName(index),
+        state: combo.state,
+        verificationStatus: "VERIFIED",
+        benefitStatus: "ACTIVE",
+      });
+    }),
+  ),
 ];
 
 export const beneficiaryUploadPreviewRows = [

@@ -1,10 +1,13 @@
 export type BenefitType =
   | "CASH"
   | "FOOD"
+  | "FOOD_VOUCHER"
   | "MEDICAL"
   | "EDUCATION"
   | "AGRICULTURE"
   | "HOUSING"
+  | "CONSTRUCTION_MATERIALS"
+  | "RELIEF_MATERIALS"
   | "EMERGENCY_RELIEF"
   | "OTHER";
 
@@ -89,7 +92,7 @@ export interface Program {
   states?: string[];
   amount?: number | null;
   budget: number | null;
-  numberOfTrenches?: number | null;
+  numberOfTranches?: number | null;
   batch?: number | null;
   fundingSources?: ProgramFundingSource[];
   approvalSteps?: ProgramApprovalStep[];
@@ -164,7 +167,7 @@ export interface ProgramPayload {
   states: string[];
   amount: number | null;
   budget: number | null;
-  numberOfTrenches: number | null;
+  numberOfTranches: number | null;
   batch: number | null;
   fundingSources: ProgramFundingSource[];
   approvalSteps: ProgramApprovalStep[];

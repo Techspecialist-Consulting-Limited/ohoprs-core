@@ -93,7 +93,7 @@ const programSteps: StepConfig[] = [
     id: "benefit",
     title: "Benefit Setup",
     description: "Configure benefit value and structure.",
-    fields: ["amount", "budget", "numberOfTrenches", "batch", "amountPerRecipient"],
+    fields: ["amount", "budget", "numberOfTranches", "batch", "amountPerRecipient"],
   },
   {
     id: "coverage",
@@ -165,6 +165,44 @@ function createApprovalStep(role: SystemApprovalRole): ProgramApprovalStep {
   };
 }
 
+function buildProgramDefaultValues(
+  source: Partial<ProgramFormValues> | undefined,
+  initialValues: Partial<ProgramFormValues> | undefined,
+  defaultOrganizationId: string | undefined,
+): ProgramFormValues {
+  return {
+    name: source?.name ?? initialValues?.name ?? "",
+    organizationId: source?.organizationId ?? initialValues?.organizationId ?? defaultOrganizationId ?? "",
+    benefitType: source?.benefitType ?? initialValues?.benefitType ?? "CASH",
+    description: source?.description ?? initialValues?.description ?? "",
+    startDate: source?.startDate ?? initialValues?.startDate ?? "",
+    endDate: source?.endDate ?? initialValues?.endDate ?? "",
+    duration: source?.duration ?? initialValues?.duration ?? {
+      days: 0,
+      weeks: 0,
+      months: 0,
+      years: 0,
+    },
+    recipientCount: source?.recipientCount ?? initialValues?.recipientCount ?? 0,
+    amountPerRecipient: source?.amountPerRecipient ?? initialValues?.amountPerRecipient ?? null,
+    regions: source?.regions ?? initialValues?.regions ?? [],
+    states: source?.states ?? initialValues?.states ?? [],
+    amount: source?.amount ?? initialValues?.amount ?? null,
+    budget: source?.budget ?? initialValues?.budget ?? 0,
+    numberOfTranches: source?.numberOfTranches ?? initialValues?.numberOfTranches ?? null,
+    batch: source?.batch ?? initialValues?.batch ?? 0,
+    fundingSources: source?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
+    status: source?.status ?? initialValues?.status ?? "IN_PROGRESS",
+    approvalSteps:
+      source?.approvalSteps?.length
+        ? source.approvalSteps
+        : initialValues?.approvalSteps?.length
+          ? initialValues.approvalSteps
+          : [createApprovalStep("DIRECTOR")],
+    distributionApprovalSteps: source?.distributionApprovalSteps ?? initialValues?.distributionApprovalSteps ?? [],
+  };
+}
+
 function formatNumericInput(value: number | string | null | undefined) {
   if (value === null || value === undefined || value === "") {
     return "";
@@ -195,55 +233,38 @@ export function ProgramForm({
   const currentUser = useAuthStore((state) => state.user);
   const customFundingId = useId();
   const draftStorageKey = getProgramDraftStorageKey(mode, programId);
-  const savedDraft = readLocalStorage<ProgramDraftState | null>(draftStorageKey, null);
-  const savedDraftValues = savedDraft?.values;
-  const savedCustomFundingSources = (savedDraftValues?.fundingSources ?? []).filter((source) => source.isCustom);
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
   const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [completedStepIds, setCompletedStepIds] = useState<string[]>(savedDraft?.completedStepIds ?? []);
+  const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
-  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [
-    ...fundingSourceOptions,
-    ...savedCustomFundingSources.filter((source) => !fundingSourceOptions.some((option) => option.id === source.id)),
-  ]);
+  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(fundingSourceOptions);
   const todayDate = getTodayDateForInput();
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
-    defaultValues: {
-      name: savedDraftValues?.name ?? initialValues?.name ?? "",
-      organizationId: savedDraftValues?.organizationId ?? initialValues?.organizationId ?? defaultOrganizationId ?? "",
-      benefitType: savedDraftValues?.benefitType ?? initialValues?.benefitType ?? "CASH",
-      description: savedDraftValues?.description ?? initialValues?.description ?? "",
-      startDate: savedDraftValues?.startDate ?? initialValues?.startDate ?? "",
-      endDate: savedDraftValues?.endDate ?? initialValues?.endDate ?? "",
-      duration: savedDraftValues?.duration ?? initialValues?.duration ?? {
-        days: 0,
-        weeks: 0,
-        months: 0,
-        years: 0,
-      },
-      recipientCount: savedDraftValues?.recipientCount ?? initialValues?.recipientCount ?? 0,
-      amountPerRecipient: savedDraftValues?.amountPerRecipient ?? initialValues?.amountPerRecipient ?? null,
-      regions: savedDraftValues?.regions ?? initialValues?.regions ?? [],
-      states: savedDraftValues?.states ?? initialValues?.states ?? [],
-      amount: savedDraftValues?.amount ?? initialValues?.amount ?? null,
-      budget: savedDraftValues?.budget ?? initialValues?.budget ?? 0,
-      numberOfTrenches: savedDraftValues?.numberOfTrenches ?? initialValues?.numberOfTrenches ?? null,
-      batch: savedDraftValues?.batch ?? initialValues?.batch ?? 0,
-      fundingSources: savedDraftValues?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
-      status: savedDraftValues?.status ?? initialValues?.status ?? "IN_PROGRESS",
-      approvalSteps:
-        savedDraftValues?.approvalSteps?.length
-          ? savedDraftValues.approvalSteps
-          : initialValues?.approvalSteps?.length
-            ? initialValues.approvalSteps
-            : [createApprovalStep("DIRECTOR")],
-      distributionApprovalSteps: savedDraftValues?.distributionApprovalSteps ?? initialValues?.distributionApprovalSteps ?? [],
-    },
+    defaultValues: buildProgramDefaultValues(undefined, initialValues, defaultOrganizationId),
   });
+
+  useEffect(() => {
+    const savedDraft = readLocalStorage<ProgramDraftState | null>(draftStorageKey, null);
+
+    if (!savedDraft) {
+      return;
+    }
+
+    const savedCustomFundingSources = (savedDraft.values.fundingSources ?? []).filter((source) => source.isCustom);
+
+    form.reset(buildProgramDefaultValues(savedDraft.values, initialValues, defaultOrganizationId));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a locally-saved draft on mount, not a render-cascading update
+    setCompletedStepIds(savedDraft.completedStepIds ?? []);
+    setFundingOptions((current) => [
+      ...current,
+      ...savedCustomFundingSources.filter((source) => !current.some((option) => option.id === source.id)),
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftStorageKey]);
 
   const selectedBenefitType = useWatch({ control: form.control, name: "benefitType" });
   const selectedStatus = useWatch({ control: form.control, name: "status" });
@@ -325,12 +346,6 @@ export function ProgramForm({
   }, [completedStepIds, currentStepIndex, draftStorageKey, formSnapshot]);
 
   useEffect(() => {
-    if (activeStep.id !== "review") {
-      setReviewConfirmed(false);
-    }
-  }, [activeStep.id]);
-
-  useEffect(() => {
     if (!selectedStartDate) {
       return;
     }
@@ -346,14 +361,14 @@ export function ProgramForm({
       if (form.getValues("amount") === null) {
         form.setValue("amount", 0, { shouldDirty: true });
       }
-      if (form.getValues("numberOfTrenches") === null) {
-        form.setValue("numberOfTrenches", 0, { shouldDirty: true });
+      if (form.getValues("numberOfTranches") === null) {
+        form.setValue("numberOfTranches", 0, { shouldDirty: true });
       }
       return;
     }
 
     form.setValue("amount", null, { shouldDirty: true });
-    form.setValue("numberOfTrenches", null, { shouldDirty: true });
+    form.setValue("numberOfTranches", null, { shouldDirty: true });
     if (form.getValues("budget") === null) {
       form.setValue("budget", 0, { shouldDirty: true });
     }
@@ -387,7 +402,7 @@ export function ProgramForm({
         states: values.states ?? [],
         amount: values.amount ?? null,
         budget: values.budget ?? null,
-        numberOfTrenches: values.numberOfTrenches ?? null,
+        numberOfTranches: values.numberOfTranches ?? null,
         batch: values.batch ?? null,
         createdByUserId: initialValues?.createdByUserId ?? currentUser?.id ?? null,
       };
@@ -437,7 +452,7 @@ export function ProgramForm({
       states: values.states ?? [],
       amount: isCashBenefit ? Number(values.amount ?? 0) : null,
       budget: isCashBenefit ? null : Number(values.budget ?? 0),
-      numberOfTrenches: isCashBenefit ? Number(values.numberOfTrenches ?? 0) : null,
+      numberOfTranches: isCashBenefit ? Number(values.numberOfTranches ?? 0) : null,
       batch: isCashBenefit ? null : Number(values.batch ?? 0),
       fundingSources: values.fundingSources,
       status: values.status,
@@ -474,10 +489,12 @@ export function ProgramForm({
 
       return [...current, activeStep.id];
     });
+    setReviewConfirmed(false);
     setCurrentStepIndex((current) => Math.min(current + 1, programSteps.length - 1));
   }
 
   function goToPreviousStep() {
+    setReviewConfirmed(false);
     setCurrentStepIndex((current) => Math.max(current - 1, 0));
   }
 
@@ -489,6 +506,7 @@ export function ProgramForm({
       completedStepIds.includes(programSteps[index - 1]?.id ?? "");
 
     if (canOpen) {
+      setReviewConfirmed(false);
       setCurrentStepIndex(index);
     }
   }
@@ -833,17 +851,17 @@ export function ProgramForm({
 
               <section>
                 <Field
-                  label={isCashBenefit ? "Number of Trenches" : "Batch"}
+                  label={isCashBenefit ? "Number of Tranches" : "Batch"}
                   error={
                     isCashBenefit
-                      ? form.formState.errors.numberOfTrenches?.message
+                      ? form.formState.errors.numberOfTranches?.message
                       : form.formState.errors.batch?.message
                   }
                 >
                   <input
                     type="number"
                     min={0}
-                    {...form.register(isCashBenefit ? "numberOfTrenches" : "batch")}
+                    {...form.register(isCashBenefit ? "numberOfTranches" : "batch")}
                     className={inputClassName}
                     disabled={isLocked}
                   />
@@ -1198,7 +1216,7 @@ export function ProgramForm({
                 title="Benefit Setup"
                 items={[
                   { label: isCashBenefit ? "Amount" : "Budget", value: formatCurrency(Number(isCashBenefit ? formSnapshot.amount ?? 0 : formSnapshot.budget ?? 0)) },
-                  { label: isCashBenefit ? "Number of Trenches" : "Batch", value: formatNumber(Number(isCashBenefit ? formSnapshot.numberOfTrenches ?? 0 : formSnapshot.batch ?? 0)) },
+                  { label: isCashBenefit ? "Number of Tranches" : "Batch", value: formatNumber(Number(isCashBenefit ? formSnapshot.numberOfTranches ?? 0 : formSnapshot.batch ?? 0)) },
                   { label: "Amount to be Received", value: formatCurrency(Number(formSnapshot.amountPerRecipient ?? 0)) },
                 ]}
               />

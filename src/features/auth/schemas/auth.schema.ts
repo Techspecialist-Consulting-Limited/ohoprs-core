@@ -13,6 +13,7 @@ export const userRoles = [
   "AGENCY_ACCOUNTANT",
   "SYSTEM_ACCOUNTANT",
   "DIRECTOR",
+  "FIELD_OFFICER",
 ] as const satisfies readonly UserRole[];
 
 export const loginSchema = z.object({

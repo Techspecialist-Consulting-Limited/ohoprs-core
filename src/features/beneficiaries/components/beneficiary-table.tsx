@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Pencil, SquareArrowOutUpRight } from "lucide-react";
+import { Pencil, SquareArrowOutUpRight } from "lucide-react";
 
+import { Pagination } from "@/components/ui/pagination";
 import { RowActionPopover } from "@/components/ui/row-action-popover";
-import { cn } from "@/lib/utils";
-import { formatDateTime, formatNumber } from "@/lib/formatters";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 import type { Beneficiary, BeneficiaryListMeta } from "@/types/beneficiary";
 import { BeneficiaryStatusBadge } from "@/features/beneficiaries/components/beneficiary-status-badge";
 import { VerificationStatusBadge } from "@/features/beneficiaries/components/verification-status-badge";
@@ -30,15 +30,17 @@ export function BeneficiaryTable({
   items,
   meta,
   onPageChange,
+  onLimitChange,
+  isFetching,
   canEdit,
 }: {
   items: Beneficiary[];
   meta: BeneficiaryListMeta;
   onPageChange: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  isFetching?: boolean;
   canEdit: boolean;
 }) {
-  const pageNumbers = Array.from({ length: meta.totalPages }, (_, index) => index + 1);
-
   return (
     <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-sm">
       <div className="overflow-x-auto">
@@ -77,7 +79,7 @@ export function BeneficiaryTable({
                 <td className="px-5 py-4"><VerificationStatusBadge status={item.verificationStatus} /></td>
                 <td className="px-5 py-4"><BeneficiaryStatusBadge status={item.benefitStatus} /></td>
                 <td className="px-5 py-4 text-sm text-muted" title={formatDateTime(item.createdAt)}>
-                  {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "2-digit", month: "short", year: "numeric" })}
+                  {formatDate(item.createdAt)}
                 </td>
                 <td className="px-5 py-4">
                   <RowActionMenu canEdit={canEdit} item={item} />
@@ -88,46 +90,13 @@ export function BeneficiaryTable({
         </table>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} beneficiaries)
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={meta.page === 1}
-            onClick={() => onPageChange(meta.page - 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
-          {pageNumbers.map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => onPageChange(page)}
-              className={cn(
-                "inline-flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-medium",
-                page === meta.page
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border bg-surface text-foreground",
-              )}
-            >
-              {page}
-            </button>
-          ))}
-          <button
-            type="button"
-            disabled={meta.page === meta.totalPages}
-            onClick={() => onPageChange(meta.page + 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        meta={meta}
+        onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
+        isFetching={isFetching}
+        itemLabel="beneficiaries"
+      />
     </div>
   );
 }

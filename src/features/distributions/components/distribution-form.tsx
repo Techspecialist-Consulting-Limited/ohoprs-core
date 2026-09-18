@@ -76,8 +76,6 @@ export function DistributionForm({
   const user = useAuthStore((state) => state.user);
   const role = useAuthStore((state) => state.role);
   const draftStorageKey = getDistributionDraftStorageKey(mode, distributionId);
-  const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
-  const initialDraftValues = savedDraft?.values;
   const [currentStep, setCurrentStep] = useState(0);
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
   const [showApprovalRequiredModal, setShowApprovalRequiredModal] = useState(false);
@@ -87,13 +85,24 @@ export function DistributionForm({
 
   const form = useForm<DistributionFormInput, unknown, DistributionFormOutput>({
     resolver: zodResolver(distributionSchema),
-    defaultValues: initialDraftValues ?? initialValues ?? {
+    defaultValues: initialValues ?? {
       programId: "",
       phaseNumber: 0,
       states: [],
       beneficiaryIds: [],
     },
   });
+
+  useEffect(() => {
+    const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
+
+    if (!savedDraft) {
+      return;
+    }
+
+    form.reset(savedDraft.values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftStorageKey]);
 
   const programId = useWatch({ control: form.control, name: "programId" });
   const phaseNumber = Number(useWatch({ control: form.control, name: "phaseNumber" }) ?? 0);
@@ -114,10 +123,10 @@ export function DistributionForm({
   );
   const selectedProgram = programId ? programService.getProgramSnapshot(programId) : null;
   const hasDistributionApprovalSteps = Boolean(selectedProgram?.distributionApprovalSteps?.length);
-  const phaseTypeLabel = selectedProgram?.benefitType === "CASH" ? "Trench" : "Batch";
+  const phaseTypeLabel = selectedProgram?.benefitType === "CASH" ? "Tranche" : "Batch";
   const phaseCount = selectedProgram
     ? selectedProgram.benefitType === "CASH"
-      ? selectedProgram.numberOfTrenches ?? 0
+      ? selectedProgram.numberOfTranches ?? 0
       : selectedProgram.batch ?? 0
     : 0;
   const unavailablePhaseNumbers = programId ? distributionService.getUnavailablePhaseNumbers(programId) : [];
@@ -169,12 +178,6 @@ export function DistributionForm({
     });
   }, [currentStep, draftStorageKey, phaseNumber, programId, selectedBeneficiaryIds, selectedStates]);
 
-  useEffect(() => {
-    if (steps[currentStep]?.id !== "review") {
-      setReviewConfirmed(false);
-    }
-  }, [currentStep]);
-
   function resetSelectedIntervention() {
     setShowApprovalRequiredModal(false);
     form.setValue("programId", "", { shouldValidate: true, shouldDirty: true });
@@ -182,6 +185,7 @@ export function DistributionForm({
     form.setValue("states", [], { shouldValidate: true, shouldDirty: true });
     form.setValue("beneficiaryIds", [], { shouldValidate: true, shouldDirty: true });
     setBeneficiaryPage(1);
+    setReviewConfirmed(false);
     setCurrentStep(0);
   }
 
@@ -260,6 +264,7 @@ export function DistributionForm({
       return;
     }
 
+    setReviewConfirmed(false);
     setCurrentStep((value) => Math.min(value + 1, steps.length - 1));
   }
 
@@ -282,6 +287,7 @@ export function DistributionForm({
                 type="button"
                 onClick={() => {
                   if (index <= currentStep) {
+                    setReviewConfirmed(false);
                     setCurrentStep(index);
                   }
                 }}
@@ -310,7 +316,7 @@ export function DistributionForm({
           <div className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Step 1</p>
             <h2 className="mt-2 text-2xl font-semibold text-foreground">Select intervention</h2>
-            <p className="mt-2 text-sm text-muted">Choose an assigned intervention first, then pick the available trench or batch that has not been created yet.</p>
+            <p className="mt-2 text-sm text-muted">Choose an assigned intervention first, then pick the available tranche or batch that has not been created yet.</p>
 
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
               <Field label="Intervention" error={form.formState.errors.programId?.message}>
@@ -344,7 +350,7 @@ export function DistributionForm({
                 </select>
               </Field>
 
-              <Field label={selectedProgram ? `Select ${phaseTypeLabel}` : "Select Trench / Batch"} error={form.formState.errors.phaseNumber?.message}>
+              <Field label={selectedProgram ? `Select ${phaseTypeLabel}` : "Select Tranche / Batch"} error={form.formState.errors.phaseNumber?.message}>
                 <select {...form.register("phaseNumber", { valueAsNumber: true })} className={inputClassName} disabled={!selectedProgram}>
                   <option value={0}>{selectedProgram ? `Select ${phaseTypeLabel.toLowerCase()}` : "Select intervention first"}</option>
                   {availablePhaseNumbers.map((item) => (
@@ -519,7 +525,7 @@ export function DistributionForm({
 
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <SummaryCard label="Intervention" value={selectedProgramOption?.name ?? selectedProgram?.name ?? "-"} />
-              <SummaryCard label="Trench / Batch" value={phaseNumber > 0 ? `${phaseTypeLabel} ${phaseNumber}` : "-"} />
+              <SummaryCard label="Tranche / Batch" value={phaseNumber > 0 ? `${phaseTypeLabel} ${phaseNumber}` : "-"} />
               <SummaryCard label="States" value={selectedStates.join(", ") || "-"} />
               <SummaryCard label="Beneficiaries" value={formatNumber(selectedBeneficiaryCount)} />
             </div>
@@ -557,7 +563,10 @@ export function DistributionForm({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setCurrentStep((value) => Math.max(0, value - 1))}
+              onClick={() => {
+                setReviewConfirmed(false);
+                setCurrentStep((value) => Math.max(0, value - 1));
+              }}
               disabled={currentStep === 0}
               className="inline-flex h-11 items-center gap-2 rounded-2xl border border-border px-4 text-sm font-medium text-foreground disabled:opacity-50"
             >

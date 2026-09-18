@@ -10,7 +10,8 @@ export type UserRole =
   | "DISTRIBUTION_MANAGER"
   | "AGENCY_ACCOUNTANT"
   | "SYSTEM_ACCOUNTANT"
-  | "DIRECTOR";
+  | "DIRECTOR"
+  | "FIELD_OFFICER";
 
 export interface AuthUser {
   id: string;

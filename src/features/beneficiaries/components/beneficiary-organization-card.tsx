@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { organizationsData } from "@/mock/organizations.mock";
+import { getHouseholdIdForBeneficiary } from "@/mock/households.mock";
 import type { Beneficiary360Details } from "@/types/beneficiary";
 
 export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Beneficiary360Details }) {
@@ -30,6 +31,9 @@ export function BeneficiaryOrganizationCard({ beneficiary }: { beneficiary: Bene
         </Link>
         <Link href={`/organizations/${beneficiary.organizationId}/workspace`} className="text-sm font-medium text-accent hover:underline">
           Open Agency Workspace
+        </Link>
+        <Link href={`/households/${getHouseholdIdForBeneficiary(beneficiary.id)}`} className="text-sm font-medium text-accent hover:underline">
+          View Household
         </Link>
       </div>
     </div>

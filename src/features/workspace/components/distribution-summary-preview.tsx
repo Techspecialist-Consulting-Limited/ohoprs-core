@@ -35,7 +35,7 @@ export function DistributionSummaryPreview({ summary }: { summary: WorkspaceDist
                 <td className="py-3 text-sm text-foreground">{formatNumber(item.beneficiaryCount)}</td>
                 <td className="py-3 text-sm text-foreground">{typeof item.amount === "number" ? formatCurrency(item.amount) : "—"}</td>
                 <td className="py-3 text-sm text-muted" title={formatDateTime(item.createdAt)}>
-                  {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "2-digit", month: "short" })}
+                  {new Date(item.createdAt).toLocaleDateString("en-NG", { day: "2-digit", month: "short", timeZone: "Africa/Lagos" })}
                 </td>
               </tr>
             ))}

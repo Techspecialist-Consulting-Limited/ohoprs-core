@@ -14,11 +14,12 @@ import { distributionService } from "@/services/distribution.service";
 import { useAuthStore } from "@/store/auth.store";
 import { DistributionActivityFeed } from "@/features/distributions/components/distribution-activity-feed";
 import { DistributionBeneficiaryPreview } from "@/features/distributions/components/distribution-beneficiary-preview";
+import { DistributionInKindItems } from "@/features/distributions/components/distribution-inkind-items";
 import { DistributionMethodBadge } from "@/features/distributions/components/distribution-method-badge";
 import { DistributionStatistics } from "@/features/distributions/components/distribution-statistics";
 import { DistributionStatusBadge } from "@/features/distributions/components/distribution-status-badge";
 import { DistributionTimeline } from "@/features/distributions/components/distribution-timeline";
-import { canEditDistributionRecord } from "@/features/distributions/lib/distribution-permissions";
+import { canEditDistributionRecord, canTrackInKindItems } from "@/features/distributions/lib/distribution-permissions";
 
 function canViewDistribution(role: string | null, organizationId: string, userOrganizationId: string | null | undefined) {
   if (role === "SUPER_ADMIN" || role === "AUDITOR") return true;
@@ -64,6 +65,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
   }
 
   const canEdit = canEditDistributionRecord(role, distribution, user?.organizationId, user?.id);
+  const canUpdateInKindItems = canTrackInKindItems(role, distribution, user?.organizationId);
   const actions = [
     ...(canEdit ? [{ label: "Edit Distribution", href: `/distributions/${distribution.id}/edit`, icon: Pencil }] : []),
     { label: "Open Approval Review", href: `/distributions/${distribution.id}/approval`, icon: ArrowRight },
@@ -150,9 +152,17 @@ export function DistributionDetailsModule({ id }: { id: string }) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <DistributionBeneficiaryPreview recipients={distribution.recipients} />
+        <DistributionBeneficiaryPreview recipients={distribution.recipients} totalBeneficiaryCount={distribution.beneficiaryCount} />
         <DistributionActivityFeed items={distribution.recentActivities} />
       </section>
+
+      {distribution.benefitType !== "CASH" ? (
+        <DistributionInKindItems
+          distributionId={distribution.id}
+          items={distribution.inKindItems ?? []}
+          canUpdate={canUpdateInKindItems}
+        />
+      ) : null}
 
       <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-soft">Approval history</p>

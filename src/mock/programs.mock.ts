@@ -511,7 +511,7 @@ export const programsData: ProgramDetails[] = rawProgramsData.map((item) => {
     states: [homeState],
     amount: isCashBenefit ? item.budget ?? null : null,
     budget: isCashBenefit ? null : item.budget ?? null,
-    numberOfTrenches: isCashBenefit ? trancheOrBatchCount : null,
+    numberOfTranches: isCashBenefit ? trancheOrBatchCount : null,
     batch: isCashBenefit ? null : trancheOrBatchCount,
     distributionApprovalSteps: buildDistributionApprovalTemplate(item.id),
   };

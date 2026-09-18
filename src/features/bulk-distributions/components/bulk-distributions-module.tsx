@@ -9,7 +9,9 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { organizationsData } from "@/mock/organizations.mock";
+import { Pagination } from "@/components/ui/pagination";
 import { BulkDistributionForm } from "@/features/bulk-distributions/components/bulk-distribution-form";
 import { BulkJobStatusBadge } from "@/features/bulk-distributions/components/bulk-job-status-badge";
 import { BulkJobSummary } from "@/features/bulk-distributions/components/bulk-job-summary";
@@ -23,19 +25,19 @@ export function BulkDistributionsModule() {
   const [search, setSearch] = useState("");
   const [organizationId, setOrganizationId] = useState("ALL");
   const [status, setStatus] = useState("ALL");
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const debouncedSearch = useDebouncedValue(search);
 
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
   const scopeOrganizationId = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER" ? user?.organizationId ?? null : null;
 
   const jobsQuery = useQuery({
-    queryKey: ["bulk-jobs", debouncedSearch, organizationId, status, page, scopeOrganizationId],
+    queryKey: ["bulk-jobs", debouncedSearch, organizationId, status, page, limit, scopeOrganizationId],
     queryFn: () =>
       bulkDistributionService.getBulkJobs({
         search: debouncedSearch,
         page,
-        limit: 10,
+        limit,
         organizationId,
         status: status as import("@/types/bulk-distribution").BulkJobStatus | "ALL",
         scopeOrganizationId,
@@ -175,29 +177,13 @@ export function BulkDistributionsModule() {
                 </table>
               </div>
 
-              <div className="flex items-center justify-between border-t border-border px-5 py-4">
-                <p className="text-sm text-muted">
-                  Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} jobs)
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={meta.page === 1}
-                    onClick={() => setPage((current) => current - 1)}
-                    className="inline-flex h-10 items-center rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    disabled={meta.page === meta.totalPages}
-                    onClick={() => setPage((current) => current + 1)}
-                    className="inline-flex h-10 items-center rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                meta={meta}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+                isFetching={jobsQuery.isFetching}
+                itemLabel="jobs"
+              />
             </div>
           )}
         </section>

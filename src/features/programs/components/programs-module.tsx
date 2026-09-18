@@ -10,6 +10,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { ProgramFilters } from "@/features/programs/components/program-filters";
@@ -40,7 +41,7 @@ export function ProgramsModule() {
     benefitType: "ALL",
     status: "ALL",
   });
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const [statusTarget, setStatusTarget] = useState<Program | null>(null);
   const [nextStatus, setNextStatus] = useState<ProgramStatus>("IN_PROGRESS");
   const debouncedSearch = useDebouncedValue(filters.search);
@@ -63,6 +64,7 @@ export function ProgramsModule() {
     queryKey: [
       "programs",
       page,
+      limit,
       { ...filters, search: debouncedSearch },
       role,
       scopeOrganizationId,
@@ -71,7 +73,7 @@ export function ProgramsModule() {
     queryFn: () =>
       programService.getPrograms({
         page,
-        limit: 10,
+        limit,
         search: debouncedSearch,
         organizationId: filters.organizationId,
         benefitType: filters.benefitType,
@@ -164,6 +166,8 @@ export function ProgramsModule() {
           items={response.items}
           meta={response.meta}
           onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={programsQuery.isFetching}
           onStatusAction={(program) => {
             setStatusTarget(program);
             setNextStatus(program.status);

@@ -11,6 +11,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { OrganizationFilters } from "@/features/organizations/components/organization-filters";
 import { OrganizationStatusDialog } from "@/features/organizations/components/organization-status-dialog";
 import { OrganizationTable } from "@/features/organizations/components/organization-table";
@@ -32,7 +33,7 @@ export function OrganizationsModule() {
     status: "ALL",
     type: "ALL",
   });
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const [statusTarget, setStatusTarget] = useState<Organization | null>(null);
   const [nextStatus, setNextStatus] = useState<OrganizationStatus>("ACTIVE");
   const debouncedSearch = useDebouncedValue(filters.search);
@@ -41,11 +42,11 @@ export function OrganizationsModule() {
     role === "ORG_ADMIN" ? currentTenant?.id === "tenant-org-001" ? user?.organizationId ?? "org_001" : user?.organizationId : null;
 
   const organizationQuery = useQuery({
-    queryKey: ["organizations", page, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
+    queryKey: ["organizations", page, limit, { ...filters, search: debouncedSearch }, role, scopeOrganizationId],
     queryFn: () =>
       organizationService.getOrganizations({
         page,
-        limit: 10,
+        limit,
         search: debouncedSearch,
         status: filters.status,
         type: filters.type,
@@ -140,6 +141,8 @@ export function OrganizationsModule() {
           items={items}
           meta={response.meta}
           onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={organizationQuery.isFetching}
           onStatusAction={(organization) => {
             setStatusTarget(organization);
             setNextStatus(organization.status);

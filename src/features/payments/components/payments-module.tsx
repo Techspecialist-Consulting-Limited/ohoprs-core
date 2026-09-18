@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { hasPermission } from "@/lib/rbac";
 import { paymentService } from "@/services/payment.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -20,18 +21,19 @@ export function PaymentsModule() {
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const debouncedSearch = useDebouncedValue(search);
 
   const paymentsQuery = useQuery({
-    queryKey: ["payments", role, user?.organizationId, debouncedSearch],
+    queryKey: ["payments", role, user?.organizationId, debouncedSearch, page, limit],
     queryFn: async () => {
       const response = await paymentService.getPayments({
         search: debouncedSearch,
-        page: 1,
-        limit: 50,
+        page,
+        limit,
         scopeOrganizationId: role === "SUPER_ADMIN" || role === "AUDITOR" ? null : user?.organizationId ?? null,
       });
-      return response.data.items;
+      return response.data;
     },
     placeholderData: (previousData) => previousData,
   });
@@ -66,7 +68,8 @@ export function PaymentsModule() {
     return <LoadingState title="Loading payment records" lines={6} />;
   }
 
-  const items = paymentsQuery.data ?? [];
+  const items = paymentsQuery.data?.items ?? [];
+  const meta = paymentsQuery.data?.meta;
 
   return (
     <PageContainer>
@@ -81,15 +84,22 @@ export function PaymentsModule() {
         <input
           id="payment-search"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
+          }}
           placeholder="Search by reference, beneficiary, program, or distribution"
           className="mt-3 h-12 w-full rounded-2xl border border-border bg-surface-muted px-4 text-sm text-foreground outline-none placeholder:text-muted"
         />
       </div>
 
-      {items.length ? (
+      {items.length && meta ? (
         <PaymentTable
           items={items}
+          meta={meta}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={paymentsQuery.isFetching}
           onProcess={(item) => actionMutation.mutate({ action: "process", item })}
           onRetry={(item) => actionMutation.mutate({ action: "retry", item })}
           onReverse={(item) => actionMutation.mutate({ action: "reverse", item })}

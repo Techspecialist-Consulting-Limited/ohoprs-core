@@ -122,6 +122,18 @@ export const mockUsers: AuthUser[] = [
     address: "7 Accounts Crescent, Abuja",
     hasDisability: false,
   },
+  {
+    id: "user_011",
+    name: "Zainab Yusuf",
+    email: "fieldofficer@fmha.gov.ng",
+    role: "FIELD_OFFICER",
+    organizationId: "org_001",
+    organizationName: "Federal Ministry of Humanitarian Affairs",
+    stateOfOrigin: "Sokoto",
+    lga: "Sokoto North",
+    address: "3 Outreach Lane, Abuja",
+    hasDisability: false,
+  },
 ];
 
 export const tenantByRole: Record<UserRole, TenantContext | null> = {
@@ -194,5 +206,12 @@ export const tenantByRole: Record<UserRole, TenantContext | null> = {
     name: "System Approval Office",
     shortCode: "SAO",
     logoUrl: null,
+  },
+  FIELD_OFFICER: {
+    id: "tenant-org-001",
+    tenantId: "tenant-org-001",
+    name: "Federal Ministry of Humanitarian Affairs",
+    shortCode: "FMHA",
+    logoUrl: "/images/federal-ministry-affirs.jpeg",
   },
 };

@@ -1,5 +1,6 @@
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
 import { programsData } from "@/mock/programs.mock";
+import { buildInKindItems } from "@/lib/in-kind-items";
 import type {
   DistributionApprovalStatus,
   DistributionDetails,
@@ -25,11 +26,11 @@ function getProgram(id: string) {
 }
 
 function getPhaseType(program: ProgramDetails): DistributionPhaseType {
-  return program.benefitType === "CASH" ? "TRENCH" : "BATCH";
+  return program.benefitType === "CASH" ? "TRANCHE" : "BATCH";
 }
 
 function getPhaseLabel(phaseType: DistributionPhaseType, phaseNumber: number) {
-  return `${phaseType === "TRENCH" ? "Trench" : "Batch"} ${phaseNumber}`;
+  return `${phaseType === "TRANCHE" ? "Tranche" : "Batch"} ${phaseNumber}`;
 }
 
 function getMethod(program: ProgramDetails): DistributionMethod {
@@ -64,7 +65,7 @@ function bankNameForIndex(index: number) {
   return ["Access Bank", "UBA", "Zenith Bank", "First Bank", "Moniepoint"][index % 5];
 }
 
-function buildRecipients(program: ProgramDetails, states: string[], count = 5): DistributionRecipientPreview[] {
+function buildRecipients(program: ProgramDetails, states: string[], count = 12): DistributionRecipientPreview[] {
   const isCash = program.benefitType === "CASH";
 
   return beneficiariesData
@@ -376,6 +377,7 @@ function createDistribution(input: {
     organizationType: program.organizationType,
     organizationStatus: program.organizationStatus,
     recipients,
+    inKindItems: buildInKindItems(input.id, program.benefitType, recipients),
     statistics: {
       beneficiaries: input.beneficiaryCount,
       amountDistributed: program.benefitType === "CASH" ? input.amount ?? 0 : 0,
@@ -433,4 +435,16 @@ export const distributionsData: DistributionDetails[] = [
   createDistribution({ id: "distribution_018", programId: "program_018", phaseNumber: 1, status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 5400, amount: 70200000, scheduledDate: "2026-06-09T13:00:00Z", createdByUserId: "user_001", states: ["Bauchi"] }),
   createDistribution({ id: "distribution_019", programId: "program_019", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 3900, quantity: 3900, scheduledDate: "2026-05-27T10:10:00Z", createdByUserId: "user_001", states: ["Cross River"] }),
   createDistribution({ id: "distribution_020", programId: "program_020", phaseNumber: 1, status: "COMPLETED", beneficiaryCount: 30000, quantity: 30000, scheduledDate: "2026-05-31T07:30:00Z", createdByUserId: "user_001", states: ["FCT"] }),
+  createDistribution({ id: "distribution_021", programId: "program_002", phaseNumber: 2, status: "COMPLETED", approvalStatus: "APPROVED", executionStatus: "COMPLETED", beneficiaryCount: 21000, amount: 430000000, scheduledDate: "2026-04-12T09:00:00Z", createdByUserId: "user_002", states: ["Kano", "Kaduna"] }),
+  createDistribution({ id: "distribution_022", programId: "program_002", phaseNumber: 3, status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 19500, amount: 398000000, scheduledDate: "2026-06-12T09:00:00Z", createdByUserId: "user_002", states: ["Rivers", "Edo"] }),
+  createDistribution({ id: "distribution_023", programId: "program_001", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 13200, quantity: 13200, scheduledDate: "2026-04-08T08:00:00Z", createdByUserId: "user_003", states: ["Borno", "Yobe"] }),
+  createDistribution({ id: "distribution_024", programId: "program_003", phaseNumber: 2, status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 7200, quantity: 7200, scheduledDate: "2026-06-14T10:00:00Z", createdByUserId: "user_003", states: ["Adamawa", "Gombe"] }),
+  createDistribution({ id: "distribution_025", programId: "program_004", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 10800, amount: 165000000, scheduledDate: "2026-04-01T09:30:00Z", createdByUserId: "user_002", states: ["Ogun", "Oyo"] }),
+  createDistribution({ id: "distribution_026", programId: "program_005", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 15500, quantity: 15500, scheduledDate: "2026-04-05T07:45:00Z", createdByUserId: "user_003", states: ["Ekiti", "Osun"] }),
+  createDistribution({ id: "distribution_027", programId: "program_006", phaseNumber: 2, status: "PROCESSING", approvalStatus: "APPROVED", executionStatus: "PROCESSING", beneficiaryCount: 4100, quantity: 4100, scheduledDate: "2026-06-11T11:00:00Z", createdByUserId: "user_002", states: ["Ondo"] }),
+  createDistribution({ id: "distribution_028", programId: "program_007", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 8300, quantity: 8300, scheduledDate: "2026-04-02T08:30:00Z", createdByUserId: "user_003", states: ["Katsina", "Jigawa"] }),
+  createDistribution({ id: "distribution_029", programId: "program_008", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 5600, amount: 88000000, scheduledDate: "2026-03-21T09:00:00Z", createdByUserId: "user_003", states: ["Sokoto"] }),
+  createDistribution({ id: "distribution_030", programId: "program_008", phaseNumber: 3, status: "SCHEDULED", approvalStatus: "SUBMITTED", executionStatus: "NOT_STARTED", beneficiaryCount: 5900, amount: 93000000, scheduledDate: "2026-06-21T09:00:00Z", createdByUserId: "user_003", states: ["Zamfara"] }),
+  createDistribution({ id: "distribution_031", programId: "program_009", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 4800, amount: 71000000, scheduledDate: "2026-04-06T10:00:00Z", createdByUserId: "user_002", states: ["Niger", "Kogi"] }),
+  createDistribution({ id: "distribution_032", programId: "program_010", phaseNumber: 2, status: "COMPLETED", beneficiaryCount: 7900, quantity: 7900, scheduledDate: "2026-04-25T08:15:00Z", createdByUserId: "user_002", states: ["Nasarawa"] }),
 ];

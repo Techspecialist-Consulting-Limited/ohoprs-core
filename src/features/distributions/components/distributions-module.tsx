@@ -11,6 +11,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { hasPermission } from "@/lib/rbac";
 import {
   canEditDistributionRecord,
@@ -36,8 +37,8 @@ export function DistributionsModule() {
     programId: "ALL",
     status: "ALL" as DistributionStatus | "ALL",
     benefitType: "ALL" as import("@/types/program").BenefitType | "ALL",
-    page: 1,
   });
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const [statusTarget, setStatusTarget] = useState<Distribution | null>(null);
   const [nextStatus, setNextStatus] = useState<DistributionStatus>("COMPLETED");
   const [paymentTarget, setPaymentTarget] = useState<Distribution | null>(null);
@@ -47,12 +48,13 @@ export function DistributionsModule() {
   const scopeOrganizationId = role === "ORG_ADMIN" || role === "PROGRAM_OFFICER" ? user?.organizationId ?? null : null;
 
   const distributionsQuery = useQuery({
-    queryKey: ["distributions", { ...filters, search: debouncedSearch }, scopeOrganizationId],
+    queryKey: ["distributions", page, limit, { ...filters, search: debouncedSearch }, scopeOrganizationId],
     queryFn: () =>
       distributionService.getDistributions({
         ...filters,
         search: debouncedSearch,
-        limit: 10,
+        page,
+        limit,
         scopeOrganizationId,
       }),
     placeholderData: (previousData) => previousData,
@@ -159,7 +161,10 @@ export function DistributionsModule() {
 
       <DistributionFilters
         value={filters}
-        onChange={(next) => setFilters({ ...next, page: 1 })}
+        onChange={(next) => {
+          setFilters(next);
+          setPage(1);
+        }}
         organizations={organizationsData.map((organization) => ({ id: organization.id, name: organization.name }))}
         programs={availablePrograms.map((program) => ({ id: program.id, name: program.name }))}
         showOrganizationFilter={showOrganizationFilter}
@@ -171,7 +176,9 @@ export function DistributionsModule() {
         <DistributionTable
           items={distributions}
           meta={meta}
-          onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={distributionsQuery.isFetching}
           onStatusAction={(item) => {
             setStatusTarget(item);
             setNextStatus(item.status === "COMPLETED" ? "FAILED" : "COMPLETED");
@@ -204,7 +211,7 @@ export function DistributionsModule() {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <SummaryCard label="Intervention" value={paymentTarget.programName} />
-              <SummaryCard label="Trench / Batch" value={paymentTarget.name} />
+              <SummaryCard label="Tranche / Batch" value={paymentTarget.name} />
               <SummaryCard label="Beneficiaries" value={paymentTarget.beneficiaryCount.toLocaleString()} />
               <SummaryCard label="Amount" value={paymentTarget.amount ? `₦${Intl.NumberFormat("en-NG").format(paymentTarget.amount)}` : `${paymentTarget.quantity?.toLocaleString() ?? 0} packages`} />
             </div>
@@ -239,7 +246,7 @@ export function DistributionsModule() {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <SummaryCard label="Intervention" value={paymentSuccessTarget.programName} />
-              <SummaryCard label="Trench / Batch" value={paymentSuccessTarget.name} />
+              <SummaryCard label="Tranche / Batch" value={paymentSuccessTarget.name} />
               <SummaryCard label="Beneficiaries" value={paymentSuccessTarget.beneficiaryCount.toLocaleString()} />
               <SummaryCard label="Status" value={paymentSuccessTarget.status.replaceAll("_", " ")} />
             </div>

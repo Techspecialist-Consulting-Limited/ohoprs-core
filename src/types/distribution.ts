@@ -9,7 +9,7 @@ export type DistributionMethod =
   | "EDUCATION_SUPPORT"
   | "AGRICULTURE_SUPPORT";
 
-export type DistributionPhaseType = "TRENCH" | "BATCH";
+export type DistributionPhaseType = "TRANCHE" | "BATCH";
 
 export type DistributionStatus =
   | "DRAFT"
@@ -36,6 +36,25 @@ export type DistributionExecutionStatus =
   | "REVERSED";
 
 export type DeliveryStatus = "DELIVERED" | "PENDING" | "FAILED" | "REVERSED";
+
+export type InKindItemDeliveryStatus = "PENDING" | "DELIVERED" | "FAILED" | "RETURNED";
+
+export interface InKindItem {
+  id: string;
+  distributionId: string;
+  itemType: string;
+  unit: string;
+  quantity: number;
+  batchOrSerialCode: string;
+  qrCode: string;
+  recipientBeneficiaryId: string;
+  recipientHouseholdId: string;
+  deliveryLocation: string;
+  deliveryStatus: InKindItemDeliveryStatus;
+  deliveredAt: string | null;
+  scannedByUserId?: string | null;
+  scannedByName?: string | null;
+}
 
 export interface Distribution {
   id: string;
@@ -68,6 +87,7 @@ export interface Distribution {
   finalApprovedBy?: string | null;
   paymentInitiatedAt?: string | null;
   paymentInitiatedBy?: string | null;
+  inKindItems?: InKindItem[];
 }
 
 export interface DistributionRecipientPreview {
