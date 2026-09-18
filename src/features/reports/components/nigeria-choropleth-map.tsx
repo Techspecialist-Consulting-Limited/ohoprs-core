@@ -225,7 +225,7 @@ export function NigeriaChoroplethMap({
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           role="img"
           aria-label={drillDownState ? `Map of local government areas in ${drillDownState}` : "Map of Nigeria showing intervention coverage by state"}
-          className="mx-auto h-auto w-full max-w-xl"
+          className="mx-auto h-auto w-full max-w-4xl"
         >
           {!drillDownState
             ? stateGeoData.features.map((feature: Feature<Geometry, Record<string, unknown>>, index: number) => {

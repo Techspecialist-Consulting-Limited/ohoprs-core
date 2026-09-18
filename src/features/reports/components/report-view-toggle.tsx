@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 export type ReportViewMode = "chart" | "map";
 
 const options: Array<{ id: ReportViewMode; label: string; icon: typeof BarChart3 }> = [
-  { id: "chart", label: "Chart View", icon: BarChart3 },
   { id: "map", label: "Map View", icon: Map },
+  { id: "chart", label: "Chart View", icon: BarChart3 },
 ];
 
 export function ReportViewToggle({

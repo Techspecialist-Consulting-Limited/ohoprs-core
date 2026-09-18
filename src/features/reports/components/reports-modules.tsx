@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -65,6 +65,7 @@ export function ReportsDashboardModule() {
   const dataQuery = useQuery({
     queryKey: ["reports-dashboard", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getReportsDashboard({ ...filters, organizationId: scopedOrganizationId }),
+    placeholderData: keepPreviousData,
   });
 
   if (dataQuery.isLoading) {
@@ -91,16 +92,20 @@ export function ReportsDashboardModule() {
         description="Executive and audit-friendly reporting across distributions, beneficiaries, interventions, and organizations."
         readOnly={readOnly}
       />
-      <div className="flex justify-end">
-        <ExportButtons reportType="summary" filters={{ ...filters, organizationId: scopedOrganizationId }} />
-      </div>
-      <ReportFilters
-        value={{ ...filters, organizationId: scopedOrganizationId }}
-        onChange={setFilters}
-        showOrganizationFilter={showOrganizationFilter}
-        allowedOrganizationId={showOrganizationFilter ? null : scopedOrganizationId}
-      />
-      <ReportKpiGrid kpis={data.kpis} />
+      {viewMode === "chart" ? (
+        <>
+          <div className="flex justify-end">
+            <ExportButtons reportType="summary" filters={{ ...filters, organizationId: scopedOrganizationId }} />
+          </div>
+          <ReportFilters
+            value={{ ...filters, organizationId: scopedOrganizationId }}
+            onChange={setFilters}
+            showOrganizationFilter={showOrganizationFilter}
+            allowedOrganizationId={showOrganizationFilter ? null : scopedOrganizationId}
+          />
+          <ReportKpiGrid kpis={data.kpis} />
+        </>
+      ) : null}
       <div className="flex justify-end">
         <ReportViewToggle value={viewMode} onChange={setViewMode} />
       </div>
@@ -131,7 +136,7 @@ export function ReportsDashboardModule() {
           <p className="mt-1 text-sm text-muted">
             Hover a state for details, click it to filter every report on this page, or drill into its local government areas. Search for a household to jump straight to its location.
           </p>
-          <div className="mt-5">
+          <div className="mt-5 mx-auto max-w-5xl">
             <NigeriaChoroplethMap
               data={data.stateMetrics}
               lgaData={data.lgaMetrics}
@@ -151,6 +156,7 @@ export function OrganizationsReportModule() {
   const dataQuery = useQuery({
     queryKey: ["organization-report", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getOrganizationReport({ ...filters, organizationId: scopedOrganizationId }),
+    placeholderData: keepPreviousData,
   });
 
   if (dataQuery.isLoading) {
@@ -175,6 +181,7 @@ export function ProgramsReportModule() {
   const dataQuery = useQuery({
     queryKey: ["program-report", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getProgramReport({ ...filters, organizationId: scopedOrganizationId }),
+    placeholderData: keepPreviousData,
   });
 
   if (dataQuery.isLoading) {
@@ -199,6 +206,7 @@ export function BeneficiariesReportModule() {
   const dataQuery = useQuery({
     queryKey: ["beneficiary-report", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getBeneficiaryReport({ ...filters, organizationId: scopedOrganizationId }),
+    placeholderData: keepPreviousData,
   });
 
   if (dataQuery.isLoading) {
@@ -248,6 +256,7 @@ export function DistributionsReportModule() {
   const dataQuery = useQuery({
     queryKey: ["distribution-report", { ...filters, organizationId: scopedOrganizationId }],
     queryFn: () => reportService.getDistributionReport({ ...filters, organizationId: scopedOrganizationId }),
+    placeholderData: keepPreviousData,
   });
 
   if (dataQuery.isLoading) {
