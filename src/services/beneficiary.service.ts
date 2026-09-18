@@ -1,6 +1,7 @@
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
 import { beneficiariesData } from "@/mock/beneficiaries.mock";
+import { householdService } from "@/services/household.service";
 import type { ApiResponse } from "@/types/api";
 import type {
   Beneficiary,
@@ -215,10 +216,13 @@ export const beneficiaryService = {
     };
 
     beneficiaryStore = [next, ...beneficiaryStore];
+    const householdResult = await householdService.createHouseholdForBeneficiary(next);
 
     return Promise.resolve({
       success: true,
-      message: "Beneficiary created successfully",
+      message: householdResult.success
+        ? `Beneficiary created successfully. Household ${householdResult.data.unifiedHouseholdId} generated.`
+        : "Beneficiary created successfully",
       data: next,
     });
   },

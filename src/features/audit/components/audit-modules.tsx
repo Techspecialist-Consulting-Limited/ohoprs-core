@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { AuditEventSummary } from "@/features/audit/components/audit-event-summary";
 import { AuditFilters } from "@/features/audit/components/audit-filters";
 import { AuditLogTable } from "@/features/audit/components/audit-log-table";
@@ -36,18 +37,18 @@ export function AuditLogsModule() {
     organizationId: role === "SUPER_ADMIN" || role === "AUDITOR" ? "ALL" : organizationId ?? undefined,
     module: "ALL",
     result: "ALL",
-    page: 1,
-    limit: 10,
   });
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
 
   const showOrganizationFilter = role === "SUPER_ADMIN" || role === "AUDITOR";
   const scopedOrganizationId = showOrganizationFilter ? filters.organizationId : organizationId ?? undefined;
+  const combinedFilters: AuditFiltersState = { ...filters, organizationId: scopedOrganizationId, page, limit };
 
   const logsQuery = useQuery({
-    queryKey: ["audit-logs", { ...filters, organizationId: scopedOrganizationId }, role, organizationId],
+    queryKey: ["audit-logs", combinedFilters, role, organizationId],
     queryFn: () =>
       auditService.getAuditLogs(
-        { ...filters, organizationId: scopedOrganizationId, scopeOrganizationId: showOrganizationFilter ? null : organizationId },
+        { ...combinedFilters, scopeOrganizationId: showOrganizationFilter ? null : organizationId },
         { role: role!, organizationId },
       ),
   });
@@ -55,7 +56,7 @@ export function AuditLogsModule() {
   const exportMutation = useMutation({
     mutationFn: () =>
       auditService.exportAuditLogs(
-        { ...filters, organizationId: scopedOrganizationId, scopeOrganizationId: showOrganizationFilter ? null : organizationId },
+        { ...combinedFilters, scopeOrganizationId: showOrganizationFilter ? null : organizationId },
         { role: role!, organizationId },
       ),
     onSuccess: (response) => {
@@ -98,8 +99,11 @@ export function AuditLogsModule() {
         ) : null}
       </div>
       <AuditFilters
-        value={{ ...filters, organizationId: scopedOrganizationId }}
-        onChange={setFilters}
+        value={combinedFilters}
+        onChange={(next) => {
+          setFilters(next);
+          setPage(1);
+        }}
         showOrganizationFilter={showOrganizationFilter}
       />
       {!meta || logs.length === 0 ? (
@@ -108,7 +112,9 @@ export function AuditLogsModule() {
         <AuditLogTable
           items={logs}
           meta={meta}
-          onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={logsQuery.isFetching}
         />
       )}
     </PageContainer>

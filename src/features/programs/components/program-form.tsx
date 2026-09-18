@@ -165,6 +165,44 @@ function createApprovalStep(role: SystemApprovalRole): ProgramApprovalStep {
   };
 }
 
+function buildProgramDefaultValues(
+  source: Partial<ProgramFormValues> | undefined,
+  initialValues: Partial<ProgramFormValues> | undefined,
+  defaultOrganizationId: string | undefined,
+): ProgramFormValues {
+  return {
+    name: source?.name ?? initialValues?.name ?? "",
+    organizationId: source?.organizationId ?? initialValues?.organizationId ?? defaultOrganizationId ?? "",
+    benefitType: source?.benefitType ?? initialValues?.benefitType ?? "CASH",
+    description: source?.description ?? initialValues?.description ?? "",
+    startDate: source?.startDate ?? initialValues?.startDate ?? "",
+    endDate: source?.endDate ?? initialValues?.endDate ?? "",
+    duration: source?.duration ?? initialValues?.duration ?? {
+      days: 0,
+      weeks: 0,
+      months: 0,
+      years: 0,
+    },
+    recipientCount: source?.recipientCount ?? initialValues?.recipientCount ?? 0,
+    amountPerRecipient: source?.amountPerRecipient ?? initialValues?.amountPerRecipient ?? null,
+    regions: source?.regions ?? initialValues?.regions ?? [],
+    states: source?.states ?? initialValues?.states ?? [],
+    amount: source?.amount ?? initialValues?.amount ?? null,
+    budget: source?.budget ?? initialValues?.budget ?? 0,
+    numberOfTranches: source?.numberOfTranches ?? initialValues?.numberOfTranches ?? null,
+    batch: source?.batch ?? initialValues?.batch ?? 0,
+    fundingSources: source?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
+    status: source?.status ?? initialValues?.status ?? "IN_PROGRESS",
+    approvalSteps:
+      source?.approvalSteps?.length
+        ? source.approvalSteps
+        : initialValues?.approvalSteps?.length
+          ? initialValues.approvalSteps
+          : [createApprovalStep("DIRECTOR")],
+    distributionApprovalSteps: source?.distributionApprovalSteps ?? initialValues?.distributionApprovalSteps ?? [],
+  };
+}
+
 function formatNumericInput(value: number | string | null | undefined) {
   if (value === null || value === undefined || value === "") {
     return "";
@@ -195,55 +233,38 @@ export function ProgramForm({
   const currentUser = useAuthStore((state) => state.user);
   const customFundingId = useId();
   const draftStorageKey = getProgramDraftStorageKey(mode, programId);
-  const savedDraft = readLocalStorage<ProgramDraftState | null>(draftStorageKey, null);
-  const savedDraftValues = savedDraft?.values;
-  const savedCustomFundingSources = (savedDraftValues?.fundingSources ?? []).filter((source) => source.isCustom);
   const [customFundingName, setCustomFundingName] = useState("");
   const [draggedStepId, setDraggedStepId] = useState<string | null>(null);
   const [isStateSelectorOpen, setIsStateSelectorOpen] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [completedStepIds, setCompletedStepIds] = useState<string[]>(savedDraft?.completedStepIds ?? []);
+  const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
-  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(() => [
-    ...fundingSourceOptions,
-    ...savedCustomFundingSources.filter((source) => !fundingSourceOptions.some((option) => option.id === source.id)),
-  ]);
+  const [fundingOptions, setFundingOptions] = useState<ProgramFundingSource[]>(fundingSourceOptions);
   const todayDate = getTodayDateForInput();
 
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
-    defaultValues: {
-      name: savedDraftValues?.name ?? initialValues?.name ?? "",
-      organizationId: savedDraftValues?.organizationId ?? initialValues?.organizationId ?? defaultOrganizationId ?? "",
-      benefitType: savedDraftValues?.benefitType ?? initialValues?.benefitType ?? "CASH",
-      description: savedDraftValues?.description ?? initialValues?.description ?? "",
-      startDate: savedDraftValues?.startDate ?? initialValues?.startDate ?? "",
-      endDate: savedDraftValues?.endDate ?? initialValues?.endDate ?? "",
-      duration: savedDraftValues?.duration ?? initialValues?.duration ?? {
-        days: 0,
-        weeks: 0,
-        months: 0,
-        years: 0,
-      },
-      recipientCount: savedDraftValues?.recipientCount ?? initialValues?.recipientCount ?? 0,
-      amountPerRecipient: savedDraftValues?.amountPerRecipient ?? initialValues?.amountPerRecipient ?? null,
-      regions: savedDraftValues?.regions ?? initialValues?.regions ?? [],
-      states: savedDraftValues?.states ?? initialValues?.states ?? [],
-      amount: savedDraftValues?.amount ?? initialValues?.amount ?? null,
-      budget: savedDraftValues?.budget ?? initialValues?.budget ?? 0,
-      numberOfTranches: savedDraftValues?.numberOfTranches ?? initialValues?.numberOfTranches ?? null,
-      batch: savedDraftValues?.batch ?? initialValues?.batch ?? 0,
-      fundingSources: savedDraftValues?.fundingSources ?? initialValues?.fundingSources ?? [fundingSourceOptions[0]],
-      status: savedDraftValues?.status ?? initialValues?.status ?? "IN_PROGRESS",
-      approvalSteps:
-        savedDraftValues?.approvalSteps?.length
-          ? savedDraftValues.approvalSteps
-          : initialValues?.approvalSteps?.length
-            ? initialValues.approvalSteps
-            : [createApprovalStep("DIRECTOR")],
-      distributionApprovalSteps: savedDraftValues?.distributionApprovalSteps ?? initialValues?.distributionApprovalSteps ?? [],
-    },
+    defaultValues: buildProgramDefaultValues(undefined, initialValues, defaultOrganizationId),
   });
+
+  useEffect(() => {
+    const savedDraft = readLocalStorage<ProgramDraftState | null>(draftStorageKey, null);
+
+    if (!savedDraft) {
+      return;
+    }
+
+    const savedCustomFundingSources = (savedDraft.values.fundingSources ?? []).filter((source) => source.isCustom);
+
+    form.reset(buildProgramDefaultValues(savedDraft.values, initialValues, defaultOrganizationId));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a locally-saved draft on mount, not a render-cascading update
+    setCompletedStepIds(savedDraft.completedStepIds ?? []);
+    setFundingOptions((current) => [
+      ...current,
+      ...savedCustomFundingSources.filter((source) => !current.some((option) => option.id === source.id)),
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftStorageKey]);
 
   const selectedBenefitType = useWatch({ control: form.control, name: "benefitType" });
   const selectedStatus = useWatch({ control: form.control, name: "status" });

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateTime } from "@/lib/formatters";
 import type { PaymentConsoleTimelineItem } from "@/types/payment-console";
 
 export function PaymentExecutionTimeline({ items, title = "Execution timeline" }: { items: PaymentConsoleTimelineItem[]; title?: string }) {
@@ -21,7 +22,7 @@ export function PaymentExecutionTimeline({ items, title = "Execution timeline" }
                   <p className="mt-1 text-sm text-muted">{item.description}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">{new Date(item.timestamp).toLocaleString()}</p>
+                  <p className="text-sm font-medium text-foreground">{formatDateTime(item.timestamp)}</p>
                   <p className="mt-1 text-xs text-muted-soft">{item.actor}</p>
                 </div>
               </div>

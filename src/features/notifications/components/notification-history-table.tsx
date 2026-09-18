@@ -1,8 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-import { formatDateTime, formatNumber } from "@/lib/formatters";
+import { Pagination } from "@/components/ui/pagination";
+import { formatDateTime } from "@/lib/formatters";
 import type { NotificationHistory, NotificationHistoryListResponse } from "@/types/notification";
 import { NotificationChannelBadge } from "@/features/notifications/components/notification-channel-badge";
 import { NotificationStatusBadge } from "@/features/notifications/components/notification-status-badge";
@@ -11,10 +10,14 @@ export function NotificationHistoryTable({
   items,
   meta,
   onPageChange,
+  onLimitChange,
+  isFetching,
 }: {
   items: NotificationHistory[];
   meta: NotificationHistoryListResponse["meta"];
   onPageChange: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  isFetching?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-sm">
@@ -41,31 +44,13 @@ export function NotificationHistoryTable({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} records)
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={meta.page === 1}
-            onClick={() => onPageChange(meta.page - 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
-          <button
-            type="button"
-            disabled={meta.page === meta.totalPages}
-            onClick={() => onPageChange(meta.page + 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        meta={meta}
+        onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
+        isFetching={isFetching}
+        itemLabel="records"
+      />
     </div>
   );
 }

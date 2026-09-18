@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { hasPermission } from "@/lib/rbac";
 import { organizationsData } from "@/mock/organizations.mock";
 import { programsData } from "@/mock/programs.mock";
@@ -35,7 +36,7 @@ export function BeneficiariesModule() {
     verificationStatus: "ALL",
     benefitStatus: "ALL",
   });
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const debouncedSearch = useDebouncedValue(filters.search);
 
   const showOrganizationFilter = true;
@@ -45,11 +46,11 @@ export function BeneficiariesModule() {
   const scopedPrograms = programsData;
 
   const beneficiaryQuery = useQuery({
-    queryKey: ["beneficiaries", page, { ...filters, search: debouncedSearch }, role],
+    queryKey: ["beneficiaries", page, limit, { ...filters, search: debouncedSearch }, role],
     queryFn: () =>
       beneficiaryService.getBeneficiaries({
         page,
-        limit: 10,
+        limit,
         search: debouncedSearch,
         organizationId: filters.organizationId,
         programId: filters.programId,
@@ -132,6 +133,8 @@ export function BeneficiariesModule() {
           items={response.items}
           meta={response.meta}
           onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={beneficiaryQuery.isFetching}
           canEdit={canEdit}
         />
       ) : (

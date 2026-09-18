@@ -7,6 +7,7 @@ import { PermissionDeniedState } from "@/components/shared/permission-denied-sta
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { formatDateTime } from "@/lib/formatters";
 import { getRoleLabel } from "@/lib/role-labels";
 import { approvalService } from "@/services/approval.service";
 import { distributionService } from "@/services/distribution.service";
@@ -112,7 +113,7 @@ export function DistributionApprovalModule({ id }: { id: string }) {
               <p className="mt-1 text-sm text-muted">{step.assigneeName}</p>
               <p className="mt-2 text-sm text-foreground">
                 {step.status === "APPROVED"
-                  ? `Approved ${step.approvedAt ? new Date(step.approvedAt).toLocaleString() : ""}`
+                  ? `Approved ${step.approvedAt ? formatDateTime(step.approvedAt) : ""}`
                   : step.status === "REJECTED"
                     ? `Rejected${step.rejectionReason ? `: ${step.rejectionReason}` : ""}`
                     : "Pending approval"}

@@ -78,7 +78,9 @@ export function ReportFilters({
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Organization</span>
             <select
               value={value.organizationId ?? "ALL"}
-              onChange={(event) => onChange({ ...value, organizationId: event.target.value, programId: "ALL" })}
+              onChange={(event) =>
+                onChange({ ...value, organizationId: event.target.value, programId: "ALL", phaseNumber: "ALL" })
+              }
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               <option value="ALL">All organizations</option>
@@ -95,7 +97,7 @@ export function ReportFilters({
           <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Intervention</span>
           <select
             value={value.programId ?? "ALL"}
-            onChange={(event) => onChange({ ...value, programId: event.target.value })}
+            onChange={(event) => onChange({ ...value, programId: event.target.value, phaseNumber: "ALL" })}
             className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
           >
             <option value="ALL">All interventions</option>

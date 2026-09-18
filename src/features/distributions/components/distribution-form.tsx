@@ -76,8 +76,6 @@ export function DistributionForm({
   const user = useAuthStore((state) => state.user);
   const role = useAuthStore((state) => state.role);
   const draftStorageKey = getDistributionDraftStorageKey(mode, distributionId);
-  const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
-  const initialDraftValues = savedDraft?.values;
   const [currentStep, setCurrentStep] = useState(0);
   const [beneficiaryPage, setBeneficiaryPage] = useState(1);
   const [showApprovalRequiredModal, setShowApprovalRequiredModal] = useState(false);
@@ -87,13 +85,24 @@ export function DistributionForm({
 
   const form = useForm<DistributionFormInput, unknown, DistributionFormOutput>({
     resolver: zodResolver(distributionSchema),
-    defaultValues: initialDraftValues ?? initialValues ?? {
+    defaultValues: initialValues ?? {
       programId: "",
       phaseNumber: 0,
       states: [],
       beneficiaryIds: [],
     },
   });
+
+  useEffect(() => {
+    const savedDraft = readLocalStorage<DistributionDraftState | null>(draftStorageKey, null);
+
+    if (!savedDraft) {
+      return;
+    }
+
+    form.reset(savedDraft.values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftStorageKey]);
 
   const programId = useWatch({ control: form.control, name: "programId" });
   const phaseNumber = Number(useWatch({ control: form.control, name: "phaseNumber" }) ?? 0);

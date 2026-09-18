@@ -43,7 +43,6 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "view_beneficiaries",
     "view_households",
     "edit_households",
-    "submit_outcome_records",
     "view_distributions",
     "view_reports",
     "view_audit_logs",
@@ -127,6 +126,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
   ],
   FIELD_OFFICER: [
     "view_households",
+    "view_beneficiaries",
     "submit_outcome_records",
   ],
 };

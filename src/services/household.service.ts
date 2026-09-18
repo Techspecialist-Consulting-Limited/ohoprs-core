@@ -1,5 +1,6 @@
-import { householdsData } from "@/mock/households.mock";
+import { buildMembers, buildUnifiedHouseholdId, deriveJourneyStage, householdsData } from "@/mock/households.mock";
 import type { ApiResponse } from "@/types/api";
+import type { Beneficiary360Details } from "@/types/beneficiary";
 import type {
   AddHouseholdMemberPayload,
   AddOutcomeRecordPayload,
@@ -121,6 +122,35 @@ export const householdService = {
       message: household ? "Household fetched successfully" : "Household not found",
       data: household,
     });
+  },
+
+  async createHouseholdForBeneficiary(beneficiary: Beneficiary360Details): Promise<ApiResponse<Household>> {
+    const members = buildMembers(beneficiary);
+    const journeyStage = deriveJourneyStage(beneficiary);
+    const timestamp = beneficiary.createdAt;
+
+    const household: Household = {
+      id: `household_${beneficiary.id}`,
+      unifiedHouseholdId: buildUnifiedHouseholdId(beneficiary, householdStore.length + 1),
+      organizationId: beneficiary.organizationId,
+      organizationName: beneficiary.organizationName,
+      state: beneficiary.state,
+      lga: beneficiary.lga,
+      address: beneficiary.address,
+      designatedRecipientBeneficiaryId: beneficiary.id,
+      designatedRecipientName: beneficiary.fullName,
+      members,
+      changeLog: [],
+      journeyStage,
+      journeyHistory: [],
+      outcomeRecords: [],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    householdStore = [household, ...householdStore];
+
+    return Promise.resolve({ success: true, message: "Household created successfully", data: household });
   },
 
   async addMember(

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Eye, RefreshCcw, RotateCcw, SendHorizontal } from "lucide-react";
 
+import { Pagination, type PaginationMeta } from "@/components/ui/pagination";
 import { RowActionPopover } from "@/components/ui/row-action-popover";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import type { PaymentRecord } from "@/types/payment";
@@ -10,6 +11,10 @@ import { PaymentStatusBadge } from "@/features/payments/components/payment-statu
 
 export function PaymentTable({
   items,
+  meta,
+  onPageChange,
+  onLimitChange,
+  isFetching,
   onProcess,
   onRetry,
   onReverse,
@@ -18,6 +23,10 @@ export function PaymentTable({
   canReverse,
 }: {
   items: PaymentRecord[];
+  meta?: PaginationMeta;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  isFetching?: boolean;
   onProcess: (item: PaymentRecord) => void;
   onRetry: (item: PaymentRecord) => void;
   onReverse: (item: PaymentRecord) => void;
@@ -67,6 +76,15 @@ export function PaymentTable({
           </tbody>
         </table>
       </div>
+      {meta && onPageChange ? (
+        <Pagination
+          meta={meta}
+          onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
+          isFetching={isFetching}
+          itemLabel="payment records"
+        />
+      ) : null}
     </div>
   );
 }

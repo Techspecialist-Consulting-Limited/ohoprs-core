@@ -34,6 +34,10 @@ function matchesState(state: string | undefined, filter?: string) {
   return !filter || filter === "ALL" || state === filter;
 }
 
+function matchesPhaseNumber(phaseNumber: number, filter?: number | "ALL") {
+  return filter === undefined || filter === "ALL" || phaseNumber === filter;
+}
+
 function titleCase(label: string) {
   return label
     .toLowerCase()
@@ -93,6 +97,7 @@ export function getScopedDistributions(filters: ReportFiltersState) {
     (item) =>
       matchesOrganization(item, filters.organizationId) &&
       matchesProgram(item, filters.programId) &&
+      matchesPhaseNumber(item.phaseNumber, filters.phaseNumber) &&
       matchesBenefitType(item.benefitType, filters.benefitType),
   );
 }

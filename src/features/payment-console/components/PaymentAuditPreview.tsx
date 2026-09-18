@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { StatusBadge } from "@/components/ui/status-badge";
+import { formatDateTime } from "@/lib/formatters";
 import type { PaymentConsoleAuditPreviewItem } from "@/types/payment-console";
 
 export function PaymentAuditPreview({ items, distributionId }: { items: PaymentConsoleAuditPreviewItem[]; distributionId: string }) {
@@ -29,7 +30,7 @@ export function PaymentAuditPreview({ items, distributionId }: { items: PaymentC
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge label={item.result} tone={item.result === "SUCCESS" ? "success" : "warning"} />
-                <span className="text-xs text-muted">{new Date(item.timestamp).toLocaleString()}</span>
+                <span className="text-xs text-muted">{formatDateTime(item.timestamp)}</span>
               </div>
             </div>
           </div>

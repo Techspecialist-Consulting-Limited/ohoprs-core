@@ -30,20 +30,23 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
 
   const household = householdQuery.data?.data;
 
-  const [form, setForm] = useState<Omit<AddOutcomeRecordPayload, "schoolAgeChildrenCount">>({
-    mealsPerDay: 2,
-    childrenInSchoolCount: 0,
-    monthlyIncomeEstimate: 0,
-    foodConsumptionScore: "BORDERLINE",
+  const [form, setForm] = useState({
+    mealsPerDay: "2",
+    childrenInSchoolCount: "0",
+    monthlyIncomeEstimate: "0",
+    foodConsumptionScore: "BORDERLINE" as FoodConsumptionScore,
     skillsGained: "",
     notes: "",
   });
-  const [schoolAgeChildrenOverride, setSchoolAgeChildrenOverride] = useState<number | null>(null);
+  const [schoolAgeChildrenOverride, setSchoolAgeChildrenOverride] = useState<string | null>(null);
 
   const derivedSchoolAgeChildren = household
     ? household.members.filter((member) => member.relationshipToHead === "CHILD").length
     : 0;
-  const schoolAgeChildrenCount = schoolAgeChildrenOverride ?? derivedSchoolAgeChildren;
+  const schoolAgeChildrenCount =
+    schoolAgeChildrenOverride !== null && schoolAgeChildrenOverride !== ""
+      ? Number(schoolAgeChildrenOverride)
+      : derivedSchoolAgeChildren;
 
   const submitMutation = useMutation({
     mutationFn: (payload: AddOutcomeRecordPayload) =>
@@ -99,7 +102,15 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          submitMutation.mutate({ ...form, schoolAgeChildrenCount });
+          submitMutation.mutate({
+            mealsPerDay: Number(form.mealsPerDay) || 0,
+            childrenInSchoolCount: Number(form.childrenInSchoolCount) || 0,
+            monthlyIncomeEstimate: Number(form.monthlyIncomeEstimate) || 0,
+            foodConsumptionScore: form.foodConsumptionScore,
+            skillsGained: form.skillsGained,
+            notes: form.notes,
+            schoolAgeChildrenCount,
+          });
         }}
         className="rounded-[28px] border border-border bg-surface p-6 shadow-sm"
       >
@@ -111,7 +122,7 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
               min={0}
               max={10}
               value={form.mealsPerDay}
-              onChange={(event) => setForm((current) => ({ ...current, mealsPerDay: Number(event.target.value) }))}
+              onChange={(event) => setForm((current) => ({ ...current, mealsPerDay: event.target.value }))}
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
             />
           </label>
@@ -134,8 +145,8 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
             <input
               type="number"
               min={0}
-              value={schoolAgeChildrenCount}
-              onChange={(event) => setSchoolAgeChildrenOverride(Number(event.target.value))}
+              value={schoolAgeChildrenOverride ?? String(derivedSchoolAgeChildren)}
+              onChange={(event) => setSchoolAgeChildrenOverride(event.target.value)}
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
             />
           </label>
@@ -147,7 +158,7 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
               min={0}
               max={schoolAgeChildrenCount}
               value={form.childrenInSchoolCount}
-              onChange={(event) => setForm((current) => ({ ...current, childrenInSchoolCount: Number(event.target.value) }))}
+              onChange={(event) => setForm((current) => ({ ...current, childrenInSchoolCount: event.target.value }))}
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
             />
           </label>
@@ -158,7 +169,7 @@ export function FieldOutcomeFormModule({ id }: { id: string }) {
               type="number"
               min={0}
               value={form.monthlyIncomeEstimate}
-              onChange={(event) => setForm((current) => ({ ...current, monthlyIncomeEstimate: Number(event.target.value) }))}
+              onChange={(event) => setForm((current) => ({ ...current, monthlyIncomeEstimate: event.target.value }))}
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-background px-4 text-sm text-foreground"
             />
           </label>

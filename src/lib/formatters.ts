@@ -43,6 +43,7 @@ export function formatRelativeTime(input: string | Date) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Africa/Lagos",
   });
 }
 
@@ -53,6 +54,7 @@ export function formatDate(input: string | Date) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Africa/Lagos",
   });
 }
 
@@ -66,5 +68,6 @@ export function formatDateTime(input: string | Date) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Africa/Lagos",
   });
 }

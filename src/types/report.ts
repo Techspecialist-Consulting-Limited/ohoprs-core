@@ -109,6 +109,7 @@ export interface ReportFiltersState {
   endDate?: string;
   organizationId?: string;
   programId?: string;
+  phaseNumber?: number | "ALL";
   benefitType?: BenefitType | "ALL";
   state?: string;
 }

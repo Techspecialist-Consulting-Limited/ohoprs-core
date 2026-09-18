@@ -8,19 +8,21 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
+import { Pagination } from "@/components/ui/pagination";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { formatDate } from "@/lib/formatters";
 import { householdService } from "@/services/household.service";
 import { HouseholdJourneyStageBadge } from "@/features/households/components/household-journey-stage-badge";
 
 export function FieldHouseholdsModule() {
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const debouncedSearch = useDebouncedValue(search);
 
   const householdsQuery = useQuery({
-    queryKey: ["field-households", page, debouncedSearch],
-    queryFn: () => householdService.getHouseholds({ page, limit: 10, search: debouncedSearch }),
+    queryKey: ["field-households", page, limit, debouncedSearch],
+    queryFn: () => householdService.getHouseholds({ page, limit, search: debouncedSearch }),
     placeholderData: (previousData) => previousData,
   });
 
@@ -102,28 +104,14 @@ export function FieldHouseholdsModule() {
             </div>
           ))}
 
-          <div className="flex items-center justify-between px-1 text-sm text-muted">
-            <span>
-              Page {response.meta.page} of {response.meta.totalPages}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={response.meta.page === 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                className="inline-flex h-9 items-center rounded-xl border border-border px-3 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                disabled={response.meta.page === response.meta.totalPages}
-                onClick={() => setPage((current) => Math.min(response.meta.totalPages, current + 1))}
-                className="inline-flex h-9 items-center rounded-xl border border-border px-3 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+          <div className="rounded-[28px] border border-border bg-surface shadow-sm">
+            <Pagination
+              meta={response.meta}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+              isFetching={householdsQuery.isFetching}
+              itemLabel="households"
+            />
           </div>
         </div>
       ) : (

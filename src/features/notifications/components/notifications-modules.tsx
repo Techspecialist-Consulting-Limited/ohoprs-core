@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PermissionDeniedState } from "@/components/shared/permission-denied-state";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { templateVariables } from "@/mock/notifications.mock";
 import { NotificationActivityChart } from "@/features/notifications/components/notification-activity-chart";
 import { NotificationHeader } from "@/features/notifications/components/notification-header";
@@ -64,16 +65,16 @@ export function NotificationHistoryModule() {
     type: "ALL" as const,
     status: "ALL" as const,
     recipientSearch: "",
-    page: 1,
-    limit: 10,
   });
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
+  const combinedFilters = { ...filters, page, limit };
 
   const historyQuery = useQuery({
-    queryKey: ["notification-history", filters, role, organizationId],
+    queryKey: ["notification-history", combinedFilters, role, organizationId],
     queryFn: () =>
       notificationService.getNotificationHistory(
         {
-          ...filters,
+          ...combinedFilters,
           scopeOrganizationId: role === "SUPER_ADMIN" || role === "AUDITOR" ? null : organizationId,
         },
         { role: role!, organizationId },
@@ -84,7 +85,7 @@ export function NotificationHistoryModule() {
     mutationFn: () =>
       notificationService.exportHistoryCsv(
         {
-          ...filters,
+          ...combinedFilters,
           scopeOrganizationId: role === "SUPER_ADMIN" || role === "AUDITOR" ? null : organizationId,
         },
         { role: role!, organizationId },
@@ -128,7 +129,10 @@ export function NotificationHistoryModule() {
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Date Range</span>
             <select
               value={filters.datePreset}
-              onChange={(event) => setFilters((current) => ({ ...current, datePreset: event.target.value as typeof current.datePreset, page: 1 }))}
+              onChange={(event) => {
+                setFilters((current) => ({ ...current, datePreset: event.target.value as typeof current.datePreset }));
+                setPage(1);
+              }}
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               {["LAST_30_DAYS", "LAST_90_DAYS", "YEAR_TO_DATE", "LAST_12_MONTHS", "CUSTOM"].map((option) => (
@@ -142,7 +146,10 @@ export function NotificationHistoryModule() {
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Channel</span>
             <select
               value={filters.channel}
-              onChange={(event) => setFilters((current) => ({ ...current, channel: event.target.value as typeof current.channel, page: 1 }))}
+              onChange={(event) => {
+                setFilters((current) => ({ ...current, channel: event.target.value as typeof current.channel }));
+                setPage(1);
+              }}
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               {["ALL", "EMAIL", "SMS", "IN_APP", "WHATSAPP"].map((option) => (
@@ -156,7 +163,10 @@ export function NotificationHistoryModule() {
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Type</span>
             <select
               value={filters.type}
-              onChange={(event) => setFilters((current) => ({ ...current, type: event.target.value as typeof current.type, page: 1 }))}
+              onChange={(event) => {
+                setFilters((current) => ({ ...current, type: event.target.value as typeof current.type }));
+                setPage(1);
+              }}
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               {["ALL", "BENEFICIARY_CREATED", "BENEFICIARY_VERIFIED", "DISTRIBUTION_CREATED", "DISTRIBUTION_COMPLETED", "BULK_JOB_COMPLETED", "BULK_JOB_FAILED", "SYSTEM_ALERT"].map((option) => (
@@ -170,7 +180,10 @@ export function NotificationHistoryModule() {
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Status</span>
             <select
               value={filters.status}
-              onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as typeof current.status, page: 1 }))}
+              onChange={(event) => {
+                setFilters((current) => ({ ...current, status: event.target.value as typeof current.status }));
+                setPage(1);
+              }}
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             >
               {["ALL", "SENT", "DELIVERED", "FAILED", "PENDING"].map((option) => (
@@ -184,7 +197,10 @@ export function NotificationHistoryModule() {
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-soft">Recipient Search</span>
             <input
               value={filters.recipientSearch}
-              onChange={(event) => setFilters((current) => ({ ...current, recipientSearch: event.target.value, page: 1 }))}
+              onChange={(event) => {
+                setFilters((current) => ({ ...current, recipientSearch: event.target.value }));
+                setPage(1);
+              }}
               placeholder="Phone or email"
               className="h-11 w-full rounded-2xl border border-border bg-surface px-4 text-sm text-foreground outline-none transition focus:border-accent"
             />
@@ -204,7 +220,13 @@ export function NotificationHistoryModule() {
         ) : null}
       </div>
 
-      <NotificationHistoryTable items={data.items} meta={data.meta} onPageChange={(page) => setFilters((current) => ({ ...current, page }))} />
+      <NotificationHistoryTable
+        items={data.items}
+        meta={data.meta}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+        isFetching={historyQuery.isFetching}
+      />
     </PageContainer>
   );
 }

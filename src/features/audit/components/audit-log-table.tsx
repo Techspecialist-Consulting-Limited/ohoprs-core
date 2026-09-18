@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { formatDateTime, formatNumber } from "@/lib/formatters";
+import { Pagination } from "@/components/ui/pagination";
+import { formatDateTime } from "@/lib/formatters";
 import type { AuditLog, AuditLogListMeta } from "@/types/audit";
 import { AuditModuleBadge } from "@/features/audit/components/audit-module-badge";
 import { AuditResultBadge } from "@/features/audit/components/audit-result-badge";
@@ -12,10 +12,14 @@ export function AuditLogTable({
   items,
   meta,
   onPageChange,
+  onLimitChange,
+  isFetching,
 }: {
   items: AuditLog[];
   meta: AuditLogListMeta;
   onPageChange: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
+  isFetching?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-sm">
@@ -55,31 +59,13 @@ export function AuditLogTable({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">
-          Showing page {meta.page} of {meta.totalPages} ({formatNumber(meta.total)} audit events)
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={meta.page === 1}
-            onClick={() => onPageChange(meta.page - 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-          >
-            <ChevronLeft size={16} />
-            Previous
-          </button>
-          <button
-            type="button"
-            disabled={meta.page === meta.totalPages}
-            onClick={() => onPageChange(meta.page + 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-3 text-sm text-foreground disabled:opacity-50"
-          >
-            Next
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        meta={meta}
+        onPageChange={onPageChange}
+        onLimitChange={onLimitChange}
+        isFetching={isFetching}
+        itemLabel="audit events"
+      />
     </div>
   );
 }

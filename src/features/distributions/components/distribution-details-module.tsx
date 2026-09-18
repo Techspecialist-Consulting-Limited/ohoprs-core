@@ -152,7 +152,7 @@ export function DistributionDetailsModule({ id }: { id: string }) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <DistributionBeneficiaryPreview recipients={distribution.recipients} />
+        <DistributionBeneficiaryPreview recipients={distribution.recipients} totalBeneficiaryCount={distribution.beneficiaryCount} />
         <DistributionActivityFeed items={distribution.recentActivities} />
       </section>
 

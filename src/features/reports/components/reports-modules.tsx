@@ -16,6 +16,7 @@ import { OrganizationReportTable } from "@/features/reports/components/organizat
 import { ProgramPerformanceChart } from "@/features/reports/components/program-performance-chart";
 import { ProgramReportTable } from "@/features/reports/components/program-report-table";
 import { ReportChartCard } from "@/features/reports/components/report-chart-card";
+import { MapFilters } from "@/features/reports/components/map-filters";
 import { ReportFilters } from "@/features/reports/components/report-filters";
 import { ReportHeader } from "@/features/reports/components/report-header";
 import { ReportKpiGrid } from "@/features/reports/components/report-kpi-grid";
@@ -43,6 +44,7 @@ function useReportFilters() {
     datePreset: "LAST_12_MONTHS",
     organizationId: showOrganizationFilter ? "ALL" : user?.organizationId ?? undefined,
     programId: "ALL",
+    phaseNumber: "ALL",
     benefitType: "ALL",
     state: "ALL",
   });
@@ -134,8 +136,16 @@ export function ReportsDashboardModule() {
         <section className="rounded-[28px] border border-border bg-surface p-6 shadow-sm">
           <p className="text-lg font-semibold text-foreground">Intervention Coverage Map</p>
           <p className="mt-1 text-sm text-muted">
-            Hover a state for details, click it to filter every report on this page, or drill into its local government areas. Search for a household to jump straight to its location.
+            Filter by agency, intervention, and tranche to see that distribution&apos;s reach per state. Hover a state for details, click it to filter every report on this page, or drill into its local government areas. Search for a household to jump straight to its location.
           </p>
+          <div className="mt-5">
+            <MapFilters
+              value={{ ...filters, organizationId: scopedOrganizationId }}
+              onChange={setFilters}
+              showOrganizationFilter={showOrganizationFilter}
+              allowedOrganizationId={showOrganizationFilter ? null : scopedOrganizationId}
+            />
+          </div>
           <div className="mt-5 mx-auto max-w-5xl">
             <NigeriaChoroplethMap
               data={data.stateMetrics}

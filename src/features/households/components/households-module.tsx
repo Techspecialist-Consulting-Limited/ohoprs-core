@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { PageContainer } from "@/components/ui/page-container";
 import { PageHeader } from "@/components/ui/page-header";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { usePageQueryState } from "@/hooks/use-page-query-state";
 import { nigeriaStates } from "@/constants/nigeria-regions";
 import { householdService } from "@/services/household.service";
 import type { JourneyStage } from "@/types/household";
@@ -20,15 +21,15 @@ export function HouseholdsModule() {
   const [search, setSearch] = useState("");
   const [state, setState] = useState<string>("ALL");
   const [journeyStage, setJourneyStage] = useState<JourneyStage | "ALL">("ALL");
-  const [page, setPage] = useState(1);
+  const { page, limit, setPage, setLimit } = usePageQueryState(10);
   const debouncedSearch = useDebouncedValue(search);
 
   const householdsQuery = useQuery({
-    queryKey: ["households", page, { search: debouncedSearch, state, journeyStage }],
+    queryKey: ["households", page, limit, { search: debouncedSearch, state, journeyStage }],
     queryFn: () =>
       householdService.getHouseholds({
         page,
-        limit: 10,
+        limit,
         search: debouncedSearch,
         state,
         journeyStage,
@@ -113,7 +114,13 @@ export function HouseholdsModule() {
       </section>
 
       {response.items.length ? (
-        <HouseholdTable items={response.items} meta={response.meta} onPageChange={setPage} />
+        <HouseholdTable
+          items={response.items}
+          meta={response.meta}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={householdsQuery.isFetching}
+        />
       ) : (
         <EmptyState
           title="No households match your filters"
